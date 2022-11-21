@@ -10,8 +10,8 @@ module Quo
     def count
       options[:total_count] || super
     end
-    alias total_count count
-    alias size count
+    alias_method :total_count, :count
+    alias_method :size, :count
 
     # Is this query object paged? (when no total count)
     def paged?
@@ -37,7 +37,7 @@ module Quo
     def preload_includes(records, preload = nil)
       ::ActiveRecord::Associations::Preloader.new(
         records: records,
-        associations: preload || options[:includes],
+        associations: preload || options[:includes]
       )
     end
   end

@@ -21,7 +21,7 @@ module Quo
       # These can be Quo::Query, Quo::MergedQuery, Quo::EagerQuery and ActiveRecord::Relations.
       # See the `README.md` docs for more details.
       def compose(query1, query2, joins = nil)
-        Quo::QueryComposer.call(query1, query2, joins)
+        Quo::QueryComposer.new(query1, query2, joins).compose
       end
 
       # Determines if the object `query` is something which can be composed with query objects
@@ -84,7 +84,7 @@ module Quo
     # Combine (compose) this query object with another composeable entity, see notes for `.compose` above.
     # Compose is aliased as `+`. Can optionally take `joins()` parameters to perform a joins before the merge
     def compose(right, joins = nil)
-      Quo::QueryComposer.call(self, right, joins)
+      Quo::QueryComposer.new(self, right, joins).compose
     end
 
     alias_method :+, :compose
@@ -309,7 +309,7 @@ module Quo
     end
 
     def sanitised_page_size
-      page_size.present? && page_size.positive? ? [page_size.to_i, 200].min : 20
+      (page_size.present? && page_size.positive?) ? [page_size.to_i, 200].min : 20
     end
 
     # TODO: we could also expose a method to do value based paging, ie you provide the

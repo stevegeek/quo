@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "quo/version"
+require_relative "quo/query"
+require_relative "quo/eager_query"
+require_relative "quo/merged_query"
+require_relative "quo/query_composer"
 
 module Quo
   class << self
@@ -13,9 +17,7 @@ module Quo
     end
   end
 
-  # Configuration class for initializer
   class Configuration
-    # @dynamic devise_password_hash
     attr_accessor :formatted_query_log, :query_show_callstack_size, :logger
 
     def initialize
