@@ -3,7 +3,8 @@
 module Quo
   class EagerQuery < Quo::Query
     def initialize(**options)
-      super(**options.merge(scope: Array.wrap(options[:collection])))
+      @collection = Array.wrap(options[:collection])
+      super(**options.except(:collection))
     end
 
     # Optionally return the `total_count` option
@@ -20,8 +21,8 @@ module Quo
 
     # Return the underlying collection
     def query
-      preload_includes(@scope) if options[:includes]
-      @scope
+      preload_includes(collection) if options[:includes]
+      collection
     end
 
     def relation?
@@ -33,6 +34,8 @@ module Quo
     end
 
     protected
+
+    attr_reader :collection
 
     def preload_includes(records, preload = nil)
       ::ActiveRecord::Associations::Preloader.new(

@@ -5,13 +5,15 @@ require_relative "quo/query"
 require_relative "quo/eager_query"
 require_relative "quo/merged_query"
 require_relative "quo/query_composer"
+require_relative "quo/enumerator"
 
 module Quo
   class << self
-    attr_reader :configuration
+    def configuration
+      @configuration ||= Configuration.new
+    end
 
     def configure
-      @configuration ||= Configuration.new
       yield(configuration) if block_given?
       configuration
     end

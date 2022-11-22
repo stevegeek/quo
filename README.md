@@ -15,15 +15,7 @@ The core implementation provides the following functionality:
 * can specify a mapping or transform method to `transform` to perform on results
 * in development outputs the callstack that led to the execution of the query
 * acts as a callable which executes the underlying query with `.first`
-* acts as an `Enumerable` (Note: may deprecate this in future versions cause of method conflicts to AR)
-
-## Inspired by `rectify`
-
-Note this implementation is loosely based on that in the `Rectify` gem; https://github.com/andypike/rectify.
-
-See https://github.com/andypike/rectify#query-objects for more information.
-
-Thanks to Andy Pike for the inspiration.
+* can return an `Enumerable` of results
 
 ## Creating a Quo query object
 
@@ -343,7 +335,15 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/quo.
+Bug reports and pull requests are welcome on GitHub at https://github.com/stevegeek/quo.
+
+## Inspired by `rectify`
+
+Note this implementation is loosely based on that in the `Rectify` gem; https://github.com/andypike/rectify.
+
+See https://github.com/andypike/rectify#query-objects for more information.
+
+Thanks to Andy Pike for the inspiration.
 
 ## License
 
