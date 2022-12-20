@@ -27,7 +27,7 @@ module Quo
       # Combine two query-like or composeable entities:
       # These can be Quo::Query, Quo::MergedQuery, Quo::EagerQuery and ActiveRecord::Relations.
       # See the `README.md` docs for more details.
-      def compose: (composable query1, composable query2, ?untyped? joins) -> Quo::MergedQuery
+      def compose: (composable query1, composable query2, ?joins: untyped?) -> Quo::MergedQuery
 
       # Determines if the object `query` is something which can be composed with query objects
       def composable_with?: (merge_composable query) -> bool
@@ -90,7 +90,7 @@ module Quo
 
     def initialize: (**untyped options) -> void
     def query: () -> composable
-    def compose: (composable right, ?untyped? joins) -> Quo::MergedQuery
+    def compose: (composable right, ?joins: untyped?) -> Quo::MergedQuery
     alias + compose
 
     def copy: (**untyped options) -> query

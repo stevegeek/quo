@@ -35,5 +35,4 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_20_072809) do
     t.datetime "updated_at", null: false
     t.index ["author_id"], name: "index_posts_on_author_id"
   end
-
 end

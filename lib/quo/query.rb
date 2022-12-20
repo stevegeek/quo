@@ -41,7 +41,7 @@ module Quo
 
     # Combine (compose) this query object with another composeable entity, see notes for `.compose` above.
     # Compose is aliased as `+`. Can optionally take `joins()` parameters to perform a joins before the merge
-    def compose(right, joins = nil)
+    def compose(right, joins: nil)
       Quo::QueryComposer.new(self, right, joins).compose
     end
 
@@ -252,7 +252,6 @@ module Quo
             rel = rel.limit(@options[:limit]) if @options[:limit].present?
             rel = rel.preload(@options[:preload]) if @options[:preload].present?
             rel = rel.includes(@options[:includes]) if @options[:includes].present?
-            rel = rel.joins(@options[:joins]) if @options[:joins].present?
             rel = rel.select(@options[:select]) if @options[:select].present?
           end
           rel

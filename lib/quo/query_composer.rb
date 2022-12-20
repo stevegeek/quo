@@ -58,7 +58,7 @@ module Quo
     end
 
     def apply_joins(left_rel, joins)
-      joins.present? ? left_rel.joins(joins.to_sym) : left_rel
+      joins.present? ? left_rel.joins(joins) : left_rel
     end
 
     def both_relations?(left_rel_type, right_rel_type)

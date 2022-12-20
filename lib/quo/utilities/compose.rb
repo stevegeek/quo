@@ -6,7 +6,7 @@ module Quo
     # These can be Quo::Query, Quo::MergedQuery, Quo::EagerQuery and ActiveRecord::Relations.
     # See the `README.md` docs for more details.
     module Compose
-      def compose(query1, query2, joins = nil)
+      def compose(query1, query2, joins: nil)
         Quo::QueryComposer.new(query1, query2, joins).compose
       end
 
