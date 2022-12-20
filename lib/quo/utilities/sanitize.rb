@@ -3,7 +3,6 @@
 module Quo
   module Utilities
     module Sanitize
-      # ActiveRecord::Sanitization wrappers
       def sanitize_sql_for_conditions(conditions)
         ActiveRecord::Base.sanitize_sql_for_conditions(conditions)
       end

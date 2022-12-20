@@ -14,12 +14,10 @@ module Quo
     extend Quo::Utilities::Wrap
 
     class << self
-      # Execute the query and return the first item
       def call(**options)
         new(**options).first
       end
 
-      # Execute the query and return the first item, or raise an error if no item is found
       def call!(**options)
         new(**options).first!
       end
@@ -201,7 +199,7 @@ module Quo
 
     delegate :distinct, to: :configured_query
 
-    protected
+    private
 
     def formatted_queries?
       Quo.configuration&.formatted_query_log

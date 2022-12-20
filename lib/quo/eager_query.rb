@@ -7,7 +7,9 @@ module Quo
       super(**options.except(:collection))
     end
 
-    # Optionally return the `total_count` option
+    # Optionally return the `total_count` option if it has been set.
+    # This is useful when the total count is known and not equal to size
+    # of wrapped collection.
     def count
       options[:total_count] || super
     end
@@ -19,7 +21,6 @@ module Quo
       options[:total_count].nil? && current_page.present?
     end
 
-    # Return the underlying collection
     def query
       preload_includes(collection) if options[:includes]
       collection
@@ -33,7 +34,7 @@ module Quo
       true
     end
 
-    protected
+    private
 
     attr_reader :collection
 

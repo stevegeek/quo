@@ -20,15 +20,18 @@ module Quo
     attr_reader :left, :right, :joins
 
     def merge
-      left_rel, right_rel = unwrap_relations
-      left_type, right_type = relation_types?
+      left_rel = unwrap_relation(left)
+      right_rel = unwrap_relation(right)
+      left_type = relation_type?(left)
+      right_type = relation_type?(right)
+
       if both_relations?(left_type, right_type)
         apply_joins(left_rel, joins).merge(right_rel)
       elsif left_relation_right_eager?(left_type, right_type)
         left_rel.to_a + right_rel
-      elsif left_eager_right_relation?(left_rel, left_type, right_type)
+      elsif left_eager_right_relation?(left_type, right_type) && left_rel.respond_to?(:+)
         left_rel + right_rel.to_a
-      elsif both_eager_loaded?(left_rel, left_type, right_type)
+      elsif both_eager_loaded?(left_type, right_type) && left_rel.respond_to?(:+)
         left_rel + right_rel
       else
         raise_error
@@ -42,13 +45,15 @@ module Quo
       {}
     end
 
-    def relation_types?
-      [left, right].map do |query|
-        if query.is_a?(Quo::Query)
-          query.relation?
-        else
-          query.is_a?(ActiveRecord::Relation)
-        end
+    def unwrap_relation(query)
+      query.is_a?(Quo::Query) ? query.unwrap : query
+    end
+
+    def relation_type?(query)
+      if query.is_a?(::Quo::Query)
+        query.relation?
+      else
+        query.is_a?(::ActiveRecord::Relation)
       end
     end
 
@@ -64,16 +69,12 @@ module Quo
       left_rel_type && !right_rel_type
     end
 
-    def left_eager_right_relation?(left_rel, left_rel_type, right_rel_type)
-      !left_rel_type && right_rel_type && left_rel.respond_to?(:+)
+    def left_eager_right_relation?(left_rel_type, right_rel_type)
+      !left_rel_type && right_rel_type
     end
 
-    def both_eager_loaded?(left_rel, left_rel_type, right_rel_type)
-      !left_rel_type && !right_rel_type && left_rel.respond_to?(:+)
-    end
-
-    def unwrap_relations
-      [left, right].map { |query| query.is_a?(Quo::Query) ? query.unwrap : query }
+    def both_eager_loaded?(left_rel_type, right_rel_type)
+      !left_rel_type && !right_rel_type
     end
 
     def raise_error

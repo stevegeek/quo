@@ -2,17 +2,21 @@
 
 module Quo
   module Utilities
+    # Wrap a ActiveRecord::Relation or data collection in a Query.
+    #
+    # If the passed in object is already a Query object then just return it or copy it if new options are passed in.
+    # Otherwise if a Relation wrap it in a new Query object or else in an EagerQuery .
     module Wrap
-      # Wrap a relation in a Query. If the passed in object is already a query object then just return it
       def wrap(query_rel_or_data, **options)
-        if query_rel_or_data.is_a?(Quo::Query) && options.present?
-          return query_rel_or_data.copy(**options)
+        if query_rel_or_data.is_a? Quo::Query
+          return options.present? ? query_rel_or_data.copy(**options) : query_rel_or_data
         end
-        return query_rel_or_data if query_rel_or_data.is_a? Quo::Query
+
         if query_rel_or_data.is_a? ActiveRecord::Relation
-          return new(**options.merge(scope: query_rel_or_data))
+          new(**options.merge(scope: query_rel_or_data))
+        else
+          Quo::EagerQuery.new(**options.merge(collection: query_rel_or_data))
         end
-        Quo::EagerQuery.new(**options.merge(collection: query_rel_or_data))
       end
     end
   end

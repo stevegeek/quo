@@ -53,8 +53,8 @@ module Quo
       end
     end
 
-    def respond_to_missing?(method, include_private = false)
-      Enumerable.instance_methods.include?(method) || super
+    def respond_to_missing?(name, include_private = false)
+      Enumerable.instance_methods.include?(name)
     end
 
     private
