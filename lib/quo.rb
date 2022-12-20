@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "quo/version"
+require_relative "quo/railtie" if defined?(Rails)
 require_relative "quo/query"
 require_relative "quo/eager_query"
 require_relative "quo/merged_query"
