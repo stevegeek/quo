@@ -148,9 +148,14 @@ class RegistrationToBeApproved < Quo::Query
   def query
     done = Registration.where(step: "complete")
     approved = CompanyToBeApproved.new
-    done + approved
+    # Here we use `.compose` utility method to wrap our Relation in a Query and 
+    # then compose with the other Query
+    Quo::Query.compose(done, approved)
   end
 end
+
+# A Relation can be composed directly to a Quo::Query
+query = RegistrationToBeApproved.new + Registration.where(blocked: false)
 ```
 
 Also you can use joins:
