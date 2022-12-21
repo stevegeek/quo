@@ -2,39 +2,52 @@
 
 module Quo
   class MergedQuery < Quo::Query
-    def initialize(options, source_queries = [])
-      @source_queries = source_queries
+    class << self
+      def call(**options)
+        build_from_options(**options).first
+      end
+
+      def call!(**options)
+        build_from_options(**options).first!
+      end
+
+      def build_from_options(**options)
+        merged_query = options[:merged_query]
+        left = options[:left]
+        right = options[:right]
+        raise ArgumentError "MergedQuery needs the merged result and operands" unless merged_query && left && right
+        new(merged_query, left, right, **options)
+      end
+    end
+
+    def initialize(merged_query, left, right, **options)
+      @merged_query = merged_query
+      @left = left
+      @right = right
       super(**options)
     end
 
     def query
-      @scope
+      @merged_query
+    end
+
+    def copy(**options)
+      self.class.new(query, left, right, **@options.merge(options))
     end
 
     def to_s
-      left = operand_desc(source_queries_left)
-      right = operand_desc(source_queries_right)
-      "Quo::MergedQuery[#{left}, #{right}]"
+      "Quo::MergedQuery[#{operand_desc(left)}, #{operand_desc(right)}]"
     end
 
     private
 
-    def source_queries_left
-      source_queries&.first
-    end
-
-    def source_queries_right
-      source_queries&.last
-    end
-
-    attr_reader :source_queries
+    attr_reader :left, :right
 
     def operand_desc(operand)
-      return unless operand
       if operand.is_a? Quo::MergedQuery
         operand.to_s
       else
-        operand.class.name
+        operand.class.name || "(anonymous)"
       end
     end
   end

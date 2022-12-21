@@ -9,9 +9,11 @@ module Quo
     end
 
     def compose
-      combined = merge
       Quo::MergedQuery.new(
-        merged_options.merge({scope: combined, source_queries: [left, right]})
+        merge_left_and_right,
+        left,
+        right,
+        **merged_options
       )
     end
 
@@ -19,7 +21,7 @@ module Quo
 
     attr_reader :left, :right, :joins
 
-    def merge
+    def merge_left_and_right
       left_rel = unwrap_relation(left)
       right_rel = unwrap_relation(right)
       left_type = relation_type?(left)
