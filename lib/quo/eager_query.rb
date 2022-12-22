@@ -2,9 +2,29 @@
 
 module Quo
   class EagerQuery < Quo::Query
-    def initialize(**options)
-      @collection = Array.wrap(options[:collection])
-      super(**options.except(:collection))
+    class << self
+      def call(**options)
+        build_from_options(options).first
+      end
+
+      def call!(**options)
+        build_from_options(options).first!
+      end
+
+      def build_from_options(options)
+        collection = options[:collection]
+        raise ArgumentError, "EagerQuery needs a collection" unless collection
+        new(collection, **options.except(:collection))
+      end
+    end
+
+    def initialize(collection, **options)
+      @collection = Array.wrap(collection)
+      super(**options)
+    end
+
+    def copy(**options)
+      self.class.new(@collection, **@options.merge(options))
     end
 
     # Optionally return the `total_count` option if it has been set.

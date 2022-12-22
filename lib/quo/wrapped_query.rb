@@ -13,7 +13,7 @@ module Quo
 
       def build_from_options(**options)
         query = options[:wrapped_query]
-        raise ArgumentError "WrappedQuery needs a scope" unless query
+        raise ArgumentError, "WrappedQuery needs a scope" unless query
         new(query, **options)
       end
     end

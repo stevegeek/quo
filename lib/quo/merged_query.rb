@@ -4,18 +4,18 @@ module Quo
   class MergedQuery < Quo::Query
     class << self
       def call(**options)
-        build_from_options(**options).first
+        build_from_options(options).first
       end
 
       def call!(**options)
-        build_from_options(**options).first!
+        build_from_options(options).first!
       end
 
-      def build_from_options(**options)
+      def build_from_options(options)
         merged_query = options[:merged_query]
         left = options[:left]
         right = options[:right]
-        raise ArgumentError "MergedQuery needs the merged result and operands" unless merged_query && left && right
+        raise ArgumentError, "MergedQuery needs the merged result and operands" unless merged_query && left && right
         new(merged_query, left, right, **options)
       end
     end

@@ -1,10 +1,12 @@
 module Quo
   class MergedQuery < Quo::Query
-    def initialize: (query_like merged, composable left, composable right, **untyped options) -> void
+    def self.build_from_options: (queryOptions) -> MergedQuery
 
-    @merged_query: query_like
+    def initialize: (relOrEnumerable merged, composable left, composable right, **untyped options) -> void
 
-    def query: () -> composable
+    @merged_query: relOrEnumerable
+
+    def query: () -> relOrEnumerable
 
     def to_s: () -> ::String
 

@@ -34,8 +34,8 @@ class Quo::QueryComposerTest < ActiveSupport::TestCase
   end
 
   test "composes eager queries" do
-    left = Quo::EagerQuery.new(collection: [1, 2, 3], foo: 1)
-    right = Quo::EagerQuery.new(collection: [4, 5, 6], bar: 2)
+    left = Quo::EagerQuery.new([1, 2, 3], foo: 1)
+    right = Quo::EagerQuery.new([4, 5, 6], bar: 2)
     composed = Quo::QueryComposer.new(left, right).compose
     assert_instance_of Quo::MergedQuery, composed
     assert_equal 1, composed.options[:foo]
@@ -55,7 +55,7 @@ class Quo::QueryComposerTest < ActiveSupport::TestCase
     records << post
 
     left = NewCommentsForAuthorQuery.new(author_id: author.id, page: 2, page_size: 1)
-    right = Quo::EagerQuery.new(collection: [4, 5, 6], bar: 2)
+    right = Quo::EagerQuery.new([4, 5, 6], bar: 2)
     composed = Quo::QueryComposer.new(left, right).compose
     assert_instance_of Quo::MergedQuery, composed
     assert_equal 1, composed.options[:author_id]

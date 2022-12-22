@@ -99,8 +99,8 @@ class Quo::QueryTest < ActiveSupport::TestCase
     assert UnreadCommentsQuery.new.relation?
     assert UnreadCommentsQuery.new.to_eager.eager?
     refute UnreadCommentsQuery.new.eager?
-    assert Quo::EagerQuery.new.eager?
-    refute Quo::EagerQuery.new.relation?
+    assert Quo::EagerQuery.new(nil).eager?
+    refute Quo::EagerQuery.new(nil).relation?
   end
 
   test "#first" do
