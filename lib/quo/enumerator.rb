@@ -34,17 +34,18 @@ module Quo
       :zip
 
     # Delegate other enumerable methods to underlying collection but also transform
-    def method_missing(method, *args, &block)
+    def method_missing(method, *args, **kwargs, &block)
       if unwrapped.respond_to?(method)
         debug_callstack
         if block
-          unwrapped.send(method, *args) do |*block_args|
+          unwrapped.send(method, *args, **kwargs) do |*block_args|
             x = block_args.first
-            transformed = transformer.present? ? transformer.call(x) : x
-            block.call(transformed, *block_args[1..])
+            transformed = transformer ? transformer.call(x) : x
+            other_args = block_args[1..] || []
+            block.call(transformed, *other_args)
           end
         else
-          raw = unwrapped.send(method, *args)
+          raw = unwrapped.send(method, *args, **kwargs)
           return raw if raw.is_a?(Quo::Enumerator) || raw.is_a?(::Enumerator)
           transform_results(raw)
         end
@@ -62,7 +63,7 @@ module Quo
     attr_reader :transformer, :unwrapped
 
     def transform_results(results)
-      return results unless transformer.present?
+      return results unless transformer
 
       if results.is_a?(Enumerable)
         results.map.with_index { |item, i| transformer.call(item, i) }
