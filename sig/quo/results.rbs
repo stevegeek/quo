@@ -1,5 +1,5 @@
 module Quo
-  class Enumerator
+  class Results
     extend Forwardable
 
     include Quo::Utilities::Callstack
@@ -15,7 +15,7 @@ module Quo
     private
 
     attr_reader transformer: (^(untyped, ?Integer) -> untyped)?
-    attr_reader unwrapped: query_like
+    attr_reader unwrapped: relOrEnumerable
 
     def transform_results: (untyped) -> untyped
   end

@@ -44,7 +44,7 @@ module Quo
     def to_a: () -> Array[untyped]
     def to_eager: (?::Hash[untyped, untyped] more_opts) -> Quo::EagerQuery
     alias load to_eager
-    def enumerator: () -> Quo::Enumerator
+    def results: () -> Quo::Results
 
     # Set a block used to transform data after query fetching
     def transform: () ?{ () -> untyped } -> self

@@ -138,12 +138,11 @@ module Quo
     end
     alias_method :load, :to_eager
 
-    # Return an enumerable
-    def enumerator
-      Quo::Enumerator.new(self, transformer: transformer)
+    def results
+      Quo::Results.new(self, transformer: transformer)
     end
 
-    # Some convenience methods for iterating over the results
+    # Some convenience methods for working with results
     delegate :each,
       :map,
       :flat_map,
@@ -151,8 +150,9 @@ module Quo
       :reject,
       :filter,
       :find,
+      :include?,
       :each_with_object,
-      to: :enumerator
+      to: :results
 
     # Set a block used to transform data after query fetching
     def transform(&block)

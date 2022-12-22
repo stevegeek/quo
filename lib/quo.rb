@@ -7,7 +7,7 @@ require_relative "quo/eager_query"
 require_relative "quo/merged_query"
 require_relative "quo/wrapped_query"
 require_relative "quo/query_composer"
-require_relative "quo/enumerator"
+require_relative "quo/results"
 
 module Quo
   class << self

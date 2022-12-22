@@ -2,11 +2,15 @@ module Quo
   VERSION: String
 
   type query = Quo::Query
-  type merge_composable = query | ActiveRecord::Relation
+  type queryOrRel = query | ActiveRecord::Relation
   # FIXME: anything that is Enumerable should be composable, but I don't know how to express that
   type enumerable = Array[untyped] | Set[untyped]
-  type query_like = ActiveRecord::Relation | enumerable
-  type composable = query | query_like
+  type relOrEnumerable = ActiveRecord::Relation | enumerable
+  type composable = query | relOrEnumerable
+
+  # TODO: how can we do the known options, eg `page` and then allow anything else?
+  # Maybe we should separate out the known options from the unknown options
+  type queryOptions = Hash[Symbol, untyped]
 
   interface _Logger
     def info: (String) -> void

@@ -200,7 +200,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
   end
 
   test "#map" do
-    mapped = UnreadCommentsQuery.new.enumerator.map.with_index do |c, i|
+    mapped = UnreadCommentsQuery.new.results.map.with_index do |c, i|
       c.body = "hello #{i} world"
       c
     end

@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-class Quo::EnumeratorTest < ActiveSupport::TestCase
+class Quo::ResultsTest < ActiveSupport::TestCase
   def setup
     a1 = Author.create!(name: "John")
     a2 = Author.create!(name: "Jane")
@@ -13,27 +13,27 @@ class Quo::EnumeratorTest < ActiveSupport::TestCase
   end
 
   test "#each" do
-    e = Quo::Enumerator.new(UnreadCommentsQuery.new)
+    e = Quo::Results.new(UnreadCommentsQuery.new)
     a = []
     e.each { |c| a << c.body }
-    assert_kind_of Quo::Enumerator, e
+    assert_kind_of Quo::Results, e
     assert_equal ["abc", "def"], a
     assert_kind_of Comment, e.first
   end
 
   test "#map" do
-    mapped = Quo::Enumerator.new(UnreadCommentsQuery.new).map.with_index do |c, i|
+    mapped = Quo::Results.new(UnreadCommentsQuery.new).map.with_index do |c, i|
       c.body = "hello #{i} world"
       c
     end
     assert_equal ["hello 0 world", "hello 1 world"], mapped.map(&:body)
 
-    # FIXME: consider how to handle applying a transformer to non quo enumerator results...
+    # FIXME: consider how to handle applying a transformer to a Enumerator...
     # t = ->(v, i) {
     #   v.body = 100 + i
     #   v
     # }
-    # mapped = Quo::Enumerator.new(UnreadCommentsQuery.new, transformer: t).map.with_index do |c, i|
+    # mapped = Quo::Results.new(UnreadCommentsQuery.new, transformer: t).map.with_index do |c, i|
     #   c.body = "#{c.body} - #{i}"
     #   c
     # end
@@ -41,14 +41,14 @@ class Quo::EnumeratorTest < ActiveSupport::TestCase
   end
 
   test "#take(2)" do
-    taken = Quo::Enumerator.new(UnreadCommentsQuery.new).take(2)
+    taken = Quo::Results.new(UnreadCommentsQuery.new).take(2)
     assert_equal ["abc", "def"], taken.map(&:body)
 
     t = ->(v, i) {
       v.body = i
       v
     }
-    taken = Quo::Enumerator.new(UnreadCommentsQuery.new, transformer: t).take(2)
+    taken = Quo::Results.new(UnreadCommentsQuery.new, transformer: t).take(2)
     assert_equal ["0", "1"], taken.map(&:body)
   end
 end

@@ -4,7 +4,7 @@ require "forwardable"
 require_relative "./utilities/callstack"
 
 module Quo
-  class Enumerator
+  class Results
     extend Forwardable
     include Quo::Utilities::Callstack
 
@@ -51,7 +51,8 @@ module Quo
           end
         else
           raw = unwrapped.send(method, *args, **kwargs)
-          return raw if raw.is_a?(Quo::Enumerator) || raw.is_a?(::Enumerator)
+          # FIXME: consider how to handle applying a transformer to a Enumerator...
+          return raw if raw.is_a?(Quo::Results) || raw.is_a?(::Enumerator)
           transform_results(raw)
         end
       else
