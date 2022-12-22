@@ -8,6 +8,8 @@ module Quo
 
     @query: Quo::Query
 
+    def group_by: -> Hash[untyped, Array[untyped]]
+
     def respond_to_missing?: (Symbol name, ?bool include_private) -> bool
 
     private

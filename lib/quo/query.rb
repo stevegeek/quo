@@ -144,7 +144,15 @@ module Quo
     end
 
     # Some convenience methods for iterating over the results
-    delegate :each, :map, :flat_map, :reduce, :reject, :filter, to: :enumerator
+    delegate :each,
+      :map,
+      :flat_map,
+      :reduce,
+      :reject,
+      :filter,
+      :find,
+      :each_with_object,
+      to: :enumerator
 
     # Set a block used to transform data after query fetching
     def transform(&block)
@@ -199,7 +207,7 @@ module Quo
     private
 
     def formatted_queries?
-      Quo.configuration&.formatted_query_log
+      !!Quo.configuration.formatted_query_log
     end
 
     # 'trim' a query, ie remove comments and remove newlines
@@ -218,7 +226,7 @@ module Quo
 
     def offset
       per_page = sanitised_page_size
-      page = current_page.positive? ? current_page : 1
+      page = current_page&.positive? ? current_page : 1
       per_page * (page - 1)
     end
 
