@@ -27,8 +27,10 @@
 # end
 
 target :lib do
-  check "lib/quo"
+  check "lib"
   signature "sig"
+  ignore "lib/quo/rspec/*.rb"
+  ignore "lib/tasks/*"
 
   library "forwardable"
 end

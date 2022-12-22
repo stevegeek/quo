@@ -1,0 +1,24 @@
+module Quo
+  class QueryComposer
+    def initialize: (composable left, composable right, ?untyped? joins) -> void
+    def compose: () -> Quo::MergedQuery
+
+    private
+
+    attr_reader left: composable
+    attr_reader right: composable
+    attr_reader joins: untyped
+
+    def merge_left_and_right: () -> (ActiveRecord::Relation | Array[untyped] | void)
+    def merged_options: () -> ::Hash[untyped, untyped]
+    def unwrap_relation: (composable) -> query_like
+    def relation_type?: (composable) -> bool
+    def apply_joins: (ActiveRecord::Relation left_rel, untyped joins) -> ActiveRecord::Relation
+    def both_relations?: (bool left_rel_type, bool right_rel_type) -> bool
+    def left_relation_right_eager?: (bool left_rel_type, bool right_rel_type) -> bool
+    def left_eager_right_relation?: (bool left_rel_type, bool right_rel_type) -> bool
+    def both_eager_loaded?: (bool left_rel_type, bool right_rel_type) -> bool
+
+    def raise_error: () -> void
+  end
+end

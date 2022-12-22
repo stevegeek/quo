@@ -1,0 +1,8 @@
+module Quo
+  module Utilities
+    module Compose
+      def compose: (composable query1, composable query2, ?joins: untyped?) -> Quo::MergedQuery
+      def composable_with?: (merge_composable query) -> bool
+    end
+  end
+end

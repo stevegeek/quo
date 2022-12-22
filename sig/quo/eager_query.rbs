@@ -1,0 +1,13 @@
+module Quo
+  class EagerQuery < Quo::Query
+    def initialize: (**untyped options) -> void
+    def query: () -> enumerable
+    def relation?: () -> false
+    def eager?: () -> true
+    attr_reader collection: enumerable
+
+    private
+
+    def preload_includes: (untyped records, ?untyped? preload) -> untyped
+  end
+end

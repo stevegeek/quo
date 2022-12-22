@@ -1,205 +1,27 @@
 module Quo
   VERSION: String
 
-  interface _Enumerable
-    def each: { (untyped) -> void } -> untyped
-  end
-
-  interface _Collection
-    include _Enumerable
-    def is_a?: (Class) -> bool
-    def class: -> Class
-    def +: (untyped) -> _Collection
-  end
-
-  type query = Quo::MergedQuery | Quo::EagerQuery | Quo::Query
+  type query = Quo::Query
   type merge_composable = query | ActiveRecord::Relation
-  type enumerable = _Collection
+  # FIXME: anything that is Enumerable should be composable, but I don't know how to express that
+  type enumerable = Array[untyped] | Set[untyped]
   type query_like = ActiveRecord::Relation | enumerable
   type composable = query | query_like
 
-  module Utilities
-    module Callstack
-      def debug_callstack: () -> void
-    end
-
-    module Compose
-      # Combine two query-like or composeable entities:
-      # These can be Quo::Query, Quo::MergedQuery, Quo::EagerQuery and ActiveRecord::Relations.
-      # See the `README.md` docs for more details.
-      def compose: (composable query1, composable query2, ?joins: untyped?) -> Quo::MergedQuery
-
-      # Determines if the object `query` is something which can be composed with query objects
-      def composable_with?: (merge_composable query) -> bool
-    end
-
-    module Sanitize
-      def sanitize_sql_for_conditions: (untyped conditions) -> (untyped | nil)
-
-      def sanitize_sql_string: (untyped string) -> (untyped | nil)
-
-      def sanitize_sql_parameter: (untyped value) -> (untyped | nil)
-    end
-
-    interface _Wrapable
-      def new: (**untyped options) -> query
-    end
-
-    module Wrap : _Wrapable
-      def wrap: (composable query_rel_or_data, **untyped options) -> query
-    end
-
+  interface _Logger
+    def info: (String) -> void
+    def error: (String) -> void
+    def debug: (String) -> void
   end
 
-  class Enumerator
-    extend Forwardable
+  class Configuration
+    attr_accessor formatted_query_log: bool?
+    attr_accessor query_show_callstack_size: Integer?
+    attr_accessor logger: _Logger?
 
-    include Quo::Utilities::Callstack
-
-    def initialize: (Quo::Query query, ?transformer: ^(untyped, ?Integer) -> untyped) -> void
-
-    @query: Quo::Query
-
-    def respond_to_missing?: (Symbol name, ?bool include_private) -> bool
-
-    private
-
-    attr_reader transformer: ^(untyped, ?Integer) -> untyped
-    attr_reader unwrapped: ActiveRecord::Relation
-
-    def transform_results: (untyped) -> untyped
+    def initialize: () -> void
   end
+  attr_reader self.configuration: Configuration
 
-
-  class Query
-    include Quo::Utilities::Callstack
-    extend Quo::Utilities::Compose
-    extend Quo::Utilities::Sanitize
-    extend Quo::Utilities::Wrap
-
-    def self.call: (**untyped options) -> untyped
-    def self.call!: (**untyped options) -> untyped
-    def self.description: (?String) -> (String | nil)
-    self.@description: String | nil
-
-    @scope: ActiveRecord::Relation | nil
-
-    attr_reader current_page: (Integer | nil)
-    attr_reader page_size: (Integer | nil)
-    attr_reader options: Hash[untyped, untyped]
-
-    def initialize: (**untyped options) -> void
-    def query: () -> composable
-    def compose: (composable right, ?joins: untyped?) -> Quo::MergedQuery
-    alias + compose
-
-    def copy: (**untyped options) -> query
-
-    def limit: (untyped limit) -> query
-    def order: (untyped options) -> query
-    def group: (*untyped options) -> query
-    def includes: (*untyped options) -> query
-    def preload: (*untyped options) -> query
-    def select: (*untyped options) -> query
-
-    def sum: (?untyped column_name) -> Numeric
-    def average: (untyped column_name) -> Numeric
-    def minimum: (untyped column_name) -> Numeric
-    def maximum: (untyped column_name) -> Numeric
-    def count: () -> Integer
-
-    alias total_count count
-
-    alias size count
-    def page_count: () -> Integer
-    def first: (*untyped args) -> untyped
-    def first!: (*untyped args) -> untyped
-    def last: (*untyped args) -> untyped
-    def to_a: () -> Array[untyped]
-    def to_eager: (?::Hash[untyped, untyped] more_opts) -> Quo::EagerQuery
-    alias load to_eager
-    def enumerator: () -> Quo::Enumerator
-
-    # Set a block used to transform data after query fetching
-    def transform: () ?{ () -> untyped } -> self
-
-    def exists?: () -> bool
-    def none?: () -> bool
-    alias empty? none?
-    def relation?: () -> bool
-    def eager?: () -> bool
-    def paged?: () -> bool
-
-    def model: () -> (untyped | nil)
-    def klass: () -> (untyped | nil)
-
-    def transform?: () -> bool
-    def to_sql: () -> (String | nil)
-    def unwrap: () -> query_like
-
-    private
-
-    def formatted_queries?: () -> bool
-    def trim_query: (String sql) -> String
-    def format_query: (String sql_str) -> String
-    def transformer: () -> (nil | ^(untyped) -> untyped)
-    def offset: () -> Integer
-    def configured_query: () -> ActiveRecord::Relation
-    def sanitised_page_size: () -> Integer
-    def query_with_logging: () -> ActiveRecord::Relation
-    def underlying_query: () -> ActiveRecord::Relation
-    def unwrap_relation: (composable query) -> ActiveRecord::Relation
-    def test_eager: (composable rel) -> bool
-    def test_relation: (composable rel) -> bool
-  end
-
-  class MergedQuery < Quo::Query
-    def initialize: (untyped options, ?untyped source_queries) -> void
-
-    def query: () -> composable
-
-    def to_s: () -> ::String
-
-    private
-
-    def source_queries_left: () -> composable
-    def source_queries_right: () -> composable
-    attr_reader source_queries: Array[composable]
-    def operand_desc: (untyped operand) -> (nil | String)
-  end
-
-  class EagerQuery < Quo::Query
-    def initialize: (**untyped options) -> void
-    def query: () -> enumerable
-    def relation?: () -> false
-    def eager?: () -> true
-    attr_reader collection: enumerable
-
-    private
-
-    def preload_includes: (untyped records, ?untyped? preload) -> untyped
-  end
-
-  class QueryComposer
-    def initialize: (composable left, composable right, ?untyped? joins) -> void
-    def compose: () -> Quo::MergedQuery
-
-    private
-
-    attr_reader left: composable
-    attr_reader right: composable
-    attr_reader joins: untyped
-
-    def merge: () -> (ActiveRecord::Relation | Array[untyped] | void)
-    def merged_options: () -> ::Hash[untyped, untyped]
-    def unwrap_relation: (composable) -> query_like
-    def relation_type?: (composable) -> bool
-    def apply_joins: (ActiveRecord::Relation left_rel, untyped joins) -> ActiveRecord::Relation
-    def both_relations?: (bool left_rel_type, bool right_rel_type) -> bool
-    def left_relation_right_eager?: (bool left_rel_type, bool right_rel_type) -> bool
-    def left_eager_right_relation?: (bool left_rel_type, bool right_rel_type) -> bool
-    def both_eager_loaded?: (bool left_rel_type, bool right_rel_type) -> bool
-
-    def raise_error: () -> void
-  end
+  def self.configure: () { (Configuration config) -> void } -> void
 end

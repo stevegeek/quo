@@ -1,0 +1,17 @@
+module Quo
+  class MergedQuery < Quo::Query
+    def initialize: (query_like merged, composable left, composable right, **untyped options) -> void
+
+    @merged_query: query_like
+
+    def query: () -> composable
+
+    def to_s: () -> ::String
+
+    private
+
+    attr_reader left: composable
+    attr_reader right: composable
+    def operand_desc: (composable operand) -> String
+  end
+end

@@ -1,0 +1,20 @@
+module Quo
+  class Enumerator
+    extend Forwardable
+
+    include Quo::Utilities::Callstack
+
+    def initialize: (Quo::Query query, ?transformer: (^(untyped, ?Integer) -> untyped)?) -> void
+
+    @query: Quo::Query
+
+    def respond_to_missing?: (Symbol name, ?bool include_private) -> bool
+
+    private
+
+    attr_reader transformer: (^(untyped, ?Integer) -> untyped)?
+    attr_reader unwrapped: query_like
+
+    def transform_results: (untyped) -> untyped
+  end
+end
