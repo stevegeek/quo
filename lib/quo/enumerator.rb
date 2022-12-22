@@ -21,17 +21,22 @@ module Quo
       :any?,
       :none?,
       :one?,
-      :tally,
-      :count,
-      :group_by,
-      :partition,
-      :slice_before,
-      :slice_after,
-      :slice_when,
-      :chunk,
-      :chunk_while,
-      :sum,
-      :zip
+      :count
+
+    def group_by(&block)
+      debug_callstack
+      grouped = unwrapped.group_by do |*block_args|
+        x = block_args.first
+        transformed = transformer ? transformer.call(x) : x
+        block.call(transformed, *block_args[1..])
+      end
+
+      grouped.tap do |groups|
+        groups.transform_values! do |values|
+          transformer ? values.map { |x| transformer.call(x) } : values
+        end
+      end
+    end
 
     # Delegate other enumerable methods to underlying collection but also transform
     def method_missing(method, *args, **kwargs, &block)
