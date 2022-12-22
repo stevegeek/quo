@@ -134,7 +134,7 @@ module Quo
 
     # Convert to EagerQuery, and load all data
     def to_eager(more_opts = {})
-      Quo::EagerQuery.new(collection: to_a, **options.merge(more_opts))
+      Quo::EagerQuery.new(to_a, **options.merge(more_opts))
     end
     alias_method :load, :to_eager
 

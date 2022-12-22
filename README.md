@@ -229,7 +229,7 @@ q.count # array size
 `Quo::EagerQuery` is a subclass of `Quo::Query` which takes a data value on instantiation and returns it on calls to `query`
 
 ```ruby
-q = Quo::EagerQuery.new(collection: [1, 2, 3])
+q = Quo::EagerQuery.new([1, 2, 3])
 q.eager? # is it 'eager'? Yes it is!
 q.count # '3'
 ```
@@ -242,7 +242,7 @@ actually just a page of the data and not the total count.
 Example of an EagerQuery used to wrap a page of enumerable data:
 
 ```ruby
-Quo::EagerQuery.new(collection: my_data, total_count: 100, page: current_page)
+Quo::EagerQuery.new(my_data, total_count: 100, page: current_page)
 ```
 
 ### Composition
@@ -262,7 +262,7 @@ composed.last
 composed.first
 # => #<Tag id: ...>
 
-Quo::EagerQuery.new([3, 4]).compose(Quo::EagerQuery.new(collection: [1, 2])).last
+Quo::EagerQuery.new([3, 4]).compose(Quo::EagerQuery.new([1, 2])).last
 # => 2
 Quo::Query.compose([1, 2], [3, 4]).last
 # => 4
