@@ -1,0 +1,11 @@
+module Quo
+  class WrappedQuery < Quo::Query
+    @wrapped_query:  ActiveRecord::Relation
+
+    def self.build_from_options: (**untyped options) -> WrappedQuery
+
+    def initialize: (ActiveRecord::Relation query, **untyped options) -> void
+
+    def query: () -> ActiveRecord::Relation
+  end
+end

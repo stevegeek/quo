@@ -13,7 +13,7 @@ module Quo
         end
 
         if query_rel_or_data.is_a? ActiveRecord::Relation
-          new(**options.merge(scope: query_rel_or_data))
+          Quo::WrappedQuery.new(query_rel_or_data, **options)
         else
           Quo::EagerQuery.new(**options.merge(collection: query_rel_or_data))
         end

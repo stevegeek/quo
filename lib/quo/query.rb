@@ -29,13 +29,10 @@ module Quo
       @options = options
       @current_page = options[:page]&.to_i || options[:current_page]&.to_i
       @page_size = options[:page_size]&.to_i || 20
-      @scope = unwrap_relation(options[:scope])
     end
 
     # Returns a active record query, or a Quo::Query instance
-    # You must provide an implementation of this of pass the 'scope' option on instantiation
     def query
-      return @scope unless @scope.nil?
       raise NotImplementedError, "Query objects must define a 'query' method"
     end
 
