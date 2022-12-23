@@ -5,6 +5,10 @@ module Quo
     def initialize(left, right, joins = nil)
       @left = left
       @right = right
+      @unwrapped_left = unwrap_relation(left)
+      @unwrapped_right = unwrap_relation(right)
+      @left_relation = @unwrapped_left.is_a?(::ActiveRecord::Relation)
+      @right_relation = @unwrapped_right.is_a?(::ActiveRecord::Relation)
       @joins = joins
     end
 
@@ -19,24 +23,26 @@ module Quo
 
     private
 
-    attr_reader :left, :right, :joins
+    attr_reader :left, :right, :joins, :unwrapped_left, :unwrapped_right
+
+    def left_relation?
+      @left_relation
+    end
+
+    def right_relation?
+      @right_relation
+    end
 
     def merge_left_and_right
-      left_rel = unwrap_relation(left)
-      right_rel = unwrap_relation(right)
-      left_type = relation_type?(left)
-      right_type = relation_type?(right)
-
-      if both_relations?(left_type, right_type)
-        apply_joins(left_rel, joins).merge(right_rel)
-      elsif left_relation_right_eager?(left_type, right_type)
-        left_rel.to_a + right_rel
-      elsif left_eager_right_relation?(left_type, right_type) && left_rel.respond_to?(:+)
-        left_rel + right_rel.to_a
-      elsif both_eager_loaded?(left_type, right_type) && left_rel.respond_to?(:+)
-        left_rel + right_rel
+      # FIXME: Skipping type checks here, as not sure how to make this type check with RBS
+      __skip__ = if both_relations?
+        apply_joins(unwrapped_left, joins).merge(unwrapped_right)
+      elsif left_relation_right_enumerable?
+        unwrapped_left.to_a + unwrapped_right
+      elsif left_enumerable_right_relation?
+        unwrapped_left + unwrapped_right.to_a
       else
-        raise_error
+        unwrapped_left + unwrapped_right
       end
     end
 
@@ -51,38 +57,20 @@ module Quo
       query.is_a?(Quo::Query) ? query.unwrap : query
     end
 
-    def relation_type?(query)
-      if query.is_a?(::Quo::Query)
-        query.relation?
-      else
-        query.is_a?(::ActiveRecord::Relation)
-      end
-    end
-
     def apply_joins(left_rel, joins)
       joins.present? ? left_rel.joins(joins) : left_rel
     end
 
-    def both_relations?(left_rel_type, right_rel_type)
-      left_rel_type && right_rel_type
+    def both_relations?
+      left_relation? && right_relation?
     end
 
-    def left_relation_right_eager?(left_rel_type, right_rel_type)
-      left_rel_type && !right_rel_type
+    def left_relation_right_enumerable?
+      left_relation? && !right_relation?
     end
 
-    def left_eager_right_relation?(left_rel_type, right_rel_type)
-      !left_rel_type && right_rel_type
-    end
-
-    def both_eager_loaded?(left_rel_type, right_rel_type)
-      !left_rel_type && !right_rel_type
-    end
-
-    def raise_error
-      raise ArgumentError, "Unable to composite queries #{left.class.name} and " \
-            "#{right.class.name}. You cannot compose queries where #query " \
-            "returns an ActiveRecord::Relation in one and an Enumerable in the other."
+    def left_enumerable_right_relation?
+      !left_relation? && right_relation?
     end
   end
 end
