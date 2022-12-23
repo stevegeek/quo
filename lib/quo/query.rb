@@ -93,36 +93,36 @@ module Quo
     delegate :model, :klass, to: :underlying_query
 
     # Get first elements
-    def first(*args)
+    def first(limit = nil)
       if transform?
-        res = query_with_logging.first(*args)
+        res = query_with_logging.first(limit)
         if res.is_a? Array
           res.map.with_index { |r, i| transformer.call(r, i) }
         elsif !res.nil?
           transformer.call(query_with_logging.first(*args))
         end
       else
-        query_with_logging.first(*args)
+        query_with_logging.first(limit)
       end
     end
 
-    def first!(*args)
-      item = first(*args)
+    def first!(limit = nil)
+      item = first(limit)
       raise ActiveRecord::RecordNotFound, "No item could be found!" unless item
       item
     end
 
     # Get last elements
-    def last(*args)
+    def last(limit = nil)
       if transform?
-        res = query_with_logging.last(*args)
+        res = query_with_logging.last(limit)
         if res.is_a? Array
           res.map.with_index { |r, i| transformer.call(r, i) }
         elsif !res.nil?
           transformer.call(query_with_logging.last(*args))
         end
       else
-        query_with_logging.last(*args)
+        query_with_logging.last(limit)
       end
     end
 

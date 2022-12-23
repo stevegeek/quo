@@ -5,28 +5,30 @@ module Quo
     extend Quo::Utilities::Sanitize
     extend Quo::Utilities::Wrap
 
+    @underlying_query: ActiveRecord::Relation
+
     def self.call: (**untyped options) -> untyped
     def self.call!: (**untyped options) -> untyped
 
     @scope: ActiveRecord::Relation | nil
 
-    attr_reader current_page: (Integer | nil)
-    attr_reader page_size: (Integer | nil)
+    attr_reader current_page: Integer?
+    attr_reader page_size: Integer?
     attr_reader options: Hash[untyped, untyped]
 
     def initialize: (**untyped options) -> void
-    def query: () -> composable
+    def query: () -> queryOrRel
     def compose: (composable right, ?joins: untyped?) -> Quo::MergedQuery
     alias + compose
 
-    def copy: (**untyped options) -> query
+    def copy: (**untyped options) -> Quo::Query
 
-    def limit: (untyped limit) -> query
-    def order: (untyped options) -> query
-    def group: (*untyped options) -> query
-    def includes: (*untyped options) -> query
-    def preload: (*untyped options) -> query
-    def select: (*untyped options) -> query
+    def limit: (untyped limit) -> Quo::Query
+    def order: (untyped options) -> Quo::Query
+    def group: (*untyped options) -> Quo::Query
+    def includes: (*untyped options) -> Quo::Query
+    def preload: (*untyped options) -> Quo::Query
+    def select: (*untyped options) -> Quo::Query
 
     def sum: (?untyped column_name) -> Numeric
     def average: (untyped column_name) -> Numeric
@@ -38,9 +40,9 @@ module Quo
 
     alias size count
     def page_count: () -> Integer
-    def first: (*untyped args) -> untyped
-    def first!: (*untyped args) -> untyped
-    def last: (*untyped args) -> untyped
+    def first: (?Integer? limit) -> untyped
+    def first!: (?Integer? limit) -> untyped
+    def last: (?Integer? limit) -> untyped
     def to_a: () -> Array[untyped]
     def to_eager: (?::Hash[untyped, untyped] more_opts) -> Quo::EagerQuery
     alias load to_eager
@@ -61,7 +63,7 @@ module Quo
 
     def transform?: () -> bool
     def to_sql: () -> (String | nil)
-    def unwrap: () -> query_like
+    def unwrap: () -> ActiveRecord::Relation
 
     private
 
@@ -74,7 +76,7 @@ module Quo
     def sanitised_page_size: () -> Integer
     def query_with_logging: () -> ActiveRecord::Relation
     def underlying_query: () -> ActiveRecord::Relation
-    def unwrap_relation: (composable query) -> ActiveRecord::Relation
+    def unwrap_relation: (queryOrRel query) -> ActiveRecord::Relation
     def test_eager: (composable rel) -> bool
     def test_relation: (composable rel) -> bool
   end
