@@ -91,7 +91,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
   test "#to_eager" do
     q = UnreadCommentsQuery.new
     eager = q.to_eager
-    assert_instance_of Quo::EagerQuery, eager
+    assert_instance_of Quo::LoadedQuery, eager
     assert_equal 2, eager.count
   end
 
@@ -99,8 +99,8 @@ class Quo::QueryTest < ActiveSupport::TestCase
     assert UnreadCommentsQuery.new.relation?
     assert UnreadCommentsQuery.new.to_eager.eager?
     refute UnreadCommentsQuery.new.eager?
-    assert Quo::EagerQuery.new(nil).eager?
-    refute Quo::EagerQuery.new(nil).relation?
+    assert Quo::LoadedQuery.new(nil).eager?
+    refute Quo::LoadedQuery.new(nil).relation?
   end
 
   test "#first" do

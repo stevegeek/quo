@@ -39,10 +39,12 @@ module Quo
         apply_joins(unwrapped_left, joins).merge(unwrapped_right)
       elsif left_relation_right_enumerable?
         unwrapped_left.to_a + unwrapped_right
-      elsif left_enumerable_right_relation?
+      elsif left_enumerable_right_relation? && unwrapped_left.respond_to?(:+)
         unwrapped_left + unwrapped_right.to_a
-      else
+      elsif unwrapped_left.respond_to?(:+)
         unwrapped_left + unwrapped_right
+      else
+        raise ArgumentError, "Cannot merge #{left.class} with #{right.class}"
       end
     end
 

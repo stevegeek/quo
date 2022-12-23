@@ -101,8 +101,11 @@ module Quo
         elsif !res.nil?
           transformer&.call(query_with_logging.first(limit))
         end
-      else
+      elsif limit
         query_with_logging.first(limit)
+      else
+        # Array#first will not take nil as a limit
+        query_with_logging.first
       end
     end
 
@@ -121,8 +124,10 @@ module Quo
         elsif !res.nil?
           transformer&.call(res)
         end
-      else
+      elsif limit
         query_with_logging.last(limit)
+      else
+        query_with_logging.last
       end
     end
 
@@ -132,9 +137,8 @@ module Quo
       transform? ? arr.map.with_index { |r, i| transformer&.call(r, i) } : arr
     end
 
-    # Convert to EagerQuery, and load all data
     def to_eager(more_opts = {})
-      Quo::EagerQuery.new(to_a, **options.merge(more_opts))
+      Quo::LoadedQuery.new(to_a, **options.merge(more_opts))
     end
     alias_method :load, :to_eager
 
@@ -282,7 +286,7 @@ module Quo
     end
 
     def test_eager(rel)
-      rel.is_a?(Enumerable) && !test_relation(rel)
+      rel.is_a?(Quo::LoadedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
     end
 
     def test_relation(rel)

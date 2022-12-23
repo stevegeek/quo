@@ -13,6 +13,7 @@ module Quo
   type queryOrRel = query | ActiveRecord::Relation
   type enumerable = Object & Enumerable[untyped]
   type relOrEnumerable = ActiveRecord::Relation | enumerable
+  type loadedQueryOrEnumerable = LoadedQuery | EagerQuery | enumerable
   type composable = query | relOrEnumerable
 
   # TODO: how can we do the known options, eg `page` and then allow anything else?

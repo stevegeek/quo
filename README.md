@@ -224,17 +224,31 @@ q.eager? # is it 'eager'? Yes it is!
 q.count # array size
 ```
 
-### `Quo::EagerQuery` objects
+### `Quo::EagerQuery` & `Quo::LoadedQuery` objects
 
-`Quo::EagerQuery` is a subclass of `Quo::Query` which takes a data value on instantiation and returns it on calls to `query`
+`Quo::EagerQuery` is a subclass of `Quo::Query` which can be used to create query objects which are 'eager loaded' by 
+default. This is useful for encapsulating data that doesn't come from an ActiveRecord query or queries that
+execute immediately. Subclass EasyQuery and override `collection` to return the data you want to encapsulate.
 
 ```ruby
-q = Quo::EagerQuery.new([1, 2, 3])
+class MyEagerQuery < Quo::EagerQuery
+  def collection
+    [1, 2, 3]
+  end
+end
+q = MyEagerQuery.new
 q.eager? # is it 'eager'? Yes it is!
 q.count # '3'
 ```
 
-This is useful to create eager loaded Queries without needing to create a explicit subclass of your own.
+Sometimes it is useful to create similar Queries without needing to create a explicit subclass of your own. For this
+use `Quo::LoadedQuery`:
+
+```ruby
+q = Quo::LoadedQuery.new([1, 2, 3])
+q.eager? # is it 'eager'? Yes it is!
+q.count # '3'
+```
 
 `Quo::EagerQuery` also uses `total_count` option value as the specified 'total count', useful when the data is
 actually just a page of the data and not the total count.
@@ -242,7 +256,7 @@ actually just a page of the data and not the total count.
 Example of an EagerQuery used to wrap a page of enumerable data:
 
 ```ruby
-Quo::EagerQuery.new(my_data, total_count: 100, page: current_page)
+Quo::LoadedQuery.new(my_data, total_count: 100, page: current_page)
 ```
 
 ### Composition
@@ -262,7 +276,7 @@ composed.last
 composed.first
 # => #<Tag id: ...>
 
-Quo::EagerQuery.new([3, 4]).compose(Quo::EagerQuery.new([1, 2])).last
+Quo::LoadedQuery.new([3, 4]).compose(Quo::LoadedQuery.new([1, 2])).last
 # => 2
 Quo::Query.compose([1, 2], [3, 4]).last
 # => 4
@@ -292,7 +306,7 @@ maybe desirable.
 
 The spec helper method `stub_query(query_class, {results: ..., with: ...})` can do this for you.
 
-It stubs `.new` on the Query object and returns instances of `EagerQuery` instead with the given `results`. 
+It stubs `.new` on the Query object and returns instances of `LoadedQuery` instead with the given `results`. 
 The `with` option is passed to the Query object on initialisation and used when setting up the method stub on the 
 query class.
 

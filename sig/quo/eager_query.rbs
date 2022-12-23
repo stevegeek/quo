@@ -1,18 +1,15 @@
 module Quo
   class EagerQuery < Quo::Query
-    def self.call: (**untyped) -> untyped
-    def self.call!: (**untyped) -> untyped
-    def self.build_from_options: (queryOptions) -> EagerQuery
+    def collection: () -> loadedQueryOrEnumerable
+    def query: () -> loadedQueryOrEnumerable
 
-    def initialize: (enumerable, **untyped options) -> void
-    def query: () -> enumerable
     def relation?: () -> false
     def eager?: () -> true
 
     private
 
-    attr_reader collection: enumerable
-
     def preload_includes: (untyped records, ?untyped? preload) -> untyped
+    def underlying_query: () -> enumerable
+    def unwrap_relation: (loadedQueryOrEnumerable collection) -> enumerable
   end
 end

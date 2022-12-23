@@ -15,7 +15,7 @@ module Quo
         if query_rel_or_data.is_a? ActiveRecord::Relation
           Quo::WrappedQuery.new(query_rel_or_data, **options)
         else
-          Quo::EagerQuery.new(query_rel_or_data, **options)
+          Quo::LoadedQuery.new(query_rel_or_data, **options)
         end
       end
     end
