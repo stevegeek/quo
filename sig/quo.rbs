@@ -3,8 +3,7 @@ module Quo
 
   type query = Quo::Query
   type queryOrRel = query | ActiveRecord::Relation
-  # FIXME: anything that is Enumerable should be composable, but I don't know how to express that
-  type enumerable = Array[untyped] | Set[untyped]
+  type enumerable = Object & Enumerable[untyped]
   type relOrEnumerable = ActiveRecord::Relation | enumerable
   type composable = query | relOrEnumerable
 
@@ -22,6 +21,8 @@ module Quo
     attr_accessor formatted_query_log: bool?
     attr_accessor query_show_callstack_size: Integer?
     attr_accessor logger: _Logger?
+    attr_accessor max_page_size: Integer?
+    attr_accessor default_page_size: Integer?
 
     def initialize: () -> void
   end

@@ -31,6 +31,7 @@ target :lib do
   signature "sig"
   ignore "lib/quo/rspec/*.rb"
   ignore "lib/tasks/*"
+  ignore "lib/quo/railtie.rb"
 
   library "forwardable"
 end

@@ -22,12 +22,18 @@ module Quo
   end
 
   class Configuration
-    attr_accessor :formatted_query_log, :query_show_callstack_size, :logger
+    attr_accessor :formatted_query_log,
+      :query_show_callstack_size,
+      :logger,
+      :max_page_size,
+      :default_page_size
 
     def initialize
       @formatted_query_log = true
       @query_show_callstack_size = 10
       @logger = nil
+      @max_page_size = 200
+      @default_page_size = 20
     end
   end
 end
