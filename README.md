@@ -201,29 +201,6 @@ Specify extra options to enable pagination:
 * `page`: the current page number to fetch
 * `page_size`: the number of elements to fetch in the page
 
-## 'Eager loaded' Quo::Query objects
-
-When a query object returns an `Array` from `query` it is assumed as 'eager loaded', ie that the query has actually
-already been executed and the array contains the return values. This can also be used to encapsulate data that doesn't
-actually come from an ActiveRecord query.
-
-For example, the Query below executes the query inside on the first call and memoises the resulting data. Note
-however that this then means that this Query is not reusuable to `merge` with other ActiveRecord queries. If it is
-`compose`d with other Query objects then it will be seen as an array-like, and concatenated to whatever it is being
-joined to.
-
-```ruby
-class CachedTags < Quo::Query
-  def query
-    @tags ||= Tag.where(active: true).to_a
-  end
-end
-
-q = CachedTags.new(active: false)
-q.eager? # is it 'eager'? Yes it is!
-q.count # array size
-```
-
 ### `Quo::EagerQuery` & `Quo::LoadedQuery` objects
 
 `Quo::EagerQuery` is a subclass of `Quo::Query` which can be used to create query objects which are 'eager loaded' by 
@@ -258,6 +235,9 @@ Example of an EagerQuery used to wrap a page of enumerable data:
 ```ruby
 Quo::LoadedQuery.new(my_data, total_count: 100, page: current_page)
 ```
+
+If a loaded query is `compose`d with other Query objects then it will be seen as an array-like, and concatenated to whatever 
+results are returned from the other queries. An loaded or eager query will force all other queries to be eager loaded.
 
 ### Composition
 
