@@ -70,7 +70,7 @@ module Quo
     def formatted_queries?: () -> bool
     def trim_query: (String sql) -> String
     def format_query: (String sql_str) -> String
-    def transformer: () -> (nil | ^(untyped) -> untyped)
+    def transformer: () -> (nil | ^(untyped, ?Integer) -> untyped)
     def offset: () -> Integer
     def configured_query: () -> ActiveRecord::Relation
     def sanitised_page_size: () -> Integer
