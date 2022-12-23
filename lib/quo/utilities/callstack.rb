@@ -12,7 +12,7 @@ module Quo
         stack = Kernel.caller.grep_v(exclude).map { |l| l.gsub(working_dir + "/", "") }
         stack_to_display = stack[0..callstack_size]
         message = "\n[Query stack]: -> #{stack_to_display&.join("\n               &> ")}\n"
-        message += " (truncated to #{callstack_size} most recent)" if stack.size > callstack_size
+        message += " (truncated to #{callstack_size} most recent)" if callstack_size && stack.size > callstack_size
         Quo.configuration.logger&.info(message)
       end
     end

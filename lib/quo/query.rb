@@ -97,9 +97,9 @@ module Quo
       if transform?
         res = query_with_logging.first(limit)
         if res.is_a? Array
-          res.map.with_index { |r, i| transformer.call(r, i) }
+          res.map.with_index { |r, i| transformer&.call(r, i) }
         elsif !res.nil?
-          transformer.call(query_with_logging.first(*args))
+          transformer&.call(query_with_logging.first(limit))
         end
       else
         query_with_logging.first(limit)
@@ -117,9 +117,9 @@ module Quo
       if transform?
         res = query_with_logging.last(limit)
         if res.is_a? Array
-          res.map.with_index { |r, i| transformer.call(r, i) }
+          res.map.with_index { |r, i| transformer&.call(r, i) }
         elsif !res.nil?
-          transformer.call(query_with_logging.last(*args))
+          transformer&.call(res)
         end
       else
         query_with_logging.last(limit)
@@ -129,7 +129,7 @@ module Quo
     # Convert to array
     def to_a
       arr = query_with_logging.to_a
-      transform? ? arr.map.with_index { |r, i| transformer.call(r, i) } : arr
+      transform? ? arr.map.with_index { |r, i| transformer&.call(r, i) } : arr
     end
 
     # Convert to EagerQuery, and load all data
@@ -226,7 +226,11 @@ module Quo
 
     def offset
       per_page = sanitised_page_size
-      page = current_page&.positive? ? current_page : 1
+      page = if current_page && current_page&.positive?
+        current_page
+      else
+        1
+      end
       per_page * (page - 1)
     end
 

@@ -28,7 +28,7 @@ module Quo
       grouped = unwrapped.group_by do |*block_args|
         x = block_args.first
         transformed = transformer ? transformer.call(x) : x
-        block.call(transformed, *block_args[1..])
+        block ? block.call(transformed, *(block_args[1..] || [])) : transformed
       end
 
       grouped.tap do |groups|
