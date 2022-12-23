@@ -28,7 +28,7 @@ module Quo
     def initialize(**options)
       @options = options
       @current_page = options[:page]&.to_i || options[:current_page]&.to_i
-      @page_size = options[:page_size]&.to_i || 20
+      @page_size = options[:page_size]&.to_i || Quo.configuration.default_page_size || 20
     end
 
     # Returns a active record query, or a Quo::Query instance
@@ -238,7 +238,17 @@ module Quo
     end
 
     def sanitised_page_size
-      (page_size.present? && page_size.positive?) ? [page_size.to_i, 200].min : 20
+      if page_size && page_size.positive?
+        given_size = page_size.to_i
+        max_page_size = Quo.configuration.max_page_size || 200
+        if given_size > max_page_size
+          max_page_size
+        else
+          given_size
+        end
+      else
+        Quo.configuration.default_page_size || 20
+      end
     end
 
     def query_with_logging
