@@ -1,3 +1,11 @@
+module ActiveRecord
+  module Associations
+    class Preloader
+      def initialize: (records: untyped, associations: untyped, ?scope: untyped, ?available_records: Array[untyped], ?associate_by_default: bool) -> void
+    end
+  end
+end
+
 module Quo
   VERSION: String
 
