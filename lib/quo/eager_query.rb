@@ -19,8 +19,9 @@ module Quo
     end
 
     def query
-      preload_includes(collection) if options[:includes]
-      collection
+      records = collection
+      preload_includes(records) if options[:includes]
+      records
     end
 
     def relation?

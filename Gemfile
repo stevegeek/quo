@@ -14,7 +14,7 @@ group :development, :test do
 
   gem "minitest", "~> 5.0"
 
-  gem "standard", "~> 1.3"
+  gem "standard", "~> 1.30"
 
-  gem "steep", "~> 1.2"
+  gem "steep", "~> 1.5"
 end
