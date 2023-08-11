@@ -45,7 +45,7 @@ module Quo
       ::ActiveRecord::Associations::Preloader.new(
         records: records,
         associations: preload || options[:includes]
-      )
+      ).call
     end
   end
 end
