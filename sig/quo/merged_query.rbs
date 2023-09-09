@@ -8,7 +8,7 @@ module Quo
 
     def query: () -> relOrEnumerable
 
-    def to_s: () -> ::String
+    def inspect: () -> ::String
 
     private
 

@@ -17,7 +17,7 @@ module Quo
       self.class.new(query, left, right, **@options.merge(options))
     end
 
-    def to_s
+    def inspect
       "Quo::MergedQuery[#{operand_desc(left)}, #{operand_desc(right)}]"
     end
 
@@ -27,7 +27,7 @@ module Quo
 
     def operand_desc(operand)
       if operand.is_a? Quo::MergedQuery
-        operand.to_s
+        operand.inspect
       else
         operand.class.name || "(anonymous)"
       end
