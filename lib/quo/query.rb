@@ -5,8 +5,11 @@ require_relative "./utilities/compose"
 require_relative "./utilities/sanitize"
 require_relative "./utilities/wrap"
 
+require "literal"
+
 module Quo
-  class Query
+  class Query < Literal::Struct
+    include Literal::Types
     include Quo::Utilities::Callstack
 
     extend Quo::Utilities::Compose
@@ -23,12 +26,33 @@ module Quo
       end
     end
 
-    attr_reader :current_page, :page_size, :options
+    COERCE_TO_INT = ->(value) do
+      return if value == Literal::Null
+      value&.to_i
+    end
 
-    def initialize(**options)
-      @options = options
-      @current_page = options[:page]&.to_i || options[:current_page]&.to_i
-      @page_size = options[:page_size]&.to_i || Quo.configuration.default_page_size || 20
+    attribute :page, _Nilable(Integer), &COERCE_TO_INT
+    attribute :current_page, _Nilable(Integer), &COERCE_TO_INT
+    attribute(:page_size, _Nilable(Integer), default: -> { Quo.configuration.default_page_size || 20 }, &COERCE_TO_INT)
+
+    # TODO: maybe deprecate these, they are set using the chainable method and when merging we can handle them separately?
+    attribute :group, _Nilable(_Any)
+    attribute :order, _Nilable(_Any)
+    attribute :limit, _Nilable(_Any)
+    attribute :preload, _Nilable(_Any)
+    attribute :includes, _Nilable(_Any)
+    attribute :select, _Nilable(_Any)
+
+    # def after_initialization
+    #   @current_page = options[:page]&.to_i || options[:current_page]&.to_i
+    #   @page_size = options[:page_size]&.to_i || Quo.configuration.default_page_size || 20
+    # end
+    def page_index
+      page || current_page
+    end
+
+    def options
+      @options ||= @attributes.dup
     end
 
     # Returns a active record query, or a Quo::Query instance
@@ -44,8 +68,8 @@ module Quo
 
     alias_method :+, :compose
 
-    def copy(**options)
-      self.class.new(**@options.merge(options))
+    def copy(**overrides)
+      self.class.new(**options.merge(overrides))
     end
 
     # Methods to prepare the query
@@ -160,7 +184,7 @@ module Quo
 
     # Set a block used to transform data after query fetching
     def transform(&block)
-      @options[:__transformer] = block
+      options[:__transformer] = block
       self
     end
 
@@ -188,7 +212,7 @@ module Quo
 
     # Is this query object paged? (ie is paging enabled)
     def paged?
-      current_page.present?
+      page_index.present?
     end
 
     # Is this query object transforming results?
@@ -230,8 +254,8 @@ module Quo
 
     def offset
       per_page = sanitised_page_size
-      page = if current_page && current_page&.positive?
-        current_page
+      page = if page_index && page_index&.positive?
+        page_index
       else
         1
       end
@@ -270,12 +294,12 @@ module Quo
         begin
           rel = unwrap_relation(query)
           unless test_eager(rel)
-            rel = rel.group(@options[:group]) if @options[:group].present?
-            rel = rel.order(@options[:order]) if @options[:order].present?
-            rel = rel.limit(@options[:limit]) if @options[:limit].present?
-            rel = rel.preload(@options[:preload]) if @options[:preload].present?
-            rel = rel.includes(@options[:includes]) if @options[:includes].present?
-            rel = rel.select(@options[:select]) if @options[:select].present?
+            rel = rel.group(options[:group]) if options[:group].present?
+            rel = rel.order(options[:order]) if options[:order].present?
+            rel = rel.limit(options[:limit]) if options[:limit].present?
+            rel = rel.preload(options[:preload]) if options[:preload].present?
+            rel = rel.includes(options[:includes]) if options[:includes].present?
+            rel = rel.select(options[:select]) if options[:select].present?
           end
           rel
         end

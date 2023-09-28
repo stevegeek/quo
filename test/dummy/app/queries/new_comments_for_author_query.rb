@@ -3,6 +3,8 @@
 # A query to fetch new unread comments that are on a particular author's posts.
 # Takes an `author_id` option argument
 class NewCommentsForAuthorQuery < Quo::Query
+  attribute :author_id, Integer
+
   def query
     UnreadCommentsQuery.new + Comment.joins(post: :author).where(authors: {id: options[:author_id]})
   end
