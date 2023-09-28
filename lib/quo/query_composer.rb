@@ -13,6 +13,8 @@ module Quo
     end
 
     def compose
+      # FIXME: we need to setup the literal attributes of both queries on the merged query
+      #
       Quo::MergedQuery.new(
         merge_left_and_right,
         left,

@@ -5,6 +5,8 @@ require_relative "../test_helper"
 class Quo::EagerQueryTest < ActiveSupport::TestCase
   test "#copy makes a copy of an eager query object with different options" do
     klass = Class.new(Quo::EagerQuery) do
+      attribute :foo, Integer
+
       def collection
         [1, 2, 3]
       end
@@ -13,6 +15,6 @@ class Quo::EagerQueryTest < ActiveSupport::TestCase
     q_copy = q.copy(foo: 2)
     assert_kind_of Quo::EagerQuery, q_copy
     assert_not_equal q, q_copy
-    assert_equal 2, q_copy.instance_variable_get(:@options)[:foo]
+    assert_equal 2, q_copy.options[:foo]
   end
 end
