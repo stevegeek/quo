@@ -61,7 +61,7 @@ module Quo
     end
 
     def respond_to_missing?(name, include_private = false)
-      Enumerable.instance_methods.include?(name)
+      enumerable_methods_supported.include?(name)
     end
 
     private
@@ -76,6 +76,10 @@ module Quo
       else
         transformer.call(results)
       end
+    end
+
+    def enumerable_methods_supported
+      [:find_each] + Enumerable.instance_methods
     end
   end
 end

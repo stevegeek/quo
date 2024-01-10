@@ -148,6 +148,7 @@ module Quo
 
     # Some convenience methods for working with results
     delegate :each,
+      :find_each,
       :map,
       :flat_map,
       :reduce,
