@@ -11,7 +11,7 @@ module Quo
 
     # Is this query object paged? (when no total count)
     def paged?
-      options[:total_count].nil? && current_page.present?
+      options[:total_count].nil? && page_index.present?
     end
 
     def collection

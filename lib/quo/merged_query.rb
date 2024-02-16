@@ -2,6 +2,7 @@
 
 module Quo
   class MergedQuery < Quo::Query
+    # TODO: attributes
     def initialize(merged_query, left, right, **options)
       @merged_query = merged_query
       @left = left

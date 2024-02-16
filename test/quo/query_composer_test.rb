@@ -5,6 +5,7 @@ require_relative "../test_helper"
 class Quo::QueryComposerTest < ActiveSupport::TestCase
   test "composes when left is a AR backed query object and right is a AR backed query object" do
     left = NewCommentsForAuthorQuery.new(author_id: 1, page: 2, page_size: 25)
+    # TODO: this is wierd, why should the other QO take irrelavent options to then have them be merged on compose?
     right = CommentNotSpamQuery.new(author_id: 2)
     composed = Quo::QueryComposer.new(left, right).compose
 
