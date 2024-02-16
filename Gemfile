@@ -14,9 +14,9 @@ group :development, :test do
 
   gem "minitest", "~> 5.0"
 
-  gem "standard", "~> 1.3"
+  gem "standard"
 
-  gem "steep", "~> 1.2"
+  gem "steep"
 
   gem "literal", github: "joeldrapper/literal", branch: "main"
 end
