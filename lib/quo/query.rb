@@ -202,9 +202,14 @@ module Quo
       configured_query.to_sql if relation?
     end
 
-    # Unwrap the underlying query
+    # Unwrap the paginated query
     def unwrap
       configured_query
+    end
+
+    # Unwrap the un-paginated query
+    def unwrap_unpaginated
+      underlying_query
     end
 
     delegate :distinct, to: :configured_query
