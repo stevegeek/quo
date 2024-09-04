@@ -14,7 +14,7 @@ module Quo
         message = "\n[Query stack]: -> #{stack_to_display&.join("\n               &> ")}\n"
         message += " (truncated to #{callstack_size} most recent)" if callstack_size && stack.size > callstack_size
         logger = Quo.configuration.logger&.call
-        logger.info(message) if logger
+        logger&.info(message)
       end
     end
   end

@@ -60,7 +60,6 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 end
 
-
 # # frozen_string_literal: true
 #
 # require_relative "../test_helper"

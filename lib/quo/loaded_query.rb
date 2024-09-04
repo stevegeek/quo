@@ -4,7 +4,7 @@ module Quo
   class LoadedQuery < Quo::EagerQuery
     def self.wrap(data = nil, props: {}, &block)
       klass = Class.new(self)
-      if block_given?
+      if block
         klass.define_method(:query, &block)
       elsif data
         klass.define_method(:query) { data }

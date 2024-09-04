@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "forwardable"
-require_relative "./utilities/callstack"
+require_relative "utilities/callstack"
 
 module Quo
   class Results

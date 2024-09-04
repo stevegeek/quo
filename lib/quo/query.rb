@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "./utilities/callstack"
-require_relative "./utilities/compose"
-require_relative "./utilities/sanitize"
-require_relative "./utilities/wrap"
+require_relative "utilities/callstack"
+require_relative "utilities/compose"
+require_relative "utilities/sanitize"
+require_relative "utilities/wrap"
 
 require "literal"
 
@@ -20,7 +20,7 @@ module Quo
         if shadow_check && reader && instance_methods.include?(name.to_sym)
           raise ArgumentError, "Property name '#{name}' shadows an existing method"
         end
-        if shadow_check && writer && instance_methods.include?("#{name}=".to_sym)
+        if shadow_check && writer && instance_methods.include?(:"#{name}=")
           raise ArgumentError, "Property name '#{name}' shadows an existing writer method '#{name}='"
         end
         super(name, type, kind, reader: reader, writer: writer, default: default)
@@ -265,7 +265,7 @@ module Quo
 
     def offset
       per_page = sanitised_page_size
-      page = if page_index && page_index&.positive?
+      page = if page_index&.positive?
         page_index
       else
         1
@@ -281,7 +281,7 @@ module Quo
     end
 
     def sanitised_page_size
-      if page_size && page_size.positive?
+      if page_size&.positive?
         given_size = page_size.to_i
         max_page_size = Quo.configuration.max_page_size || 200
         if given_size > max_page_size

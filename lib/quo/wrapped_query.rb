@@ -8,7 +8,7 @@ module Quo
           prop name, type
         end
       end
-      if block_given?
+      if block
         klass.define_method(:query, &block)
       elsif query
         klass.define_method(:query) { query }
