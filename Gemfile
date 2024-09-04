@@ -8,8 +8,6 @@ gemspec
 group :development, :test do
   gem "sqlite3"
 
-  gem "rails", ">= 6", "< 8"
-
   gem "rake", "~> 13.0"
 
   gem "minitest", "~> 5.0"
