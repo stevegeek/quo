@@ -2,17 +2,21 @@
 
 module Quo
   class WrappedQuery < Quo::Query
-    def initialize(wrapped_query, **options)
-      @wrapped_query = wrapped_query
-      super(**options)
-    end
-
-    def copy(**options)
-      self.class.new(query, **@options.merge(options))
-    end
-
-    def query
-      @wrapped_query
+    def self.wrap(query = nil, props: {}, &block)
+      klass = Class.new(self) do
+        props.each do |name, type|
+          prop name, type
+        end
+      end
+      if block_given?
+        klass.define_method(:query, &block)
+      elsif query
+        klass.define_method(:query) { query }
+      else
+        raise ArgumentError, "either a query or a block must be provided"
+      end
+      # klass.set_temporary_name = "quo::Wrapper" # Ruby 3.3+
+      klass
     end
   end
 end
