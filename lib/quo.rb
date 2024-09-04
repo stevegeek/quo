@@ -5,9 +5,8 @@ require_relative "quo/railtie" if defined?(Rails)
 require_relative "quo/query"
 require_relative "quo/eager_query"
 require_relative "quo/loaded_query"
-require_relative "quo/merged_query"
 require_relative "quo/wrapped_query"
-require_relative "quo/query_composer"
+require_relative "quo/composed_query"
 require_relative "quo/results"
 
 module Quo

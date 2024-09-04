@@ -69,6 +69,7 @@ module Quo
       raise NotImplementedError, "Query objects must define a 'query' method"
     end
 
+    # FIXME:
     def copy(**overrides)
       self.class.new(**options.merge(overrides))
     end
