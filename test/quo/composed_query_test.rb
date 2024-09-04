@@ -32,14 +32,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "merges two instances of Quo::Query objects" do
-    query = Quo::ComposedQuery.merge(@q1.new(since_date: 1.day.ago), @q2.new(spam_score: 0.5))
+    query = Quo::ComposedQuery.merge_instances(@q1.new(since_date: 1.day.ago), @q2.new(spam_score: 0.5))
     assert_equal 1, query.count
   end
 
   test "merges two instances of Quo::Query objects with different values and takes rightmost" do
     klass = Quo::ComposedQuery.compose(@q1, @q2)
     q3 = klass.new(since_date: 1.day.ago, spam_score: 0.9)
-    query = Quo::ComposedQuery.merge(@q2.new(spam_score: 0.5), q3)
+    query = Quo::ComposedQuery.merge_instances(@q2.new(spam_score: 0.5), q3)
     assert_equal 2, query.count
   end
 
@@ -49,7 +49,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "#inspect when 2 eager sources are provided" do
-    merged = Quo::ComposedQuery.merge(Quo::LoadedQuery.new(collection: []), Quo::LoadedQuery.new(collection: []))
+    merged = Quo::ComposedQuery.merge_instances(Quo::LoadedQuery.wrap([]).new, Quo::LoadedQuery.wrap([]).new)
     assert_equal "Quo::ComposedQuery[Quo::LoadedQuery, Quo::LoadedQuery]", merged.inspect
   end
 

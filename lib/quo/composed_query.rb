@@ -4,7 +4,7 @@ module Quo
   class ComposedQuery < Quo::Query
     class << self
       # Combine two Query classes into a new composed query class
-      def compose(left_query_class, right_query_class, joins = nil)
+      def compose(left_query_class, right_query_class, joins: nil)
         props = {}
         props.merge!(left_query_class.literal_properties.properties_index) if left_query_class < Quo::Query
         props.merge!(right_query_class.literal_properties.properties_index) if right_query_class < Quo::Query
@@ -26,13 +26,13 @@ module Quo
       end
 
       # We can also merge instance of prepared queries
-      def merge(left_instance, right_instance, joins = nil)
+      def merge_instances(left_instance, right_instance, joins: nil)
         raise ArgumentError, "Cannot merge, left has incompatible type #{left_instance.class}" unless left_instance.is_a?(Quo::Query) || left_instance.is_a?(::ActiveRecord::Relation)
         raise ArgumentError, "Cannot merge, right has incompatible type #{right_instance.class}" unless right_instance.is_a?(Quo::Query) || right_instance.is_a?(::ActiveRecord::Relation)
-        return compose(left_instance.class, right_instance, joins).new(**left_instance.to_h) if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
-        return compose(left_instance, right_instance.class, joins).new(**right_instance.to_h) if right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
-        return compose(left_instance.class, right_instance.class, joins).new(**left_instance.to_h.merge(right_instance.to_h)) if left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
-        compose(left_instance, right_instance, joins).new # Both are relations
+        return compose(left_instance.class, right_instance, joins: joins).new(**left_instance.to_h) if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
+        return compose(left_instance, right_instance.class, joins: joins).new(**right_instance.to_h) if right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
+        return compose(left_instance.class, right_instance.class, joins: joins).new(**left_instance.to_h.merge(right_instance.to_h)) if left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
+        compose(left_instance, right_instance, joins: joins).new # Both are relations
       end
 
       def inspect
@@ -126,7 +126,7 @@ module Quo
       if operand.is_a? Quo::ComposedQuery
         operand.inspect
       else
-        operand.class.name || "(anonymous)"
+        operand.class.name || operand.class.superclass
       end
     end
   end
