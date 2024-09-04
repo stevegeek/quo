@@ -3,6 +3,14 @@
 
 ## [1.0.0.rc1] - 2023-08-08
 
+### Breaking Changes
+
+Nearly everything has had changes. Porting will require effort.
+
+- Quo now depends on literal, meaning attributes (options) to queries are typed and explicit
+- Composing query objects now allows you to compose query classes rather than just instances
+- Drop support for Ruby <= 3.0
+
 ### Changed
 
 - Update docs

@@ -1,4 +1,4 @@
-# Quo
+# 'Quo' query objects for ActiveRecord
 
 Quo query objects can help you abstract ActiveRecord DB queries into reusable and composable objects with a chainable
 interface.
