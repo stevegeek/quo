@@ -45,21 +45,23 @@ module Quo
     prop(:page_size, _Nilable(Integer), default: -> { Quo.configuration.default_page_size || 20 }, &COERCE_TO_INT)
 
     # TODO: maybe deprecate these, they are set using the chainable method and when merging we can handle them separately?
-    prop :group, _Nilable(_Any)
-    prop :order, _Nilable(_Any)
-    prop :limit, _Nilable(_Any)
-    prop :preload, _Nilable(_Any)
-    prop :includes, _Nilable(_Any)
-    prop :select, _Nilable(_Any)
+    prop :group, _Nilable(_Any), reader: false, writer: false
+    prop :order, _Nilable(_Any), reader: false, writer: false
+    prop :limit, _Nilable(_Any), reader: false, writer: false
+    prop :preload, _Nilable(_Any), reader: false, writer: false
+    prop :includes, _Nilable(_Any), reader: false, writer: false
+    prop :select, _Nilable(_Any), reader: false, writer: false
 
     # def after_initialization
     #   @current_page = options[:page]&.to_i || options[:current_page]&.to_i
     #   @page_size = options[:page_size]&.to_i || Quo.configuration.default_page_size || 20
     # end
+
     def page_index
       page || current_page
     end
 
+    # @deprecated - to be removed!!
     def options
       @options ||= to_h.dup
     end
@@ -69,9 +71,10 @@ module Quo
       raise NotImplementedError, "Query objects must define a 'query' method"
     end
 
-    # FIXME:
     def copy(**overrides)
-      self.class.new(**options.merge(overrides))
+      self.class.new(**to_h.merge(overrides)).tap do |q|
+        q.instance_variable_set(:@__transformer, transformer)
+      end
     end
 
     # Methods to prepare the query
@@ -163,8 +166,8 @@ module Quo
       transform? ? arr.map.with_index { |r, i| transformer&.call(r, i) } : arr
     end
 
-    def to_eager(more_opts = {})
-      Quo::LoadedQuery.new(to_a, **options.merge(more_opts))
+    def to_eager
+      Quo::LoadedQuery.wrap(to_a).new
     end
     alias_method :load, :to_eager
 
@@ -187,7 +190,7 @@ module Quo
 
     # Set a block used to transform data after query fetching
     def transform(&block)
-      options[:__transformer] = block
+      @__transformer = block
       self
     end
 
@@ -257,7 +260,7 @@ module Quo
     end
 
     def transformer
-      options[:__transformer]
+      @__transformer
     end
 
     def offset

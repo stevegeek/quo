@@ -10,21 +10,24 @@ module Quo
         base.extend ClassMethods
       end
 
-      # Compose is aliased as `+`. Can optionally take `joins()` parameters to perform a joins before the merge
-      def compose(right, joins: nil)
-        self.class.compose(self, right, joins: joins).compose
+      # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+      def merge(right, joins: nil)
+        ComposedQuery.merge_instances(self, right, joins: joins)
       end
 
-      alias_method :+, :compose
+      alias_method :+, :merge
 
       module ClassMethods
-        def compose(left, right, joins: nil)
-          MergedQuery.compose(left, right, joins: joins)
-        end
-
         def composable_with?(query)
           query.is_a?(Quo::Query) || query.is_a?(ActiveRecord::Relation)
         end
+
+        # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+        def compose(right, joins: nil)
+          ComposedQuery.compose(self, right, joins: joins)
+        end
+
+        alias_method :+, :compose
       end
     end
   end
