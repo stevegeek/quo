@@ -11,12 +11,21 @@ module Quo
   class Query < Literal::Struct
     include Literal::Types
     include Quo::Utilities::Callstack
-
-    extend Quo::Utilities::Compose
+    include Quo::Utilities::Compose
     extend Quo::Utilities::Sanitize
     extend Quo::Utilities::Wrap
 
     class << self
+      def prop(name, type, kind = :keyword, reader: :public, writer: :public, default: nil, shadow_check: true)
+        if shadow_check && reader && instance_methods.include?(name.to_sym)
+          raise ArgumentError, "Property name '#{name}' shadows an existing method"
+        end
+        if shadow_check && writer && instance_methods.include?("#{name}=".to_sym)
+          raise ArgumentError, "Property name '#{name}' shadows an existing writer method '#{name}='"
+        end
+        super(name, type, kind, reader: reader, writer: writer, default: default)
+      end
+
       def call(**options)
         new(**options).first
       end
@@ -31,17 +40,17 @@ module Quo
       value&.to_i
     end
 
-    attribute :page, _Nilable(Integer), &COERCE_TO_INT
-    attribute :current_page, _Nilable(Integer), &COERCE_TO_INT
-    attribute(:page_size, _Nilable(Integer), default: -> { Quo.configuration.default_page_size || 20 }, &COERCE_TO_INT)
+    prop :page, _Nilable(Integer), &COERCE_TO_INT
+    prop :current_page, _Nilable(Integer), &COERCE_TO_INT
+    prop(:page_size, _Nilable(Integer), default: -> { Quo.configuration.default_page_size || 20 }, &COERCE_TO_INT)
 
     # TODO: maybe deprecate these, they are set using the chainable method and when merging we can handle them separately?
-    attribute :group, _Nilable(_Any)
-    attribute :order, _Nilable(_Any)
-    attribute :limit, _Nilable(_Any)
-    attribute :preload, _Nilable(_Any)
-    attribute :includes, _Nilable(_Any)
-    attribute :select, _Nilable(_Any)
+    prop :group, _Nilable(_Any)
+    prop :order, _Nilable(_Any)
+    prop :limit, _Nilable(_Any)
+    prop :preload, _Nilable(_Any)
+    prop :includes, _Nilable(_Any)
+    prop :select, _Nilable(_Any)
 
     # def after_initialization
     #   @current_page = options[:page]&.to_i || options[:current_page]&.to_i
@@ -52,21 +61,13 @@ module Quo
     end
 
     def options
-      @options ||= @attributes.dup
+      @options ||= to_h.dup
     end
 
     # Returns a active record query, or a Quo::Query instance
     def query
       raise NotImplementedError, "Query objects must define a 'query' method"
     end
-
-    # Combine (compose) this query object with another composeable entity, see notes for `.compose` above.
-    # Compose is aliased as `+`. Can optionally take `joins()` parameters to perform a joins before the merge
-    def compose(right, joins: nil)
-      Quo::QueryComposer.new(self, right, joins).compose
-    end
-
-    alias_method :+, :compose
 
     def copy(**overrides)
       self.class.new(**options.merge(overrides))

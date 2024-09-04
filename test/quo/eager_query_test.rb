@@ -5,7 +5,7 @@ require_relative "../test_helper"
 class Quo::EagerQueryTest < ActiveSupport::TestCase
   test "#copy makes a copy of an eager query object with different options" do
     klass = Class.new(Quo::EagerQuery) do
-      attribute :foo, Integer
+      prop :foo, Integer
 
       def collection
         [1, 2, 3]

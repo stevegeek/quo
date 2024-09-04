@@ -17,6 +17,4 @@ group :development, :test do
   gem "standard"
 
   gem "steep"
-
-  gem "literal", github: "joeldrapper/literal", branch: "main"
 end

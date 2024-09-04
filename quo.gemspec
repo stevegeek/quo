@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Quo query objects are composable."
   spec.homepage = "https://github.com/stevegeek/quo"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.7.0"
+  spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "activerecord", ">= 6", "< 8"
   spec.add_dependency "activesupport", ">= 6", "< 8"
+  spec.add_dependency "literal", ">= 0.2.0", "< 0.3.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
