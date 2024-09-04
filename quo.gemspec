@@ -33,6 +33,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activesupport", ">= 6", "< 8"
   spec.add_dependency "literal", ">= 0.2.0", "< 0.3.0"
 
+  spec.add_development_dependency "appraisal"
+
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 end
