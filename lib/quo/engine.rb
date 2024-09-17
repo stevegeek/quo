@@ -1,5 +1,7 @@
 module Quo
-  class Railtie < ::Rails::Railtie
+  class Engine < ::Rails::Engine
+    isolate_namespace Quo
+
     rake_tasks do
       load "tasks/quo.rake"
     end

@@ -42,7 +42,7 @@ module Quo
 
     prop :page, _Nilable(Integer), &COERCE_TO_INT
     prop :current_page, _Nilable(Integer), &COERCE_TO_INT
-    prop(:page_size, _Nilable(Integer), default: -> { Quo.configuration.default_page_size || 20 }, &COERCE_TO_INT)
+    prop(:page_size, _Nilable(Integer), default: -> { Quo.default_page_size || 20 }, &COERCE_TO_INT)
 
     # TODO: maybe deprecate these, they are set using the chainable method and when merging we can handle them separately?
     prop :group, _Nilable(_Any), reader: false, writer: false
@@ -54,7 +54,7 @@ module Quo
 
     # def after_initialization
     #   @current_page = options[:page]&.to_i || options[:current_page]&.to_i
-    #   @page_size = options[:page_size]&.to_i || Quo.configuration.default_page_size || 20
+    #   @page_size = options[:page_size]&.to_i || Quo.default_page_size || 20
     # end
 
     def page_index
@@ -246,7 +246,7 @@ module Quo
     private
 
     def formatted_queries?
-      !!Quo.configuration.formatted_query_log
+      !!Quo.formatted_query_log
     end
 
     # 'trim' a query, ie remove comments and remove newlines
@@ -283,14 +283,14 @@ module Quo
     def sanitised_page_size
       if page_size&.positive?
         given_size = page_size.to_i
-        max_page_size = Quo.configuration.max_page_size || 200
+        max_page_size = Quo.max_page_size || 200
         if given_size > max_page_size
           max_page_size
         else
           given_size
         end
       else
-        Quo.configuration.default_page_size || 20
+        Quo.default_page_size || 20
       end
     end
 

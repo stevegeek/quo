@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Quo
-  class WrappedQuery < Quo::Query
+  class WrappedQuery < Quo.base_query_class
     def self.wrap(query = nil, props: {}, &block)
       klass = Class.new(self) do
         props.each do |name, type|

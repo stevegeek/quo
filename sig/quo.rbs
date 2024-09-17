@@ -25,17 +25,4 @@ module Quo
     def error: (String) -> void
     def debug: (String) -> void
   end
-
-  class Configuration
-    attr_accessor formatted_query_log: bool?
-    attr_accessor query_show_callstack_size: Integer?
-    attr_accessor logger: _Logger?
-    attr_accessor max_page_size: Integer?
-    attr_accessor default_page_size: Integer?
-
-    def initialize: () -> void
-  end
-  attr_reader self.configuration: Configuration
-
-  def self.configure: () { (Configuration config) -> void } -> void
 end

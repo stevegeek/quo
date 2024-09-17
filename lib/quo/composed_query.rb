@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Quo
-  class ComposedQuery < Quo::Query
+  class ComposedQuery < Quo.base_query_class
     class << self
       # Combine two Query classes into a new composed query class
       def compose(left_query_class, right_query_class, joins: nil)

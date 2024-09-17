@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Quo
-  class EagerQuery < Quo::Query
+  class EagerQuery < Quo.base_query_class
     # Optionally return the `total_count` option if it has been set.
     # This is useful when the total count is known and not equal to size
     # of wrapped collection.

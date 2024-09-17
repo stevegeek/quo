@@ -1,39 +1,31 @@
 # frozen_string_literal: true
 
 require_relative "quo/version"
-require_relative "quo/railtie" if defined?(Rails)
-require_relative "quo/query"
-require_relative "quo/eager_query"
-require_relative "quo/loaded_query"
-require_relative "quo/wrapped_query"
-require_relative "quo/composed_query"
-require_relative "quo/results"
+require "quo/engine"
 
 module Quo
-  class << self
-    def configuration
-      @configuration ||= Configuration.new
-    end
+  extend ActiveSupport::Autoload
 
-    def configure
-      yield(configuration) if block_given?
-      configuration
-    end
-  end
+  autoload :Callstack, "quo/utilities/callstack"
+  autoload :Compose, "quo/utilities/compose"
+  autoload :Sanitize, "quo/utilities/sanitize"
+  autoload :Wrap, "quo/utilities/wrap"
 
-  class Configuration
-    attr_accessor :formatted_query_log,
-      :query_show_callstack_size,
-      :logger,
-      :max_page_size,
-      :default_page_size
+  autoload :Query
+  autoload :Results
+  autoload :ComposedQuery
+  autoload :EagerQuery
+  autoload :LoadedQuery
+  autoload :WrappedQuery
 
-    def initialize
-      @formatted_query_log = true
-      @query_show_callstack_size = 10
-      @logger = nil
-      @max_page_size = 200
-      @default_page_size = 20
-    end
+  mattr_accessor :base_query_class, default: "Quo::Query"
+  mattr_accessor :formatted_query_log, default: true
+  mattr_accessor :query_show_callstack_size, default: 10
+  mattr_accessor :logger, default: nil
+  mattr_accessor :max_page_size, default: 200
+  mattr_accessor :default_page_size, default: 20
+
+  def self.base_query_class
+    @@base_query_class.constantize
   end
 end
