@@ -13,7 +13,6 @@ The core implementation provides the following functionality:
 * provides a number of utility methods that operate on the underlying collection (eg `exists?`)
 * provides a `+` (`compose`) method which merges two query object instances (see section below for details!)
 * can specify a mapping or transform method to `transform` to perform on results
-* in development outputs the callstack that led to the execution of the query
 * acts as a callable which executes the underlying query with `.first`
 * can return an `Enumerable` of results
 

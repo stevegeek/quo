@@ -1,0 +1,201 @@
+# Generated from lib/quo/query.rb with RBS::Inline
+
+module Quo
+  class Query < Literal::Struct
+    include Literal::Types
+
+    # @rbs conditions: untyped?
+    # @rbs return: String
+    def self.sanitize_sql_for_conditions: (untyped? conditions) -> String
+
+    # @rbs string: String
+    # @rbs return: String
+    def self.sanitize_sql_string: (String string) -> String
+
+    # @rbs value: untyped
+    # @rbs return: String
+    def self.sanitize_sql_parameter: (untyped value) -> String
+
+    # 'Smart' wrap Query, ActiveRecord::Relation or a data collection in a Query.
+    # Calls out to Quo::WrappedQuery.wrap or Quo::LoadedQuery.wrap as appropriate.
+    def self.wrap: (untyped query_rel_or_data, **untyped options) -> untyped
+
+    def self.wrap_instance: (untyped query_rel_or_data) -> untyped
+
+    # @rbs query: untyped
+    # @rbs return: bool
+    def self.composable_with?: (untyped query) -> bool
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> untyped
+
+    # @rbs ovveride
+    def self.prop: (untyped name, untyped type, ?untyped kind, ?reader: untyped, ?writer: untyped, ?default: untyped, ?shadow_check: untyped) -> untyped
+
+    # @rbs **options: untyped
+    # @rbs return: untyped
+    def self.call: (**untyped options) -> untyped
+
+    # @rbs **options: untyped
+    # @rbs return: untyped
+    def self.call!: (**untyped options) -> untyped
+
+    COERCE_TO_INT: untyped
+
+    attr_accessor page(): Integer?
+
+    attr_accessor current_page(): Integer?
+
+    attr_accessor page_size(): Integer?
+
+    def page_index: () -> Integer
+
+    # @deprecated - to be removed!!
+    def options: () -> Hash[Symbol, untyped]
+
+    # Returns a active record query, or a Quo::Query instance
+    def query: () -> (Quo::Query | ::ActiveRecord::Relation)
+
+    # @rbs **overrides: untyped
+    # @rbs return: Quo::Query
+    def copy: (**untyped overrides) -> Quo::Query
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ::ActiveRecord::Relation
+    # @rbs joins: untyped
+    # @rbs return: Quo::ComposedQuery
+    def merge: (Quo::Query | ::ActiveRecord::Relation right, ?joins: untyped) -> Quo::ComposedQuery
+
+    # Methods to prepare the query
+    # @rbs limit: untyped
+    # @rbs return: Quo::Query
+    def limit: (untyped limit) -> Quo::Query
+
+    # @rbs options: untyped
+    # @rbs return: Quo::Query
+    def order: (untyped options) -> Quo::Query
+
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def group: (*untyped options) -> Quo::Query
+
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def includes: (*untyped options) -> Quo::Query
+
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def preload: (*untyped options) -> Quo::Query
+
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def select: (*untyped options) -> Quo::Query
+
+    # Gets the count of all results ignoring the current page and page size (if set).
+    def count: () -> Integer
+
+    # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
+    # all results)
+    def page_count: () -> Integer
+
+    # Get first elements
+    # @rbs limit: ?Integer
+    # @rbs return: untyped
+    def first: (?untyped limit) -> untyped
+
+    # Get first elements or raise an error if none are found
+    # @rbs limit: ?Integer
+    # @rbs return: untyped
+    def first!: (?untyped limit) -> untyped
+
+    # Get last elements
+    # @rbs limit: ?Integer
+    # @rbs return: untyped
+    def last: (?untyped limit) -> untyped
+
+    # Convert to array
+    # @rbs return: Array[untyped]
+    def to_a: () -> Array[untyped]
+
+    # @rbs return: Quo::LoadedQuery
+    def to_eager: () -> Quo::LoadedQuery
+
+    def results: () -> Quo::Results
+
+    @__transformer: nil | ^(untyped, ?Integer) -> untyped
+
+    # Set a block used to transform data after query fetching
+    # @rbs block: ^(untyped, ?Integer) -> untyped
+    # @rbs return: self
+    def transform: () ?{ (?) -> untyped } -> self
+
+    # Are there any results for this query?
+    def exists?: () -> bool
+
+    # Are there no results for this query?
+    def none?: () -> bool
+
+    # Is this query object a relation under the hood? (ie not eager loaded)
+    def relation?: () -> bool
+
+    # Is this query object eager loaded data under the hood? (ie not a relation)
+    def eager?: () -> bool
+
+    # Is this query object paged? (ie is paging enabled)
+    def paged?: () -> bool
+
+    # Is this query object transforming results?
+    def transform?: () -> bool
+
+    # Return the SQL string for this query if its a relation type query object
+    def to_sql: () -> String
+
+    # Unwrap the paginated query
+    def unwrap: () -> ActiveRecord::Relation
+
+    # Unwrap the un-paginated query
+    def unwrap_unpaginated: () -> ActiveRecord::Relation
+
+    def distinct: () -> ActiveRecord::Relation
+
+    private
+
+    def transformer: () -> untyped
+
+    def offset: () -> Integer
+
+    # The configured query is the underlying query with paging
+    def configured_query: () -> ActiveRecord::Relation
+
+    def sanitised_page_size: () -> Integer
+
+    # The underlying query is essentially the configured query with optional extras setup
+    def underlying_query: () -> ActiveRecord::Relation
+
+    # @rbs query: Quo::Query | ::ActiveRecord::Relation
+    # @rbs return: ActiveRecord::Relation
+    def unwrap_relation: (Quo::Query | ::ActiveRecord::Relation query) -> ActiveRecord::Relation
+
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def test_eager: (untyped rel) -> bool
+
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def test_relation: (untyped rel) -> bool
+
+    # Note we reselect the query as this prevents query errors if the SELECT clause is not compatible with COUNT
+    # (SQLException: wrong number of arguments to function COUNT()). We do this in two ways, either with the primary key
+    # or with Arel.star. The primary key is the most compatible way to count, but if the query does not have a primary
+    # we fallback. The fallback "*" wont work in certain situations though, specifically if we have a limit() on the query
+    # which Arel constructs as a subquery. In this case we will get a SQL error as the generated SQL contains
+    # `SELECT COUNT(count_column) FROM (SELECT * AS count_column FROM ...) subquery_for_count` where the error is:
+    # `ActiveRecord::StatementInvalid: SQLite3::SQLException: near "AS": syntax error`
+    # Either way DB engines know how to count efficiently.
+    # @rbs query: ActiveRecord::Relation
+    # @rbs return: Integer
+    def count_query: (ActiveRecord::Relation query) -> Integer
+  end
+end

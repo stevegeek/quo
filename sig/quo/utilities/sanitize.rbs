@@ -1,9 +1,0 @@
-module Quo
-  module Utilities
-    module Sanitize
-      def sanitize_sql_for_conditions: (untyped conditions) -> untyped?
-      def sanitize_sql_string: (untyped string) -> untyped?
-      def sanitize_sql_parameter: (untyped value) -> untyped?
-    end
-  end
-end

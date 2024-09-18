@@ -1,7 +1,13 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 module Quo
   class WrappedQuery < Quo.base_query_class
+    # @rbs query: ActiveRecord::Relation | Quo::Query
+    # @rbs props: Hash[Symbol, untyped]
+    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]
+    # @rbs return: Quo::WrappedQuery
     def self.wrap(query = nil, props: {}, &block)
       klass = Class.new(self) do
         props.each do |name, type|

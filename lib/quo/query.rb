@@ -1,44 +1,99 @@
 # frozen_string_literal: true
 
-require_relative "utilities/callstack"
-require_relative "utilities/compose"
-require_relative "utilities/sanitize"
-require_relative "utilities/wrap"
+# rbs_inline: enabled
 
 require "literal"
 
 module Quo
   class Query < Literal::Struct
     include Literal::Types
-    include Quo::Utilities::Callstack
-    include Quo::Utilities::Compose
-    extend Quo::Utilities::Sanitize
-    extend Quo::Utilities::Wrap
 
-    class << self
-      def prop(name, type, kind = :keyword, reader: :public, writer: :public, default: nil, shadow_check: true)
-        if shadow_check && reader && instance_methods.include?(name.to_sym)
-          raise ArgumentError, "Property name '#{name}' shadows an existing method"
-        end
-        if shadow_check && writer && instance_methods.include?(:"#{name}=")
-          raise ArgumentError, "Property name '#{name}' shadows an existing writer method '#{name}='"
-        end
-        super(name, type, kind, reader: reader, writer: writer, default: default)
-      end
+    # @rbs conditions: untyped?
+    # @rbs return: String
+    def self.sanitize_sql_for_conditions(conditions)
+      ActiveRecord::Base.sanitize_sql_for_conditions(conditions)
+    end
 
-      def call(**options)
-        new(**options).first
-      end
+    # @rbs string: String
+    # @rbs return: String
+    def self.sanitize_sql_string(string)
+      sanitize_sql_for_conditions(["'%s'", string])
+    end
 
-      def call!(**options)
-        new(**options).first!
+    # @rbs value: untyped
+    # @rbs return: String
+    def self.sanitize_sql_parameter(value)
+      sanitize_sql_for_conditions(["?", value])
+    end
+
+    # 'Smart' wrap Query, ActiveRecord::Relation or a data collection in a Query.
+    # Calls out to Quo::WrappedQuery.wrap or Quo::LoadedQuery.wrap as appropriate.
+    def self.wrap(query_rel_or_data, **options)
+      if query_rel_or_data < Quo::Query
+        query_rel_or_data
+      elsif query_rel_or_data.is_a?(ActiveRecord::Relation)
+        Quo::WrappedQuery.wrap(query_rel_or_data, **options)
+      else
+        Quo::LoadedQuery.wrap(query_rel_or_data)
       end
     end
 
-    COERCE_TO_INT = ->(value) do
+    def self.wrap_instance(query_rel_or_data)
+      if query_rel_or_data.is_a?(Quo::Query)
+        query_rel_or_data
+      elsif query_rel_or_data.is_a?(ActiveRecord::Relation)
+        Quo::WrappedQuery.wrap(query_rel_or_data).new
+      else
+        Quo::LoadedQuery.wrap(query_rel_or_data).new
+      end
+    end
+
+    # @rbs query: untyped
+    # @rbs return: bool
+    def self.composable_with?(query)
+      query.is_a?(Quo::Query) || query.is_a?(ActiveRecord::Relation)
+    end
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    def self.compose(right, joins: nil)
+      ComposedQuery.compose(self, right, joins: joins)
+    end
+    singleton_class.alias_method :+, :compose
+
+    # @rbs ovveride
+    def self.prop(name, type, kind = :keyword, reader: :public, writer: :public, default: nil, shadow_check: true)
+      if shadow_check && reader && instance_methods.include?(name.to_sym)
+        raise ArgumentError, "Property name '#{name}' shadows an existing method"
+      end
+      if shadow_check && writer && instance_methods.include?(:"#{name}=")
+        raise ArgumentError, "Property name '#{name}' shadows an existing writer method '#{name}='"
+      end
+      super(name, type, kind, reader: reader, writer: writer, default: default)
+    end
+
+    # @rbs **options: untyped
+    # @rbs return: untyped
+    def self.call(**options)
+      new(**options).first
+    end
+
+    # @rbs **options: untyped
+    # @rbs return: untyped
+    def self.call!(**options)
+      new(**options).first!
+    end
+
+    COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
       return if value == Literal::Null
       value&.to_i
     end
+
+    # @rbs!
+    #   attr_accessor page (): Integer?
+    #   attr_accessor current_page (): Integer?
+    #   attr_accessor page_size (): Integer?
 
     prop :page, _Nilable(Integer), &COERCE_TO_INT
     prop :current_page, _Nilable(Integer), &COERCE_TO_INT
@@ -57,47 +112,70 @@ module Quo
     #   @page_size = options[:page_size]&.to_i || Quo.default_page_size || 20
     # end
 
-    def page_index
+    def page_index #: Integer
       page || current_page
     end
 
     # @deprecated - to be removed!!
-    def options
+    def options #: Hash[Symbol, untyped]
       @options ||= to_h.dup
     end
 
     # Returns a active record query, or a Quo::Query instance
-    def query
+    def query #: Quo::Query | ::ActiveRecord::Relation
       raise NotImplementedError, "Query objects must define a 'query' method"
     end
 
+    # @rbs **overrides: untyped
+    # @rbs return: Quo::Query
     def copy(**overrides)
       self.class.new(**to_h.merge(overrides)).tap do |q|
         q.instance_variable_set(:@__transformer, transformer)
       end
     end
 
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ::ActiveRecord::Relation
+    # @rbs joins: untyped
+    # @rbs return: Quo::ComposedQuery
+    def merge(right, joins: nil)
+      ComposedQuery.merge_instances(self, right, joins: joins)
+    end
+    alias_method :+, :merge
+
     # Methods to prepare the query
+    # @rbs limit: untyped
+    # @rbs return: Quo::Query
     def limit(limit)
       copy(limit: limit)
     end
 
+    # @rbs options: untyped
+    # @rbs return: Quo::Query
     def order(options)
       copy(order: options)
     end
 
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
     def group(*options)
       copy(group: options)
     end
 
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
     def includes(*options)
       copy(includes: options)
     end
 
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
     def preload(*options)
       copy(preload: options)
     end
 
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
     def select(*options)
       copy(select: options)
     end
@@ -105,10 +183,14 @@ module Quo
     # The following methods actually execute the underlying query
 
     # Delegate SQL calculation methods to the underlying query
-    delegate :sum, :average, :minimum, :maximum, to: :query_with_logging
+    # @rbs def sum: (?untyped column_name) -> Numeric
+    # @rbs def average: (untyped column_name) -> Numeric
+    # @rbs def minimum: (untyped column_name) -> Numeric
+    # @rbs def maximum: (untyped column_name) -> Numeric
+    delegate :sum, :average, :minimum, :maximum, to: :configured_query
 
     # Gets the count of all results ignoring the current page and page size (if set).
-    def count
+    def count #: Integer
       count_query(underlying_query)
     end
 
@@ -117,30 +199,37 @@ module Quo
 
     # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
     # all results)
-    def page_count
-      count_query(query_with_logging)
+    def page_count #: Integer
+      count_query(configured_query)
     end
 
     # Delegate methods that let us get the model class (available on AR relations)
+    # @rbs def model: () -> (untyped | nil)
+    # @rbs def klass: () -> (untyped | nil)
     delegate :model, :klass, to: :underlying_query
 
     # Get first elements
+    # @rbs limit: ?Integer
+    # @rbs return: untyped
     def first(limit = nil)
       if transform?
-        res = query_with_logging.first(limit)
+        res = configured_query.first(limit)
         if res.is_a? Array
           res.map.with_index { |r, i| transformer&.call(r, i) }
         elsif !res.nil?
-          transformer&.call(query_with_logging.first(limit))
+          transformer&.call(configured_query.first(limit))
         end
       elsif limit
-        query_with_logging.first(limit)
+        configured_query.first(limit)
       else
         # Array#first will not take nil as a limit
-        query_with_logging.first
+        configured_query.first
       end
     end
 
+    # Get first elements or raise an error if none are found
+    # @rbs limit: ?Integer
+    # @rbs return: untyped
     def first!(limit = nil)
       item = first(limit)
       raise ActiveRecord::RecordNotFound, "No item could be found!" unless item
@@ -148,33 +237,37 @@ module Quo
     end
 
     # Get last elements
+    # @rbs limit: ?Integer
+    # @rbs return: untyped
     def last(limit = nil)
       if transform?
-        res = query_with_logging.last(limit)
+        res = configured_query.last(limit)
         if res.is_a? Array
           res.map.with_index { |r, i| transformer&.call(r, i) }
         elsif !res.nil?
           transformer&.call(res)
         end
       elsif limit
-        query_with_logging.last(limit)
+        configured_query.last(limit)
       else
-        query_with_logging.last
+        configured_query.last
       end
     end
 
     # Convert to array
+    # @rbs return: Array[untyped]
     def to_a
-      arr = query_with_logging.to_a
+      arr = configured_query.to_a
       transform? ? arr.map.with_index { |r, i| transformer&.call(r, i) } : arr
     end
 
+    # @rbs return: Quo::LoadedQuery
     def to_eager
       Quo::LoadedQuery.wrap(to_a).new
     end
     alias_method :load, :to_eager
 
-    def results
+    def results #: Quo::Results
       Quo::Results.new(self, transformer: transformer)
     end
 
@@ -191,82 +284,73 @@ module Quo
       :each_with_object,
       to: :results
 
+    # @rbs @__transformer: nil | ^(untyped, ?Integer) -> untyped
+
     # Set a block used to transform data after query fetching
+    # @rbs block: ^(untyped, ?Integer) -> untyped
+    # @rbs return: self
     def transform(&block)
       @__transformer = block
       self
     end
 
     # Are there any results for this query?
-    def exists?
-      return query_with_logging.exists? if relation?
-      query_with_logging.present?
+    def exists? #: bool
+      return configured_query.exists? if relation?
+      configured_query.present?
     end
 
     # Are there no results for this query?
-    def none?
+    def none? #: bool
       !exists?
     end
     alias_method :empty?, :none?
 
     # Is this query object a relation under the hood? (ie not eager loaded)
-    def relation?
+    def relation? #: bool
       test_relation(configured_query)
     end
 
     # Is this query object eager loaded data under the hood? (ie not a relation)
-    def eager?
+    def eager? #: bool
       test_eager(configured_query)
     end
 
     # Is this query object paged? (ie is paging enabled)
-    def paged?
+    def paged? #: bool
       page_index.present?
     end
 
     # Is this query object transforming results?
-    def transform?
+    def transform? #: bool
       transformer.present?
     end
 
     # Return the SQL string for this query if its a relation type query object
-    def to_sql
+    def to_sql #: String
       configured_query.to_sql if relation?
     end
 
     # Unwrap the paginated query
-    def unwrap
+    def unwrap #: ActiveRecord::Relation
       configured_query
     end
 
     # Unwrap the un-paginated query
-    def unwrap_unpaginated
+    def unwrap_unpaginated #: ActiveRecord::Relation
       underlying_query
     end
 
+    # @rbs! def distinct: () -> ActiveRecord::Relation
     delegate :distinct, to: :configured_query
 
     private
-
-    def formatted_queries?
-      !!Quo.formatted_query_log
-    end
-
-    # 'trim' a query, ie remove comments and remove newlines
-    # This will remove dashes from inside strings too
-    def trim_query(sql)
-      sql.gsub(/--[^\n'"]*\n/m, " ").tr("\n", " ").strip
-    end
-
-    def format_query(sql_str)
-      formatted_queries? ? sql_str : trim_query(sql_str)
-    end
 
     def transformer
       @__transformer
     end
 
-    def offset
+    def offset #: Integer
       per_page = sanitised_page_size
       page = if page_index&.positive?
         page_index
@@ -277,13 +361,13 @@ module Quo
     end
 
     # The configured query is the underlying query with paging
-    def configured_query
+    def configured_query #: ActiveRecord::Relation
       q = underlying_query
       return q unless paged? && q.is_a?(ActiveRecord::Relation)
       q.offset(offset).limit(sanitised_page_size)
     end
 
-    def sanitised_page_size
+    def sanitised_page_size #: Integer
       if page_size&.positive?
         given_size = page_size.to_i
         max_page_size = Quo.max_page_size || 200
@@ -297,13 +381,8 @@ module Quo
       end
     end
 
-    def query_with_logging
-      debug_callstack
-      configured_query
-    end
-
     # The underlying query is essentially the configured query with optional extras setup
-    def underlying_query
+    def underlying_query #: ActiveRecord::Relation
       @underlying_query ||=
         begin
           rel = unwrap_relation(query)
@@ -319,14 +398,20 @@ module Quo
         end
     end
 
+    # @rbs query: Quo::Query | ::ActiveRecord::Relation
+    # @rbs return: ActiveRecord::Relation
     def unwrap_relation(query)
       query.is_a?(Quo::Query) ? query.unwrap : query
     end
 
+    # @rbs rel: untyped
+    # @rbs return: bool
     def test_eager(rel)
       rel.is_a?(Quo::LoadedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
     end
 
+    # @rbs rel: untyped
+    # @rbs return: bool
     def test_relation(rel)
       rel.is_a?(ActiveRecord::Relation)
     end
@@ -339,6 +424,8 @@ module Quo
     # `SELECT COUNT(count_column) FROM (SELECT * AS count_column FROM ...) subquery_for_count` where the error is:
     # `ActiveRecord::StatementInvalid: SQLite3::SQLException: near "AS": syntax error`
     # Either way DB engines know how to count efficiently.
+    # @rbs query: ActiveRecord::Relation
+    # @rbs return: Integer
     def count_query(query)
       pk = query.model.primary_key
       if pk

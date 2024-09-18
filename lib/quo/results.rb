@@ -1,19 +1,23 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 require "forwardable"
-require_relative "utilities/callstack"
 
 module Quo
   class Results
     extend Forwardable
-    include Quo::Utilities::Callstack
 
+    # @rbs query: Quo::Query
+    # @rbs transformer: (^(untyped, ?Integer) -> untyped)?
+    # @rbs return: void
     def initialize(query, transformer: nil)
       @query = query
       @unwrapped = query.unwrap
       @transformer = transformer
     end
 
+    # TODO: RBS for these,
     def_delegators :unwrapped,
       :include?,
       :member?,
@@ -24,8 +28,9 @@ module Quo
 
     def_delegators :query, :count
 
+    # @rbs &block: (untyped, *untyped) -> untyped
+    # @rbs return: Hash[untyped, Array[untyped]]
     def group_by(&block)
-      debug_callstack
       grouped = unwrapped.group_by do |*block_args|
         x = block_args.first
         transformed = transformer ? transformer.call(x) : x
@@ -40,9 +45,9 @@ module Quo
     end
 
     # Delegate other enumerable methods to underlying collection but also transform
+    # @rbs override
     def method_missing(method, *args, **kwargs, &block)
       if unwrapped.respond_to?(method)
-        debug_callstack
         if block
           unwrapped.send(method, *args, **kwargs) do |*block_args|
             x = block_args.first
@@ -61,14 +66,21 @@ module Quo
       end
     end
 
+    # @rbs name: Symbol
+    # @rbs include_private: bool
+    # @rbs return: bool
     def respond_to_missing?(name, include_private = false)
       enumerable_methods_supported.include?(name)
     end
 
     private
 
-    attr_reader :query, :transformer, :unwrapped
+    attr_reader :query #: Quo::Query
+    attr_reader :transformer #: (^(untyped, ?Integer) -> untyped)?
+    attr_reader :unwrapped #: ActiveRecord::Relation | Object & Enumerable[untyped]
 
+    # @rbs results: untyped
+    # @rbs return: untyped
     def transform_results(results)
       return results unless transformer
 
@@ -79,6 +91,7 @@ module Quo
       end
     end
 
+    # @rbs return: Array[Symbol]
     def enumerable_methods_supported
       [:find_each] + Enumerable.instance_methods
     end

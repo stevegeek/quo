@@ -12,7 +12,9 @@ group :development, :test do
 
   gem "minitest", "~> 5.0"
 
-  gem "standard"
+  gem "standard", require: false
 
-  gem "steep"
+  gem "steep", require: false
+
+  gem "rbs-inline", "~> 0.8.0", require: false
 end

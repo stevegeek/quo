@@ -1,7 +1,0 @@
-module Quo
-  class LoadedQuery < Quo::EagerQuery
-    @collection: enumerable
-
-    def initialize: (enumerable, **untyped options) -> void
-  end
-end

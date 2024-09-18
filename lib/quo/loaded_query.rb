@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 module Quo
   class LoadedQuery < Quo::EagerQuery
+    # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
+    # @rbs return: Quo::LoadedQuery
     def self.wrap(data = nil, props: {}, &block)
       klass = Class.new(self)
       if block
@@ -15,6 +19,7 @@ module Quo
       klass
     end
 
+    # @rbs override
     def loaded?
       true
     end

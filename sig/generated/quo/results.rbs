@@ -1,0 +1,40 @@
+# Generated from lib/quo/results.rb with RBS::Inline
+
+module Quo
+  class Results
+    extend Forwardable
+
+    # @rbs query: Quo::Query
+    # @rbs transformer: (^(untyped, ?Integer) -> untyped)?
+    # @rbs return: void
+    def initialize: (Quo::Query query, ?transformer: (^(untyped, ?Integer) -> untyped)?) -> void
+
+    # @rbs &block: (untyped, *untyped) -> untyped
+    # @rbs return: Hash[untyped, Array[untyped]]
+    def group_by: () { (untyped, *untyped) -> untyped } -> Hash[untyped, Array[untyped]]
+
+    # Delegate other enumerable methods to underlying collection but also transform
+    # @rbs override
+    def method_missing: ...
+
+    # @rbs name: Symbol
+    # @rbs include_private: bool
+    # @rbs return: bool
+    def respond_to_missing?: (Symbol name, ?bool include_private) -> bool
+
+    private
+
+    attr_reader query: Quo::Query
+
+    attr_reader transformer: (^(untyped, ?Integer) -> untyped)?
+
+    attr_reader unwrapped: ActiveRecord::Relation | Object & Enumerable[untyped]
+
+    # @rbs results: untyped
+    # @rbs return: untyped
+    def transform_results: (untyped results) -> untyped
+
+    # @rbs return: Array[Symbol]
+    def enumerable_methods_supported: () -> Array[Symbol]
+  end
+end

@@ -1,0 +1,86 @@
+# Generated from lib/quo/composed_query.rb with RBS::Inline
+
+module Quo
+  # @rbs inherits Quo::Query
+  class ComposedQuery < Quo::Query
+    # Combine two Query classes into a new composed query class
+    # Combine two query-like or composeable entities:
+    # These can be Quo::Query, Quo::MergedQuery, Quo::EagerQuery and ActiveRecord::Relations.
+    # See the `README.md` docs for more details.
+    # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    # @rbs joins: untyped
+    # @rbs return: singleton(Quo::ComposedQuery)
+    def self.compose: (untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
+
+    attr_reader _composing_joins: untyped
+
+    attr_reader _left_query: untyped
+
+    attr_reader _right_query: untyped
+
+    # We can also merge instance of prepared queries
+    # @rbs left_instance: Quo::Query | ::ActiveRecord::Relation
+    # @rbs right_instance: Quo::Query | ::ActiveRecord::Relation
+    # @rbs joins: untyped
+    # @rbs return: Quo::ComposedQuery
+    def self.merge_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance, ?joins: untyped) -> Quo::ComposedQuery
+
+    # @rbs override
+    def self.inspect: ...
+
+    # @rbs override
+    def query: ...
+
+    # @rbs return: Quo::Query | ::ActiveRecord::Relation
+    def left: () -> (Quo::Query | ::ActiveRecord::Relation)
+
+    # @rbs return: Quo::Query | ::ActiveRecord::Relation
+    def right: () -> (Quo::Query | ::ActiveRecord::Relation)
+
+    # @rbs override
+    def inspect: ...
+
+    private
+
+    # @rbs return: Hash[Symbol, untyped]
+    def child_options: (untyped query_class) -> Hash[Symbol, untyped]
+
+    # @rbs return: Array[Symbol]
+    def property_names: (untyped query_class) -> Array[Symbol]
+
+    # @rbs return: ActiveRecord::Relation | Object & Enumerable[untyped]
+    def merge_left_and_right: (untyped left, untyped right, untyped joins) -> (ActiveRecord::Relation | Object & Enumerable[untyped])
+
+    # @rbs left_rel: ActiveRecord::Relation
+    # @rbs joins: untyped
+    # @rbs return: ActiveRecord::Relation
+    def apply_joins: (ActiveRecord::Relation left_rel, untyped joins) -> ActiveRecord::Relation
+
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def relation?: (untyped rel) -> bool
+
+    # @rbs left: untyped
+    # @rbs right: untyped
+    # @rbs return: bool
+    def both_relations?: (untyped left, untyped right) -> bool
+
+    # @rbs left: untyped
+    # @rbs right: untyped
+    # @rbs return: bool
+    def left_relation_right_enumerable?: (untyped left, untyped right) -> bool
+
+    # @rbs left: untyped
+    # @rbs right: untyped
+    # @rbs return: bool
+    def left_enumerable_right_relation?: (untyped left, untyped right) -> bool
+
+    # @rbs override
+    def unwrap_relation: ...
+
+    # @rbs operand: Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation
+    # @rbs return: String
+    def operand_desc: (Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation operand) -> String
+  end
+end

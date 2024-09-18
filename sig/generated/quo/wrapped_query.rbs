@@ -1,0 +1,11 @@
+# Generated from lib/quo/wrapped_query.rb with RBS::Inline
+
+module Quo
+  class WrappedQuery
+    # @rbs query: ActiveRecord::Relation | Quo::Query
+    # @rbs props: Hash[Symbol, untyped]
+    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]
+    # @rbs return: Quo::WrappedQuery
+    def self.wrap: (?ActiveRecord::Relation | Quo::Query query, ?props: Hash[Symbol, untyped]) ?{ (?) -> untyped } -> Quo::WrappedQuery
+  end
+end
