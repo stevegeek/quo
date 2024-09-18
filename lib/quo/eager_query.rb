@@ -6,7 +6,11 @@ module Quo
     # This is useful when the total count is known and not equal to size
     # of wrapped collection.
     def count
-      options[:total_count] || super
+      options[:total_count] || underlying_query.count
+    end
+
+    def page_count
+      query_with_logging.count
     end
 
     # Is this query object paged? (when no total count)

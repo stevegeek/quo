@@ -20,8 +20,9 @@ module Quo
       :all?,
       :any?,
       :none?,
-      :one?,
-      :count
+      :one?
+
+    def_delegators :query, :count
 
     def group_by(&block)
       debug_callstack
@@ -66,7 +67,7 @@ module Quo
 
     private
 
-    attr_reader :transformer, :unwrapped
+    attr_reader :query, :transformer, :unwrapped
 
     def transform_results(results)
       return results unless transformer

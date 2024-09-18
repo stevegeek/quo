@@ -107,15 +107,18 @@ module Quo
     # Delegate SQL calculation methods to the underlying query
     delegate :sum, :average, :minimum, :maximum, to: :query_with_logging
 
-    # Gets the count of all results ignoring the current page and page size (if set)
-    delegate :count, to: :underlying_query
+    # Gets the count of all results ignoring the current page and page size (if set).
+    def count
+      count_query(underlying_query)
+    end
+
     alias_method :total_count, :count
     alias_method :size, :count
 
     # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
     # all results)
     def page_count
-      query_with_logging.count
+      count_query(query_with_logging)
     end
 
     # Delegate methods that let us get the model class (available on AR relations)
@@ -326,6 +329,23 @@ module Quo
 
     def test_relation(rel)
       rel.is_a?(ActiveRecord::Relation)
+    end
+
+    # Note we reselect the query as this prevents query errors if the SELECT clause is not compatible with COUNT
+    # (SQLException: wrong number of arguments to function COUNT()). We do this in two ways, either with the primary key
+    # or with Arel.star. The primary key is the most compatible way to count, but if the query does not have a primary
+    # we fallback. The fallback "*" wont work in certain situations though, specifically if we have a limit() on the query
+    # which Arel constructs as a subquery. In this case we will get a SQL error as the generated SQL contains
+    # `SELECT COUNT(count_column) FROM (SELECT * AS count_column FROM ...) subquery_for_count` where the error is:
+    # `ActiveRecord::StatementInvalid: SQLite3::SQLException: near "AS": syntax error`
+    # Either way DB engines know how to count efficiently.
+    def count_query(query)
+      pk = query.model.primary_key
+      if pk
+        query.reselect(pk).count
+      else
+        query.reselect(Arel.star).count
+      end
     end
   end
 end

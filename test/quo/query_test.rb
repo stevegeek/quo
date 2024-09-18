@@ -69,6 +69,10 @@ class Quo::QueryTest < ActiveSupport::TestCase
     assert_equal 2, UnreadCommentsQuery.new(page_size: 1).count
   end
 
+  test "#count with selects" do
+    assert_equal 2, Quo::WrappedQuery.wrap(Comment.where(read: false).joins(:post).select(:id, "posts.id")).new.count
+  end
+
   test "#page_count" do
     assert_equal 2, UnreadCommentsQuery.new.page_count
   end
