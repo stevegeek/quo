@@ -1,0 +1,46 @@
+# Generated from lib/quo/collection_backed_query.rb with RBS::Inline
+
+module Quo
+  # @rbs inherits Quo::Query
+  class CollectionBackedQuery < Quo::Query
+    # Wrap an enumerable collection or a block that returns an enumerable collection
+    # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
+    # @rbs return: Quo::CollectionBackedQuery
+    def self.wrap: (?untyped data, ?props: untyped) ?{ (?) -> untyped } -> Quo::CollectionBackedQuery
+
+    # Optionally return the `total_count` option if it has been set.
+    # This is useful when the total count is known and not equal to size
+    # of wrapped collection.
+    # @rbs override
+    def count: ...
+
+    # @rbs override
+    def page_count: ...
+
+    # Is this query object paged? (when no total count)
+    # @rbs override
+    def paged?: ...
+
+    # @rbs return: Object & Enumerable[untyped]
+    def collection: () -> (Object & Enumerable[untyped])
+
+    # The default implementation of `query` calls `collection` and preloads the includes, however you can also
+    # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.
+    # @rbs return: Object & Enumerable[untyped]
+    def query: () -> (Object & Enumerable[untyped])
+
+    # @rbs override
+    def relation?: ...
+
+    # @rbs override
+    def eager?: ...
+
+    private
+
+    # @rbs override
+    def underlying_query: ...
+
+    # @rbs (untyped records, ?untyped? preload) -> untyped
+    def preload_includes: (untyped records, ?untyped? preload) -> untyped
+  end
+end

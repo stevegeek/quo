@@ -9,10 +9,10 @@ module Quo
         unless with.nil?
           return(
             allow(query_class).to receive(:new)
-                                    .with(with) { ::Quo::LoadedQuery.new(results) }
+                                    .with(with) { ::Quo::CollectionBackedQuery.new(results) }
           )
         end
-        allow(query_class).to receive(:new) { ::Quo::LoadedQuery.new(results) }
+        allow(query_class).to receive(:new) { ::Quo::CollectionBackedQuery.new(results) }
       end
     end
   end

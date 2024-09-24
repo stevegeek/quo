@@ -27,14 +27,14 @@ module Quo
     end
 
     # 'Smart' wrap Query, ActiveRecord::Relation or a data collection in a Query.
-    # Calls out to Quo::WrappedQuery.wrap or Quo::LoadedQuery.wrap as appropriate.
+    # Calls out to Quo::WrappedQuery.wrap or Quo::CollectionBackedQuery.wrap as appropriate.
     def self.wrap(query_rel_or_data, **options)
       if query_rel_or_data < Quo::Query
         query_rel_or_data
       elsif query_rel_or_data.is_a?(ActiveRecord::Relation)
         Quo::WrappedQuery.wrap(query_rel_or_data, **options)
       else
-        Quo::LoadedQuery.wrap(query_rel_or_data)
+        Quo::CollectionBackedQuery.wrap(query_rel_or_data)
       end
     end
 
@@ -44,7 +44,7 @@ module Quo
       elsif query_rel_or_data.is_a?(ActiveRecord::Relation)
         Quo::WrappedQuery.wrap(query_rel_or_data).new
       else
-        Quo::LoadedQuery.wrap(query_rel_or_data).new
+        Quo::CollectionBackedQuery.wrap(query_rel_or_data).new
       end
     end
 
@@ -269,9 +269,9 @@ module Quo
       transform? ? arr.map.with_index { |r, i| transformer&.call(r, i) } : arr
     end
 
-    # @rbs return: Quo::LoadedQuery
+    # @rbs return: Quo::CollectionBackedQuery
     def to_eager
-      Quo::LoadedQuery.wrap(to_a).new
+      Quo::CollectionBackedQuery.wrap(to_a).new
     end
     alias_method :load, :to_eager
 
@@ -415,7 +415,7 @@ module Quo
     # @rbs rel: untyped
     # @rbs return: bool
     def test_eager(rel)
-      rel.is_a?(Quo::LoadedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
+      rel.is_a?(Quo::CollectionBackedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
     end
 
     # @rbs rel: untyped

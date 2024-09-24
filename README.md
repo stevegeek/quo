@@ -80,7 +80,7 @@ This allows you to compose together Query objects which return relations which a
 them correctly with the appropriate joins. Note with the alias you cant neatly specify optional parameters for joins
 on relations.
 
-Note that the compose process creates a new query object instance, which is a instance of a `Quo::MergedQuery`.
+Note that the compose process creates a new query object instance, which is a instance of a `Quo::ComposedQuery`.
 
 Consider the following cases:
 
@@ -181,16 +181,16 @@ tags.compose(for_category, :category) # perform join on tag association `categor
 
 Eager loaded queries can also be composed (see below sections for more details).
 
-### Quo::MergedQuery
+### Quo::ComposedQuery
 
-The new instance of `Quo::MergedQuery` from a compose process, retains references to the original entities that were
+The new instance of `Quo::ComposedQuery` from a compose process, retains references to the original entities that were
 composed. These are then used to create a more useful output from `to_s`, so that it is easier to understand what the
 merged query is actually made up of:
 
 ```ruby
 q = FooQuery.new + BarQuery.new
 puts q
-# > "Quo::MergedQuery[FooQuery, BarQuery]"
+# > "Quo::ComposedQuery[FooQuery, BarQuery]"
 ```
 
 ## Query Objects & Pagination
@@ -200,39 +200,39 @@ Specify extra options to enable pagination:
 * `page`: the current page number to fetch
 * `page_size`: the number of elements to fetch in the page
 
-### `Quo::EagerQuery` & `Quo::LoadedQuery` objects
+### `Quo::CollectionBackedQuery` & `Quo::CollectionBackedQuery` objects
 
-`Quo::EagerQuery` is a subclass of `Quo::Query` which can be used to create query objects which are 'eager loaded' by 
+`Quo::CollectionBackedQuery` is a subclass of `Quo::Query` which can be used to create query objects which are 'eager loaded' by 
 default. This is useful for encapsulating data that doesn't come from an ActiveRecord query or queries that
 execute immediately. Subclass EasyQuery and override `collection` to return the data you want to encapsulate.
 
 ```ruby
-class MyEagerQuery < Quo::EagerQuery
+class MyCollectionBackedQuery < Quo::CollectionBackedQuery
   def collection
     [1, 2, 3]
   end
 end
-q = MyEagerQuery.new
+q = MyCollectionBackedQuery.new
 q.eager? # is it 'eager'? Yes it is!
 q.count # '3'
 ```
 
 Sometimes it is useful to create similar Queries without needing to create a explicit subclass of your own. For this
-use `Quo::LoadedQuery`:
+use `Quo::CollectionBackedQuery`:
 
 ```ruby
-q = Quo::LoadedQuery.new([1, 2, 3])
+q = Quo::CollectionBackedQuery.new([1, 2, 3])
 q.eager? # is it 'eager'? Yes it is!
 q.count # '3'
 ```
 
-`Quo::EagerQuery` also uses `total_count` option value as the specified 'total count', useful when the data is
+`Quo::CollectionBackedQuery` also uses `total_count` option value as the specified 'total count', useful when the data is
 actually just a page of the data and not the total count.
 
-Example of an EagerQuery used to wrap a page of enumerable data:
+Example of an CollectionBackedQuery used to wrap a page of enumerable data:
 
 ```ruby
-Quo::LoadedQuery.new(my_data, total_count: 100, page: current_page)
+Quo::CollectionBackedQuery.new(my_data, total_count: 100, page: current_page)
 ```
 
 If a loaded query is `compose`d with other Query objects then it will be seen as an array-like, and concatenated to whatever 
@@ -255,7 +255,7 @@ composed.last
 composed.first
 # => #<Tag id: ...>
 
-Quo::LoadedQuery.new([3, 4]).compose(Quo::LoadedQuery.new([1, 2])).last
+Quo::CollectionBackedQuery.new([3, 4]).compose(Quo::CollectionBackedQuery.new([1, 2])).last
 # => 2
 Quo::Query.compose([1, 2], [3, 4]).last
 # => 4
@@ -285,7 +285,7 @@ maybe desirable.
 
 The spec helper method `stub_query(query_class, {results: ..., with: ...})` can do this for you.
 
-It stubs `.new` on the Query object and returns instances of `LoadedQuery` instead with the given `results`. 
+It stubs `.new` on the Query object and returns instances of `CollectionBackedQuery` instead with the given `results`. 
 The `with` option is passed to the Query object on initialisation and used when setting up the method stub on the 
 query class.
 
@@ -298,7 +298,7 @@ expect(TagQuery.new(name: "Something").first).to eql t1
 
 *Note that*
 
-This returns an instance of EagerQuery, so will not work for cases were the actual type of the query instance is
+This returns an instance of CollectionBackedQuery, so will not work for cases were the actual type of the query instance is
 important or where you are doing a composition of queries backed by relations!
 
 If `compose` will be used then `Quo::Query.compose` needs to be stubbed. Something might be possible to make this

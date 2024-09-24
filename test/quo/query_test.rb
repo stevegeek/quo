@@ -95,7 +95,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
   test "#to_eager" do
     q = UnreadCommentsQuery.new
     eager = q.to_eager
-    assert_kind_of Quo::LoadedQuery, eager
+    assert_kind_of Quo::CollectionBackedQuery, eager
     assert eager.eager?
     assert_equal 2, eager.count
   end
@@ -104,8 +104,8 @@ class Quo::QueryTest < ActiveSupport::TestCase
     assert UnreadCommentsQuery.new.relation?
     assert UnreadCommentsQuery.new.to_eager.eager?
     refute UnreadCommentsQuery.new.eager?
-    assert Quo::LoadedQuery.wrap([]).new.eager?
-    refute Quo::LoadedQuery.wrap([]).new.relation?
+    assert Quo::CollectionBackedQuery.wrap([]).new.eager?
+    refute Quo::CollectionBackedQuery.wrap([]).new.relation?
   end
 
   test "#first" do

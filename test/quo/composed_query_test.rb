@@ -63,14 +63,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "composes eager queries" do
-    left = Quo::LoadedQuery.wrap([1, 2, 3])
-    right = Quo::LoadedQuery.wrap([4, 5, 6])
+    left = Quo::CollectionBackedQuery.wrap([1, 2, 3])
+    right = Quo::CollectionBackedQuery.wrap([4, 5, 6])
     composed = Quo::ComposedQuery.composer(left, right)
     assert_equal [1, 2, 3, 4, 5, 6], composed.new.to_a
   end
 
   test "composes query and eager queries" do
-    composed = NewCommentsForAuthorQuery.compose(Quo::LoadedQuery.wrap([4, 5, 6]))
+    composed = NewCommentsForAuthorQuery.compose(Quo::CollectionBackedQuery.wrap([4, 5, 6]))
     q = composed.new(author_id: @a1.id)
     assert_kind_of Quo::ComposedQuery, q
     assert_equal 1, q.author_id
@@ -79,7 +79,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "composes eager and relation backed queries" do
-    composed = Quo::LoadedQuery.wrap([4, 5, 6]).compose(NewCommentsForAuthorQuery)
+    composed = Quo::CollectionBackedQuery.wrap([4, 5, 6]).compose(NewCommentsForAuthorQuery)
     q = composed.new(author_id: @a1.id)
     assert_kind_of Quo::ComposedQuery, q
     assert_equal 1, q.author_id
@@ -88,7 +88,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "composes query and eager queries, with pagination" do
-    composed = NewCommentsForAuthorQuery.compose(Quo::LoadedQuery.wrap([4, 5, 6]))
+    composed = NewCommentsForAuthorQuery.compose(Quo::CollectionBackedQuery.wrap([4, 5, 6]))
     q = composed.new(author_id: @a1.id, page: 1, page_size: 2)
     # Apply pagination taking into account the eager content.
     # Result set is ("abc", "jkl"), (4, 5), (6)
@@ -103,15 +103,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "composes eager and relation backed queries, with pagination" do
-    composed = Quo::LoadedQuery.wrap([4, 5, 6]).compose(NewCommentsForAuthorQuery)
+    composed = Quo::CollectionBackedQuery.wrap([4, 5, 6]).compose(NewCommentsForAuthorQuery)
     q = composed.new(author_id: @a1.id, page: 2, page_size: 2)
     # Apply pagination taking into account the eager content.
     # Result set is (4, 5), (6, "abc"), ("jkl")
     assert_kind_of Quo::ComposedQuery, q
     assert_equal 1, q.author_id
-    assert_equal 6, composed.first
-
-    assert_equal "abc", composed.last.body
+    assert_equal 6, q.first
+    assert_equal "abc", q.last.body
 
     q = q.next_page_query
     assert_equal "jkl", q.first.body
@@ -119,25 +118,25 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
   test "raises when invalid objects are composed" do
     assert_raises(ArgumentError) do
-      Quo::ComposedQuery.composer(Object.new, Quo::LoadedQuery.wrap([]))
+      Quo::ComposedQuery.composer(Object.new, Quo::CollectionBackedQuery.wrap([]))
     end
   end
 
   test "#inspect when 1 source is a query object subclass" do
-    merged = Quo::ComposedQuery.composer(CommentNotSpamQuery, Quo::LoadedQuery)
-    assert_equal "Quo::ComposedQuery[CommentNotSpamQuery, Quo::LoadedQuery]", merged.inspect
+    merged = Quo::ComposedQuery.composer(CommentNotSpamQuery, Quo::CollectionBackedQuery)
+    assert_equal "Quo::ComposedQuery[CommentNotSpamQuery, Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#inspect when 2 eager sources are provided" do
-    merged = Quo::ComposedQuery.merge_instances(Quo::LoadedQuery.wrap([]).new, Quo::LoadedQuery.wrap([]).new)
+    merged = Quo::ComposedQuery.merge_instances(Quo::CollectionBackedQuery.wrap([]).new, Quo::CollectionBackedQuery.wrap([]).new)
     assert_kind_of Quo::ComposedQuery, merged
-    assert_equal "Quo::ComposedQuery[Quo::LoadedQuery, Quo::LoadedQuery]", merged.inspect
+    assert_equal "Quo::ComposedQuery[Quo::CollectionBackedQuery, Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#inspect when 1 source is a merged query" do
     nested = Quo::ComposedQuery.composer(CommentNotSpamQuery, UnreadCommentsQuery)
-    merged = nested.compose(Quo::LoadedQuery)
-    assert_equal "Quo::ComposedQuery[Quo::ComposedQuery[CommentNotSpamQuery, UnreadCommentsQuery], Quo::LoadedQuery]", merged.inspect
+    merged = nested.compose(Quo::CollectionBackedQuery)
+    assert_equal "Quo::ComposedQuery[Quo::ComposedQuery[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#copy makes a copy of this query object with different options" do
@@ -221,7 +220,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   test "#to_eager" do
     q = @q_composed.new
     eager = q.to_eager
-    assert_kind_of Quo::LoadedQuery, eager
+    assert_kind_of Quo::CollectionBackedQuery, eager
     assert eager.eager?
     assert_equal 3, eager.count
   end
@@ -230,8 +229,8 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert @q_composed.new.relation?
     assert @q_composed.new.to_eager.eager?
     refute @q_composed.new.eager?
-    assert Quo::ComposedQuery.composer(Quo::LoadedQuery.wrap([]), ::Comment.joins(post: :author)).new.eager?
-    refute Quo::ComposedQuery.composer(Quo::LoadedQuery.wrap([]), ::Comment.joins(post: :author)).new.relation?
+    assert Quo::ComposedQuery.composer(Quo::CollectionBackedQuery.wrap([]), ::Comment.joins(post: :author)).new.eager?
+    refute Quo::ComposedQuery.composer(Quo::CollectionBackedQuery.wrap([]), ::Comment.joins(post: :author)).new.relation?
   end
 
   test "#first" do

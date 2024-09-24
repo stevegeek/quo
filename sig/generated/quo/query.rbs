@@ -17,7 +17,7 @@ module Quo
     def self.sanitize_sql_parameter: (untyped value) -> String
 
     # 'Smart' wrap Query, ActiveRecord::Relation or a data collection in a Query.
-    # Calls out to Quo::WrappedQuery.wrap or Quo::LoadedQuery.wrap as appropriate.
+    # Calls out to Quo::WrappedQuery.wrap or Quo::CollectionBackedQuery.wrap as appropriate.
     def self.wrap: (untyped query_rel_or_data, **untyped options) -> untyped
 
     def self.wrap_instance: (untyped query_rel_or_data) -> untyped
@@ -123,8 +123,8 @@ module Quo
     # @rbs return: Array[untyped]
     def to_a: () -> Array[untyped]
 
-    # @rbs return: Quo::LoadedQuery
-    def to_eager: () -> Quo::LoadedQuery
+    # @rbs return: Quo::CollectionBackedQuery
+    def to_eager: () -> Quo::CollectionBackedQuery
 
     def results: () -> Quo::Results
 

@@ -7,7 +7,7 @@ module Quo
   class ComposedQuery < Quo.base_query_class
     # Combine two Query classes into a new composed query class
     # Combine two query-like or composeable entities:
-    # These can be Quo::Query, Quo::MergedQuery, Quo::EagerQuery and ActiveRecord::Relations.
+    # These can be Quo::Query, Quo::ComposedQuery, Quo::CollectionBackedQuery and ActiveRecord::Relations.
     # See the `README.md` docs for more details.
     # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)

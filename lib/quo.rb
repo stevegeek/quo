@@ -11,8 +11,7 @@ module Quo
   autoload :Query
   autoload :Results
   autoload :ComposedQuery
-  autoload :EagerQuery
-  autoload :LoadedQuery
+  autoload :CollectionBackedQuery
   autoload :WrappedQuery
 
   mattr_accessor :base_query_class, default: "Quo::Query"
