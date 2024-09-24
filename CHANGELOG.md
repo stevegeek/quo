@@ -5,15 +5,18 @@
 
 ### Breaking Changes
 
-Nearly everything has had changes. Porting will require effort.
+Nearly everything has had changes. Porting will require some effort.
 
 - Quo now depends on literal, meaning attributes (options) to queries are typed and explicit
-- Composing query objects now allows you to compose query classes rather than just instances
-- Drop support for Ruby <= 3.0
+- Composing query objects now allows you to compose query classes rather than just instances of query objects
+- MergedQuery is now ComposedQuery
+- Drop support for Ruby <= 3.1 and Rails < 7.0
+- Gem is now a Rails engine and relies on autoloading
 
 ### Changed
 
-- Update docs
+- Update docs, dependencies, and tests
+- Use appraisals for testing
 
 ## [0.5.0] - 2022-12-23
 

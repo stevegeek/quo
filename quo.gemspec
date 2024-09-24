@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "activerecord", ">= 7", "< 8"
   spec.add_dependency "activesupport", ">= 7", "< 8"
-  spec.add_dependency "literal", ">= 0.2.0", "< 0.3.0"
+  spec.add_dependency "literal", ">= 0.2.0", "< 2"
 
   spec.add_development_dependency "appraisal"
 
