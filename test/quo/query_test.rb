@@ -211,4 +211,18 @@ class Quo::QueryTest < ActiveSupport::TestCase
     end
     assert_equal ["hello 0 world", "hello 1 world"], mapped.map(&:body)
   end
+
+  test "#next_page_query" do
+    q = UnreadCommentsQuery.new(page: 1, page_size: 1)
+    next_q = q.next_page_query
+    assert_equal 2, next_q.page
+    assert_equal 1, next_q.page_size
+  end
+
+  test "#previous_page_query" do
+    q = UnreadCommentsQuery.new(page: 2, page_size: 1)
+    prev_q = q.previous_page_query
+    assert_equal 1, prev_q.page
+    assert_equal 1, prev_q.page_size
+  end
 end

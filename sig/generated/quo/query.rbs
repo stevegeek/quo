@@ -52,6 +52,10 @@ module Quo
 
     def page_index: () -> Integer
 
+    def next_page_query: () -> Quo::Query
+
+    def previous_page_query: () -> Quo::Query
+
     # @deprecated - to be removed!!
     def options: () -> Hash[Symbol, untyped]
 

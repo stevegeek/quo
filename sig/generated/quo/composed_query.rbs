@@ -11,7 +11,7 @@ module Quo
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
-    def self.compose: (untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
+    def self.composer: (untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
 
     attr_reader _composing_joins: untyped
 
@@ -59,7 +59,7 @@ module Quo
 
     # @rbs rel: untyped
     # @rbs return: bool
-    def relation?: (untyped rel) -> bool
+    def is_relation?: (untyped rel) -> bool
 
     # @rbs left: untyped
     # @rbs right: untyped

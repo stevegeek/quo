@@ -58,7 +58,7 @@ module Quo
     # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
     # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
     def self.compose(right, joins: nil)
-      ComposedQuery.compose(self, right, joins: joins)
+      ComposedQuery.composer(self, right, joins: joins)
     end
     singleton_class.alias_method :+, :compose
 
@@ -114,6 +114,14 @@ module Quo
 
     def page_index #: Integer
       page || current_page
+    end
+
+    def next_page_query #: Quo::Query
+      copy(page: page_index + 1)
+    end
+
+    def previous_page_query #: Quo::Query
+      copy(page: [page_index - 1, 1].max)
     end
 
     # @deprecated - to be removed!!

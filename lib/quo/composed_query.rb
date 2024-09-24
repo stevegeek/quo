@@ -13,7 +13,8 @@ module Quo
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
-    def self.compose(left_query_class, right_query_class, joins: nil)
+    def self.composer(left_query_class, right_query_class, joins: nil)
+      raise ArgumentError, "Cannot compose #{left_query_class}" unless left_query_class.respond_to?(:<)
       props = {}
       props.merge!(left_query_class.literal_properties.properties_index) if left_query_class < Quo::Query
       props.merge!(right_query_class.literal_properties.properties_index) if right_query_class < Quo::Query
@@ -42,10 +43,15 @@ module Quo
     def self.merge_instances(left_instance, right_instance, joins: nil)
       raise ArgumentError, "Cannot merge, left has incompatible type #{left_instance.class}" unless left_instance.is_a?(Quo::Query) || left_instance.is_a?(::ActiveRecord::Relation)
       raise ArgumentError, "Cannot merge, right has incompatible type #{right_instance.class}" unless right_instance.is_a?(Quo::Query) || right_instance.is_a?(::ActiveRecord::Relation)
-      return compose(left_instance.class, right_instance, joins: joins).new(**left_instance.to_h) if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
-      return compose(left_instance, right_instance.class, joins: joins).new(**right_instance.to_h) if right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
-      return compose(left_instance.class, right_instance.class, joins: joins).new(**left_instance.to_h.merge(right_instance.to_h)) if left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
-      compose(left_instance, right_instance, joins: joins).new # Both are relations
+      if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
+        return composer(left_instance.class, right_instance, joins: joins).new(**left_instance.to_h)
+      elsif right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
+        return composer(left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
+      elsif left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
+        props = left_instance.to_h.merge(right_instance.to_h.compact)
+        return composer(left_instance.class, right_instance.class, joins: joins).new(**props)
+      end
+      composer(left_instance, right_instance, joins: joins).new # Both are relations
     end
 
     # @rbs override
@@ -64,13 +70,13 @@ module Quo
 
     # @rbs return: Quo::Query | ::ActiveRecord::Relation
     def left
-      return _left_query if relation?(_left_query)
+      return _left_query if is_relation?(_left_query)
       _left_query.new(**child_options(_left_query))
     end
 
     # @rbs return: Quo::Query | ::ActiveRecord::Relation
     def right
-      return _right_query if relation?(_right_query)
+      return _right_query if is_relation?(_right_query)
       _right_query.new(**child_options(_right_query))
     end
 
@@ -121,7 +127,7 @@ module Quo
 
     # @rbs rel: untyped
     # @rbs return: bool
-    def relation?(rel)
+    def is_relation?(rel)
       rel.is_a?(::ActiveRecord::Relation)
     end
 
@@ -129,21 +135,21 @@ module Quo
     # @rbs right: untyped
     # @rbs return: bool
     def both_relations?(left, right)
-      relation?(left) && relation?(right)
+      is_relation?(left) && is_relation?(right)
     end
 
     # @rbs left: untyped
     # @rbs right: untyped
     # @rbs return: bool
     def left_relation_right_enumerable?(left, right)
-      relation?(left) && !relation?(right)
+      is_relation?(left) && !is_relation?(right)
     end
 
     # @rbs left: untyped
     # @rbs right: untyped
     # @rbs return: bool
     def left_enumerable_right_relation?(left, right)
-      !relation?(left) && relation?(right)
+      !is_relation?(left) && is_relation?(right)
     end
 
     # @rbs override
@@ -157,7 +163,7 @@ module Quo
       if operand.is_a? Quo::ComposedQuery
         operand.inspect
       else
-        operand.class.name || operand.class.superclass
+        operand.class.name || operand.class.superclass&.name || "(anonymous)"
       end
     end
   end

@@ -23,7 +23,7 @@ class Quo::CustomBaseClassTest < ActiveSupport::TestCase
     assert_kind_of ApplicationQuery, @q1.new(since_date: 1.day.ago)
     assert_equal "world", @q1.new(since_date: 1.day.ago).hello
 
-    klass = Quo::ComposedQuery.compose(Comment.recent, Comment.not_spam)
+    klass = Quo::ComposedQuery.composer(Comment.recent, Comment.not_spam)
     assert_kind_of ApplicationQuery, klass.new
   end
 end
