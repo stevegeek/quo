@@ -46,18 +46,31 @@ module Quo
 
     attr_accessor page(): Integer?
 
-    attr_accessor current_page(): Integer?
+    attr_writer current_page(): Integer?
 
     attr_accessor page_size(): Integer?
+
+    @current_page: Integer?
+
+    @_rel_group: untyped?
+
+    @_rel_order: untyped?
+
+    @_rel_limit: untyped?
+
+    @_rel_preload: untyped?
+
+    @_rel_includes: untyped?
+
+    @_rel_select: untyped?
+
+    def current_page: () -> Integer
 
     def page_index: () -> Integer
 
     def next_page_query: () -> Quo::Query
 
     def previous_page_query: () -> Quo::Query
-
-    # @deprecated - to be removed!!
-    def options: () -> Hash[Symbol, untyped]
 
     # Returns a active record query, or a Quo::Query instance
     def query: () -> (Quo::Query | ::ActiveRecord::Relation)
@@ -184,7 +197,7 @@ module Quo
 
     # @rbs rel: untyped
     # @rbs return: bool
-    def test_is_collection: (untyped rel) -> bool
+    def is_collection?: (untyped rel) -> bool
 
     # @rbs rel: untyped
     # @rbs return: bool

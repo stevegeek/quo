@@ -92,25 +92,31 @@ module Quo
 
     # @rbs!
     #   attr_accessor page (): Integer?
-    #   attr_accessor current_page (): Integer?
+    #   attr_writer current_page (): Integer?
     #   attr_accessor page_size (): Integer?
-
+    #   @current_page: Integer?
     prop :page, _Nilable(Integer), &COERCE_TO_INT
-    prop :current_page, _Nilable(Integer), &COERCE_TO_INT
+    prop :current_page, _Nilable(Integer), reader: false, &COERCE_TO_INT
     prop(:page_size, _Nilable(Integer), default: -> { Quo.default_page_size || 20 }, &COERCE_TO_INT)
 
-    # TODO: maybe deprecate these, they are set using the chainable method and when merging we can handle them separately?
-    prop :group, _Nilable(_Any), reader: false, writer: false
-    prop :order, _Nilable(_Any), reader: false, writer: false
-    prop :limit, _Nilable(_Any), reader: false, writer: false
-    prop :preload, _Nilable(_Any), reader: false, writer: false
-    prop :includes, _Nilable(_Any), reader: false, writer: false
-    prop :select, _Nilable(_Any), reader: false, writer: false
+    # These store options related to building the underlying query, we don't want to expose these as public properties
+    # @rbs!
+    #   @_rel_group: untyped?
+    #   @_rel_order: untyped?
+    #   @_rel_limit: untyped?
+    #   @_rel_preload: untyped?
+    #   @_rel_includes: untyped?
+    #   @_rel_select: untyped?
+    prop :_rel_group, _Nilable(_Any), reader: false, writer: false
+    prop :_rel_order, _Nilable(_Any), reader: false, writer: false
+    prop :_rel_limit, _Nilable(_Any), reader: false, writer: false
+    prop :_rel_preload, _Nilable(_Any), reader: false, writer: false
+    prop :_rel_includes, _Nilable(_Any), reader: false, writer: false
+    prop :_rel_select, _Nilable(_Any), reader: false, writer: false
 
-    # def after_initialization
-    #   @current_page = options[:page]&.to_i || options[:current_page]&.to_i
-    #   @page_size = options[:page_size]&.to_i || Quo.default_page_size || 20
-    # end
+    def current_page #: Integer
+      @current_page || page
+    end
 
     def page_index #: Integer
       page || current_page
@@ -122,11 +128,6 @@ module Quo
 
     def previous_page_query #: Quo::Query
       copy(page: [page_index - 1, 1].max)
-    end
-
-    # @deprecated - to be removed!!
-    def options #: Hash[Symbol, untyped]
-      @options ||= to_h.dup
     end
 
     # Returns a active record query, or a Quo::Query instance
@@ -155,37 +156,37 @@ module Quo
     # @rbs limit: untyped
     # @rbs return: Quo::Query
     def limit(limit)
-      copy(limit: limit)
+      copy(_rel_limit: limit)
     end
 
     # @rbs options: untyped
     # @rbs return: Quo::Query
     def order(options)
-      copy(order: options)
+      copy(_rel_order: options)
     end
 
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def group(*options)
-      copy(group: options)
+      copy(_rel_group: options)
     end
 
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def includes(*options)
-      copy(includes: options)
+      copy(_rel_includes: options)
     end
 
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def preload(*options)
-      copy(preload: options)
+      copy(_rel_preload: options)
     end
 
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def select(*options)
-      copy(select: options)
+      copy(_rel_select: options)
     end
 
     # The following methods actually execute the underlying query
@@ -321,7 +322,7 @@ module Quo
 
     # Is this query object loaded data/collection under the hood? (ie not a AR relation)
     def collection? #: bool
-      test_is_collection(configured_query)
+      is_collection?(configured_query)
     end
 
     # Is this query object paged? (ie is paging enabled)
@@ -391,19 +392,15 @@ module Quo
 
     # The underlying query is essentially the configured query with optional extras setup
     def underlying_query #: ActiveRecord::Relation
-      @underlying_query ||=
-        begin
-          rel = unwrap_relation(query)
-          unless test_is_collection(rel)
-            rel = rel.group(options[:group]) if options[:group].present?
-            rel = rel.order(options[:order]) if options[:order].present?
-            rel = rel.limit(options[:limit]) if options[:limit].present?
-            rel = rel.preload(options[:preload]) if options[:preload].present?
-            rel = rel.includes(options[:includes]) if options[:includes].present?
-            rel = rel.select(options[:select]) if options[:select].present?
-          end
-          rel
-        end
+      rel = unwrap_relation(query)
+      return rel if is_collection?(rel)
+
+      rel = rel.group(@_rel_group) if @_rel_group.present?
+      rel = rel.order(@_rel_order) if @_rel_order.present?
+      rel = rel.limit(@_rel_limit) if @_rel_limit.present?
+      rel = rel.preload(@_rel_preload) if @_rel_preload.present?
+      rel = rel.includes(@_rel_includes) if @_rel_includes.present?
+      @_rel_select.present? ? rel.select(@_rel_select) : rel
     end
 
     # @rbs query: Quo::Query | ::ActiveRecord::Relation
@@ -414,7 +411,7 @@ module Quo
 
     # @rbs rel: untyped
     # @rbs return: bool
-    def test_is_collection(rel)
+    def is_collection?(rel)
       rel.is_a?(Quo::CollectionBackedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
     end
 

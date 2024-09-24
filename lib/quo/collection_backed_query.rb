@@ -5,6 +5,8 @@
 module Quo
   # @rbs inherits Quo::Query
   class CollectionBackedQuery < Quo.base_query_class
+    prop :total_count, _Nilable(Integer), shadow_check: false
+
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
     # @rbs return: Quo::CollectionBackedQuery
@@ -26,7 +28,7 @@ module Quo
     # of wrapped collection.
     # @rbs override
     def count
-      options[:total_count] || underlying_query.count
+      total_count || underlying_query.count
     end
 
     # @rbs override
@@ -37,7 +39,7 @@ module Quo
     # Is this query object paged? (when no total count)
     # @rbs override
     def paged?
-      options[:total_count].nil? && page_index.present?
+      total_count.nil? && page_index.present?
     end
 
     # @rbs return: Object & Enumerable[untyped]
@@ -50,7 +52,7 @@ module Quo
     # @rbs return: Object & Enumerable[untyped]
     def query
       records = collection
-      preload_includes(records) if options[:includes]
+      preload_includes(records) if @_rel_includes
       records
     end
 
@@ -75,7 +77,7 @@ module Quo
     def preload_includes(records, preload = nil)
       ::ActiveRecord::Associations::Preloader.new(
         records: records,
-        associations: preload || options[:includes]
+        associations: preload || @_rel_includes
       ).call
     end
   end

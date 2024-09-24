@@ -17,7 +17,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
     q_copy = q.copy(author_id: 2)
     assert_instance_of NewCommentsForAuthorQuery, q_copy
     assert_not_equal q, q_copy
-    assert_equal 2, q_copy.options[:author_id]
+    assert_equal 2, q_copy.author_id
   end
 
   test "#order" do
