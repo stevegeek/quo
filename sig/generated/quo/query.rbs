@@ -124,7 +124,7 @@ module Quo
     def to_a: () -> Array[untyped]
 
     # @rbs return: Quo::CollectionBackedQuery
-    def to_eager: () -> Quo::CollectionBackedQuery
+    def to_collection: () -> Quo::CollectionBackedQuery
 
     def results: () -> Quo::Results
 
@@ -141,11 +141,11 @@ module Quo
     # Are there no results for this query?
     def none?: () -> bool
 
-    # Is this query object a relation under the hood? (ie not eager loaded)
+    # Is this query object a ActiveRecord relation under the hood?
     def relation?: () -> bool
 
-    # Is this query object eager loaded data under the hood? (ie not a relation)
-    def eager?: () -> bool
+    # Is this query object loaded data/collection under the hood? (ie not a AR relation)
+    def collection?: () -> bool
 
     # Is this query object paged? (ie is paging enabled)
     def paged?: () -> bool
@@ -184,7 +184,7 @@ module Quo
 
     # @rbs rel: untyped
     # @rbs return: bool
-    def test_eager: (untyped rel) -> bool
+    def test_is_collection: (untyped rel) -> bool
 
     # @rbs rel: untyped
     # @rbs return: bool

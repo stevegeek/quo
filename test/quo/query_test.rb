@@ -92,19 +92,19 @@ class Quo::QueryTest < ActiveSupport::TestCase
     assert NewCommentsForAuthorQuery.new(author_id: 1001).none?
   end
 
-  test "#to_eager" do
+  test "#to_collection" do
     q = UnreadCommentsQuery.new
-    eager = q.to_eager
+    eager = q.to_collection
     assert_kind_of Quo::CollectionBackedQuery, eager
-    assert eager.eager?
+    assert eager.collection?
     assert_equal 2, eager.count
   end
 
-  test "#relation?/eager?" do
+  test "#relation?/collection?" do
     assert UnreadCommentsQuery.new.relation?
-    assert UnreadCommentsQuery.new.to_eager.eager?
-    refute UnreadCommentsQuery.new.eager?
-    assert Quo::CollectionBackedQuery.wrap([]).new.eager?
+    assert UnreadCommentsQuery.new.to_collection.collection?
+    refute UnreadCommentsQuery.new.collection?
+    assert Quo::CollectionBackedQuery.wrap([]).new.collection?
     refute Quo::CollectionBackedQuery.wrap([]).new.relation?
   end
 
@@ -192,7 +192,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
     ar = q.unwrap
     assert_kind_of ActiveRecord::Relation, ar
 
-    assert_instance_of Array, q.to_eager.unwrap
+    assert_instance_of Array, q.to_collection.unwrap
   end
 
   test "#each" do

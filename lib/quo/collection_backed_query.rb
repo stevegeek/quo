@@ -60,7 +60,7 @@ module Quo
     end
 
     # @rbs override
-    def eager?
+    def collection?
       true
     end
 

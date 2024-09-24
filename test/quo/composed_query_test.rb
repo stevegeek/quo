@@ -62,14 +62,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal sql, composed.to_sql
   end
 
-  test "composes eager queries" do
+  test "composes collection queries" do
     left = Quo::CollectionBackedQuery.wrap([1, 2, 3])
     right = Quo::CollectionBackedQuery.wrap([4, 5, 6])
     composed = Quo::ComposedQuery.composer(left, right)
     assert_equal [1, 2, 3, 4, 5, 6], composed.new.to_a
   end
 
-  test "composes query and eager queries" do
+  test "composes query and collection queries" do
     composed = NewCommentsForAuthorQuery.compose(Quo::CollectionBackedQuery.wrap([4, 5, 6]))
     q = composed.new(author_id: @a1.id)
     assert_kind_of Quo::ComposedQuery, q
@@ -78,7 +78,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal 6, q.last
   end
 
-  test "composes eager and relation backed queries" do
+  test "composes collection and relation backed queries" do
     composed = Quo::CollectionBackedQuery.wrap([4, 5, 6]).compose(NewCommentsForAuthorQuery)
     q = composed.new(author_id: @a1.id)
     assert_kind_of Quo::ComposedQuery, q
@@ -87,10 +87,10 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal "jkl", q.last.body
   end
 
-  test "composes query and eager queries, with pagination" do
+  test "composes query and collection queries, with pagination" do
     composed = NewCommentsForAuthorQuery.compose(Quo::CollectionBackedQuery.wrap([4, 5, 6]))
     q = composed.new(author_id: @a1.id, page: 1, page_size: 2)
-    # Apply pagination taking into account the eager content.
+    # Apply pagination taking into account the collection content.
     # Result set is ("abc", "jkl"), (4, 5), (6)
     assert_kind_of Quo::ComposedQuery, q
     assert_equal 1, q.author_id
@@ -102,10 +102,10 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal 5, q.last
   end
 
-  test "composes eager and relation backed queries, with pagination" do
+  test "composes collection and relation backed queries, with pagination" do
     composed = Quo::CollectionBackedQuery.wrap([4, 5, 6]).compose(NewCommentsForAuthorQuery)
     q = composed.new(author_id: @a1.id, page: 2, page_size: 2)
-    # Apply pagination taking into account the eager content.
+    # Apply pagination taking into account the collection content.
     # Result set is (4, 5), (6, "abc"), ("jkl")
     assert_kind_of Quo::ComposedQuery, q
     assert_equal 1, q.author_id
@@ -127,7 +127,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal "Quo::ComposedQuery[CommentNotSpamQuery, Quo::CollectionBackedQuery]", merged.inspect
   end
 
-  test "#inspect when 2 eager sources are provided" do
+  test "#inspect when 2 collection sources are provided" do
     merged = Quo::ComposedQuery.merge_instances(Quo::CollectionBackedQuery.wrap([]).new, Quo::CollectionBackedQuery.wrap([]).new)
     assert_kind_of Quo::ComposedQuery, merged
     assert_equal "Quo::ComposedQuery[Quo::CollectionBackedQuery, Quo::CollectionBackedQuery]", merged.inspect
@@ -217,19 +217,19 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert @q1.new(since_date: 100.days.from_now).none?
   end
 
-  test "#to_eager" do
+  test "#to_collection" do
     q = @q_composed.new
-    eager = q.to_eager
-    assert_kind_of Quo::CollectionBackedQuery, eager
-    assert eager.eager?
-    assert_equal 3, eager.count
+    collection = q.to_collection
+    assert_kind_of Quo::CollectionBackedQuery, collection
+    assert collection.collection?
+    assert_equal 3, collection.count
   end
 
-  test "#relation?/eager?" do
+  test "#relation?/collection?" do
     assert @q_composed.new.relation?
-    assert @q_composed.new.to_eager.eager?
-    refute @q_composed.new.eager?
-    assert Quo::ComposedQuery.composer(Quo::CollectionBackedQuery.wrap([]), ::Comment.joins(post: :author)).new.eager?
+    assert @q_composed.new.to_collection.collection?
+    refute @q_composed.new.collection?
+    assert Quo::ComposedQuery.composer(Quo::CollectionBackedQuery.wrap([]), ::Comment.joins(post: :author)).new.collection?
     refute Quo::ComposedQuery.composer(Quo::CollectionBackedQuery.wrap([]), ::Comment.joins(post: :author)).new.relation?
   end
 
@@ -316,7 +316,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     ar = @q_composed.new.unwrap
     assert_kind_of ActiveRecord::Relation, ar
 
-    assert_instance_of Array, @q_composed.new.to_eager.unwrap
+    assert_instance_of Array, @q_composed.new.to_collection.unwrap
   end
 
   test "#each" do

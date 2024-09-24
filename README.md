@@ -23,7 +23,7 @@ The query object must inherit from `Quo::Query` and provide an implementation fo
 The `query` method must return either:
 
 - an `ActiveRecord::Relation`
-- an Array (an 'eager loaded' query) 
+- an Enumerable (like a 'collection backed' query) 
 - or another `Quo::Query` instance.
 
 Remember that the query object should be useful in composition with other query objects. Thus it should not directly 
@@ -94,7 +94,7 @@ wrapped around a new 'composed' `ActiveRecords::Relation`.
 In case (2) the query object with a `ActiveRecords::Relation` inside is executed, and the result is then concatenated
 to the array-like with `+`
 
-In case (3) the values contained with each 'eager' query object are concatenated with `+`
+In case (3) the values contained are concatenated with `+`
 
 *Note that*
 
@@ -179,7 +179,7 @@ tags.compose(for_category, :category) # perform join on tag association `categor
 # equivalent to Tag.joins(:category).where(name: "Intel").where(categories: {name: "CPUs"})
 ```
 
-Eager loaded queries can also be composed (see below sections for more details).
+Collection backed queries can also be composed (see below sections for more details).
 
 ### Quo::ComposedQuery
 
@@ -202,9 +202,10 @@ Specify extra options to enable pagination:
 
 ### `Quo::CollectionBackedQuery` & `Quo::CollectionBackedQuery` objects
 
-`Quo::CollectionBackedQuery` is a subclass of `Quo::Query` which can be used to create query objects which are 'eager loaded' by 
-default. This is useful for encapsulating data that doesn't come from an ActiveRecord query or queries that
-execute immediately. Subclass EasyQuery and override `collection` to return the data you want to encapsulate.
+`Quo::CollectionBackedQuery` is a subclass of `Quo::Query` which can be used to create query objects which are backed 
+by a collection (ie an enumerable such as an Array). This is useful for encapsulating data that doesn't come from an 
+ActiveRecord query or queries that execute immediately. Subclass this and override `collection` to return the data you 
+want to encapsulate.
 
 ```ruby
 class MyCollectionBackedQuery < Quo::CollectionBackedQuery
@@ -213,7 +214,7 @@ class MyCollectionBackedQuery < Quo::CollectionBackedQuery
   end
 end
 q = MyCollectionBackedQuery.new
-q.eager? # is it 'eager'? Yes it is!
+q.collection? # is it a collection under the hood? Yes it is!
 q.count # '3'
 ```
 
@@ -221,8 +222,8 @@ Sometimes it is useful to create similar Queries without needing to create a exp
 use `Quo::CollectionBackedQuery`:
 
 ```ruby
-q = Quo::CollectionBackedQuery.new([1, 2, 3])
-q.eager? # is it 'eager'? Yes it is!
+q = Quo::CollectionBackedQuery.wrap([1, 2, 3])
+q.collection? # true
 q.count # '3'
 ```
 
@@ -232,7 +233,7 @@ actually just a page of the data and not the total count.
 Example of an CollectionBackedQuery used to wrap a page of enumerable data:
 
 ```ruby
-Quo::CollectionBackedQuery.new(my_data, total_count: 100, page: current_page)
+Quo::CollectionBackedQuery.wrap(my_data, total_count: 100, page: current_page)
 ```
 
 If a loaded query is `compose`d with other Query objects then it will be seen as an array-like, and concatenated to whatever 

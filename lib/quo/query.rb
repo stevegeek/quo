@@ -270,10 +270,10 @@ module Quo
     end
 
     # @rbs return: Quo::CollectionBackedQuery
-    def to_eager
+    def to_collection
       Quo::CollectionBackedQuery.wrap(to_a).new
     end
-    alias_method :load, :to_eager
+    alias_method :load, :to_collection
 
     def results #: Quo::Results
       Quo::Results.new(self, transformer: transformer)
@@ -314,14 +314,14 @@ module Quo
     end
     alias_method :empty?, :none?
 
-    # Is this query object a relation under the hood? (ie not eager loaded)
+    # Is this query object a ActiveRecord relation under the hood?
     def relation? #: bool
       test_relation(configured_query)
     end
 
-    # Is this query object eager loaded data under the hood? (ie not a relation)
-    def eager? #: bool
-      test_eager(configured_query)
+    # Is this query object loaded data/collection under the hood? (ie not a AR relation)
+    def collection? #: bool
+      test_is_collection(configured_query)
     end
 
     # Is this query object paged? (ie is paging enabled)
@@ -394,7 +394,7 @@ module Quo
       @underlying_query ||=
         begin
           rel = unwrap_relation(query)
-          unless test_eager(rel)
+          unless test_is_collection(rel)
             rel = rel.group(options[:group]) if options[:group].present?
             rel = rel.order(options[:order]) if options[:order].present?
             rel = rel.limit(options[:limit]) if options[:limit].present?
@@ -414,7 +414,7 @@ module Quo
 
     # @rbs rel: untyped
     # @rbs return: bool
-    def test_eager(rel)
+    def test_is_collection(rel)
       rel.is_a?(Quo::CollectionBackedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
     end
 
