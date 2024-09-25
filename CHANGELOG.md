@@ -1,7 +1,7 @@
 ## [Unreleased]
 
 
-## [1.0.0.rc1] - 2023-08-08
+## [1.0.0.rc1] - Unreleased
 
 ### Breaking Changes
 
@@ -18,6 +18,10 @@ Nearly everything has had changes. Porting will require some effort.
 
 - Update docs, dependencies, and tests
 - Use appraisals for testing
+
+### Added
+
+- Helpers `stub_query` and `mock_query` for Minitest
 
 ## [0.5.0] - 2022-12-23
 

@@ -3,16 +3,14 @@
 module Quo
   module Rspec
     module Helpers
-      def stub_query(query_class, options = {})
-        results = options.fetch(:results, [])
-        with = options[:with]
+      def stub_query(query_class, with: nil, results: [])
+        collection = ::Quo::CollectionBackedQuery.wrap(results)
         unless with.nil?
           return(
-            allow(query_class).to receive(:new)
-                                    .with(with) { ::Quo::CollectionBackedQuery.new(results) }
+            allow(query_class).to receive(:new).with(with) { collection.new }
           )
         end
-        allow(query_class).to receive(:new) { ::Quo::CollectionBackedQuery.new(results) }
+        allow(query_class).to receive(:new) { collection.new }
       end
     end
   end
