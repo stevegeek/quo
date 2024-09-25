@@ -14,7 +14,9 @@ module Quo
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
     def self.composer(left_query_class, right_query_class, joins: nil)
-      raise ArgumentError, "Cannot compose #{left_query_class}" unless left_query_class.respond_to?(:<)
+      unless left_query_class.respond_to?(:<) && right_query_class.respond_to?(:<)
+        raise ArgumentError, "Cannot compose #{left_query_class} and #{right_query_class}, are they both classes? If you want to use instances use `.merge_instances`"
+      end
       props = {}
       props.merge!(left_query_class.literal_properties.properties_index) if left_query_class < Quo::Query
       props.merge!(right_query_class.literal_properties.properties_index) if right_query_class < Quo::Query
