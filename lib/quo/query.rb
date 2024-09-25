@@ -130,6 +130,16 @@ module Quo
       copy(page: [page_index - 1, 1].max)
     end
 
+    def offset #: Integer
+      per_page = sanitised_page_size
+      page = if page_index&.positive?
+        page_index
+      else
+        1
+      end
+      per_page * (page - 1)
+    end
+
     # Returns a active record query, or a Quo::Query instance
     def query #: Quo::Query | ::ActiveRecord::Relation
       raise NotImplementedError, "Query objects must define a 'query' method"
@@ -357,16 +367,6 @@ module Quo
 
     def transformer
       @__transformer
-    end
-
-    def offset #: Integer
-      per_page = sanitised_page_size
-      page = if page_index&.positive?
-        page_index
-      else
-        1
-      end
-      per_page * (page - 1)
     end
 
     # The configured query is the underlying query with paging
