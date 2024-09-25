@@ -18,7 +18,7 @@ module Quo
 
     # 'Smart' wrap Query, ActiveRecord::Relation or a data collection in a Query.
     # Calls out to Quo::WrappedQuery.wrap or Quo::CollectionBackedQuery.wrap as appropriate.
-    def self.wrap: (untyped query_rel_or_data, **untyped options) -> untyped
+    def self.wrap: (untyped query_rel_or_data, **untyped props) -> untyped
 
     def self.wrap_instance: (untyped query_rel_or_data) -> untyped
 

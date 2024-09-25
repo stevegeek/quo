@@ -31,6 +31,8 @@ module Quo
     def count
       @total_count || underlying_query.size
     end
+    # @rbs override
+    alias_method :total_count, :count
 
     # @rbs override
     def page_count
