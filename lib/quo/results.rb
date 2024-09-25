@@ -17,7 +17,13 @@ module Quo
       @transformer = transformer
     end
 
-    # TODO: RBS for these,
+    # @rbs!
+    #   def include?: () -> bool
+    #   def member?: () -> bool
+    #   def all?: () -> bool
+    #   def any?: () -> bool
+    #   def none?: () -> bool
+    #   def one?: () -> bool
     def_delegators :unwrapped,
       :include?,
       :member?,
@@ -27,6 +33,16 @@ module Quo
       :one?
 
     def_delegators :query, :count
+
+    # Are there any results for this query?
+    def exists? #: bool
+      return unwrapped.exists? if query.relation?
+      configured_query.present?
+    end
+
+    def empty? #: bool
+      !exists?
+    end
 
     # @rbs &block: (untyped, *untyped) -> untyped
     # @rbs return: Hash[untyped, Array[untyped]]

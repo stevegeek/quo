@@ -301,6 +301,10 @@ module Quo
       :find,
       :include?,
       :each_with_object,
+      :none?,
+      :any?,
+      :empty?,
+      :exists?,
       to: :results
 
     # @rbs @__transformer: nil | ^(untyped, ?Integer) -> untyped
@@ -312,18 +316,6 @@ module Quo
       @__transformer = block
       self
     end
-
-    # Are there any results for this query?
-    def exists? #: bool
-      return configured_query.exists? if relation?
-      configured_query.present?
-    end
-
-    # Are there no results for this query?
-    def none? #: bool
-      !exists?
-    end
-    alias_method :empty?, :none?
 
     # Is this query object a ActiveRecord relation under the hood?
     def relation? #: bool

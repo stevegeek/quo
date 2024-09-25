@@ -72,6 +72,8 @@ module Quo
 
     def previous_page_query: () -> Quo::Query
 
+    def offset: () -> Integer
+
     # Returns a active record query, or a Quo::Query instance
     def query: () -> (Quo::Query | ::ActiveRecord::Relation)
 
@@ -148,12 +150,6 @@ module Quo
     # @rbs return: self
     def transform: () ?{ (?) -> untyped } -> self
 
-    # Are there any results for this query?
-    def exists?: () -> bool
-
-    # Are there no results for this query?
-    def none?: () -> bool
-
     # Is this query object a ActiveRecord relation under the hood?
     def relation?: () -> bool
 
@@ -180,8 +176,6 @@ module Quo
     private
 
     def transformer: () -> untyped
-
-    def offset: () -> Integer
 
     # The configured query is the underlying query with paging
     def configured_query: () -> ActiveRecord::Relation

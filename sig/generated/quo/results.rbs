@@ -9,6 +9,23 @@ module Quo
     # @rbs return: void
     def initialize: (Quo::Query query, ?transformer: (^(untyped, ?Integer) -> untyped)?) -> void
 
+    def include?: () -> bool
+
+    def member?: () -> bool
+
+    def all?: () -> bool
+
+    def any?: () -> bool
+
+    def none?: () -> bool
+
+    def one?: () -> bool
+
+    # Are there any results for this query?
+    def exists?: () -> bool
+
+    def empty?: () -> bool
+
     # @rbs &block: (untyped, *untyped) -> untyped
     # @rbs return: Hash[untyped, Array[untyped]]
     def group_by: () { (untyped, *untyped) -> untyped } -> Hash[untyped, Array[untyped]]
