@@ -28,13 +28,13 @@ module Quo
 
     # 'Smart' wrap Query, ActiveRecord::Relation or a data collection in a Query.
     # Calls out to Quo::WrappedQuery.wrap or Quo::CollectionBackedQuery.wrap as appropriate.
-    def self.wrap(query_rel_or_data, **options)
+    def self.wrap(query_rel_or_data, **props)
       if query_rel_or_data < Quo::Query
         query_rel_or_data
       elsif query_rel_or_data.is_a?(ActiveRecord::Relation)
-        Quo::WrappedQuery.wrap(query_rel_or_data, **options)
+        Quo::WrappedQuery.wrap(query_rel_or_data, **props)
       else
-        Quo::CollectionBackedQuery.wrap(query_rel_or_data)
+        Quo::CollectionBackedQuery.wrap(query_rel_or_data, **props)
       end
     end
 

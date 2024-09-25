@@ -5,7 +5,7 @@
 module Quo
   # @rbs inherits Quo::Query
   class CollectionBackedQuery < Quo.base_query_class
-    prop :total_count, _Nilable(Integer), shadow_check: false
+    prop :total_count, _Nilable(Integer), shadow_check: false, reader: false
 
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
@@ -23,23 +23,25 @@ module Quo
       klass
     end
 
+    # TODO: review this, count should be the paged count, while total_count should be the total count
     # Optionally return the `total_count` option if it has been set.
     # This is useful when the total count is known and not equal to size
     # of wrapped collection.
     # @rbs override
     def count
-      total_count || underlying_query.count
+      @total_count || underlying_query.size
     end
 
     # @rbs override
     def page_count
-      configured_query.count
+      configured_query.size
     end
 
     # Is this query object paged? (when no total count)
+    # TODO: review this...
     # @rbs override
     def paged?
-      total_count.nil? && page_index.present?
+      @total_count.nil? && page_index.present?
     end
 
     # @rbs return: Object & Enumerable[untyped]
