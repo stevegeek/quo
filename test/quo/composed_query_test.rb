@@ -212,9 +212,9 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "#exists?/none?" do
-    assert @q_composed.new.exists?
-    refute @q_composed.new.none?
-    assert @q1.new(since_date: 100.days.from_now).none?
+    assert @q_composed.new.results.exists?
+    refute @q_composed.new.results.none?
+    assert @q1.new(since_date: 100.days.from_now).results.none?
   end
 
   test "#to_collection" do
@@ -322,7 +322,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   test "#each" do
     q = @q_composed.new
     a = []
-    e = q.each { |c| a << c.body }
+    e = q.results.each { |c| a << c.body }
     assert_kind_of Array, e
     assert_equal ["abc", "def", "jkl"], a
     assert_kind_of Comment, e.first

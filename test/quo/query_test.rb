@@ -87,9 +87,9 @@ class Quo::QueryTest < ActiveSupport::TestCase
   end
 
   test "#exists?/none?" do
-    assert UnreadCommentsQuery.new.exists?
-    refute UnreadCommentsQuery.new.none?
-    assert NewCommentsForAuthorQuery.new(author_id: 1001).none?
+    assert UnreadCommentsQuery.new.results.exists?
+    refute UnreadCommentsQuery.new.results.none?
+    assert NewCommentsForAuthorQuery.new(author_id: 1001).results.none?
   end
 
   test "#to_collection" do
@@ -198,7 +198,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
   test "#each" do
     q = UnreadCommentsQuery.new
     a = []
-    e = q.each { |c| a << c.body }
+    e = q.results.each { |c| a << c.body }
     assert_kind_of Array, e
     assert_equal ["abc", "def"], a
     assert_kind_of Comment, e.first

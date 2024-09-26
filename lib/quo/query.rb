@@ -290,23 +290,6 @@ module Quo
       Quo::Results.new(self, transformer: transformer)
     end
 
-    # Some convenience methods for working with results
-    delegate :each,
-      :find_each,
-      :map,
-      :flat_map,
-      :reduce,
-      :reject,
-      :filter,
-      :find,
-      :include?,
-      :each_with_object,
-      :none?,
-      :any?,
-      :empty?,
-      :exists?,
-      to: :results
-
     # @rbs @__transformer: nil | ^(untyped, ?Integer) -> untyped
 
     # Set a block used to transform data after query fetching
