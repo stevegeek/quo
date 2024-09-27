@@ -37,7 +37,7 @@ module Quo
     # Are there any results for this query?
     def exists? #: bool
       return unwrapped.exists? if query.relation?
-      configured_query.present?
+      unwrapped.present?
     end
 
     def empty? #: bool

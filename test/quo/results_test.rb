@@ -51,4 +51,31 @@ class Quo::ResultsTest < ActiveSupport::TestCase
     taken = Quo::Results.new(UnreadCommentsQuery.new, transformer: t).take(2)
     assert_equal ["0", "1"], taken.map(&:body)
   end
+
+  test "#exists?" do
+    results = Quo::Results.new(UnreadCommentsQuery.new)
+    assert results.exists?
+    results = Quo::Results.new(Quo::CollectionBackedQuery.wrap([]).new)
+    refute results.exists?
+    results = Quo::Results.new(Quo::CollectionBackedQuery.wrap([1]).new)
+    assert results.exists?
+  end
+
+  test "#empty?" do
+    results = Quo::Results.new(UnreadCommentsQuery.new)
+    refute results.empty?
+  end
+
+  test "#group_by" do
+    results = Quo::Results.new(UnreadCommentsQuery.new)
+    grouped = results.group_by(&:post_id)
+    assert_equal 2, grouped.keys.size
+    assert_equal ["abc"], grouped[results.first.post_id].map(&:body)
+  end
+
+  test "#respond_to_missing?" do
+    results = Quo::Results.new(UnreadCommentsQuery.new)
+    assert results.respond_to?(:map)
+    assert_not results.respond_to?(:non_existent_method)
+  end
 end
