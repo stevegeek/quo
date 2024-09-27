@@ -281,8 +281,8 @@ module Quo
     end
 
     # @rbs return: Quo::CollectionBackedQuery
-    def to_collection
-      Quo::CollectionBackedQuery.wrap(to_a).new
+    def to_collection(total_count: nil)
+      Quo::CollectionBackedQuery.wrap(to_a).new(total_count:)
     end
     alias_method :load, :to_collection
 

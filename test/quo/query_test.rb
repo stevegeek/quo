@@ -98,6 +98,9 @@ class Quo::QueryTest < ActiveSupport::TestCase
     assert_kind_of Quo::CollectionBackedQuery, eager
     assert eager.collection?
     assert_equal 2, eager.count
+
+    eager = q.to_collection(total_count: 100)
+    assert_equal 100, eager.total_count
   end
 
   test "#relation?/collection?" do
