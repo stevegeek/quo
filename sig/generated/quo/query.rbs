@@ -54,6 +54,8 @@ module Quo
 
     @_rel_group: untyped?
 
+    @__rel_distinct: bool?
+
     @_rel_order: untyped?
 
     @_rel_limit: untyped?
@@ -87,30 +89,40 @@ module Quo
     # @rbs return: Quo::ComposedQuery
     def merge: (Quo::Query | ::ActiveRecord::Relation right, ?joins: untyped) -> Quo::ComposedQuery
 
-    # Methods to prepare the query
+    # SQL 'SELECT' configuration, calls to underlying AR relation
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def select: (*untyped options) -> Quo::Query
+
+    # SQL 'LIMIT' configuration, calls to underlying AR relation
     # @rbs limit: untyped
     # @rbs return: Quo::Query
     def limit: (untyped limit) -> Quo::Query
 
+    # SQL 'ORDER BY' configuration, calls to underlying AR relation
     # @rbs options: untyped
     # @rbs return: Quo::Query
     def order: (untyped options) -> Quo::Query
 
+    # SQL 'GROUP BY' configuration, calls to underlying AR relation
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def group: (*untyped options) -> Quo::Query
 
+    # Configures underlying AR relation to include associations
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def includes: (*untyped options) -> Quo::Query
 
+    # Configures underlying AR relation to preload associations
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def preload: (*untyped options) -> Quo::Query
 
-    # @rbs *options: untyped
+    # Calls to underlying AR distinct method
+    # @rbs enabled: bool
     # @rbs return: Quo::Query
-    def select: (*untyped options) -> Quo::Query
+    def distinct: (?bool enabled) -> Quo::Query
 
     # Gets the count of all results ignoring the current page and page size (if set).
     def count: () -> Integer
@@ -139,7 +151,7 @@ module Quo
     def to_a: () -> Array[untyped]
 
     # @rbs return: Quo::CollectionBackedQuery
-    def to_collection: () -> Quo::CollectionBackedQuery
+    def to_collection: (?total_count: untyped) -> Quo::CollectionBackedQuery
 
     def results: () -> Quo::Results
 
@@ -170,8 +182,6 @@ module Quo
 
     # Unwrap the un-paginated query
     def unwrap_unpaginated: () -> ActiveRecord::Relation
-
-    def distinct: () -> ActiveRecord::Relation
 
     private
 

@@ -29,7 +29,6 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
     assert_equal 2, q_copy.foo
   end
 
-
   test "#count returns the size of the collection" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
     assert_equal 3, q.count
