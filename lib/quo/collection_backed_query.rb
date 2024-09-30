@@ -120,7 +120,7 @@ module Quo
     def preload_includes(records, preload = nil)
       ::ActiveRecord::Associations::Preloader.new(
         records: records,
-        associations: preload || @_rel_includes
+        associations: preload || @_rel_preload
       ).call
     end
   end
