@@ -31,9 +31,6 @@ module Quo
     def count
       @total_count || underlying_query.size
     end
-    # @rbs override
-    alias_method :total_count, :count
-    alias_method :size, :count
 
     # @rbs override
     def page_count
@@ -73,7 +70,9 @@ module Quo
     end
 
     # @rbs override
-    alias_method :includes, :preload
+    def includes(*options)
+      preload(*options)
+    end
 
     # The default implementation of `query` calls `collection` and preloads the includes, however you can also
     # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.

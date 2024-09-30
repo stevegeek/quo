@@ -229,8 +229,15 @@ module Quo
       count_query(underlying_query)
     end
 
-    alias_method :total_count, :count
-    alias_method :size, :count
+    # Total number of items without paging applied.
+    def total_count #: Integer
+      count
+    end
+
+    # Alias for count
+    def size #: Integer
+      count
+    end
 
     # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
     # all results)

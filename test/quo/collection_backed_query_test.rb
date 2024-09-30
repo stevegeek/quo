@@ -80,15 +80,17 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
   end
 
   test "#includes" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    included = q.includes(:itself)
-    assert_equal [1, 2, 3], included.to_a
+    author = Author.create!(name: "John")
+    q = Quo::CollectionBackedQuery.wrap([author]).new
+    q = q.includes(:posts)
+    assert q.first.posts.loaded?
   end
 
   test "#preload" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    preloaded = q.preload(:itself)
-    assert_equal [1, 2, 3], preloaded.to_a
+    author = Author.create!(name: "John")
+    q = Quo::CollectionBackedQuery.wrap([author]).new
+    q = q.preload(:posts)
+    assert q.first.posts.loaded?
   end
 
   test "#first" do
