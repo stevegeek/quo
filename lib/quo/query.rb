@@ -102,12 +102,14 @@ module Quo
     # These store options related to building the underlying query, we don't want to expose these as public properties
     # @rbs!
     #   @_rel_group: untyped?
+    #   @__rel_distinct: bool?
     #   @_rel_order: untyped?
     #   @_rel_limit: untyped?
     #   @_rel_preload: untyped?
     #   @_rel_includes: untyped?
     #   @_rel_select: untyped?
     prop :_rel_group, _Nilable(_Any), reader: false, writer: false
+    prop :_rel_distinct, _Nilable(_Boolean), reader: false, writer: false
     prop :_rel_order, _Nilable(_Any), reader: false, writer: false
     prop :_rel_limit, _Nilable(_Any), reader: false, writer: false
     prop :_rel_preload, _Nilable(_Any), reader: false, writer: false
@@ -163,40 +165,54 @@ module Quo
     alias_method :+, :merge
 
     # Methods to prepare the query
+
+    # SQL 'SELECT' configuration, calls to underlying AR relation
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def select(*options)
+      copy(_rel_select: options)
+    end
+
+    # SQL 'LIMIT' configuration, calls to underlying AR relation
     # @rbs limit: untyped
     # @rbs return: Quo::Query
     def limit(limit)
       copy(_rel_limit: limit)
     end
 
+    # SQL 'ORDER BY' configuration, calls to underlying AR relation
     # @rbs options: untyped
     # @rbs return: Quo::Query
     def order(options)
       copy(_rel_order: options)
     end
 
+    # SQL 'GROUP BY' configuration, calls to underlying AR relation
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def group(*options)
       copy(_rel_group: options)
     end
 
+    # Configures underlying AR relation to include associations
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def includes(*options)
       copy(_rel_includes: options)
     end
 
+    # Configures underlying AR relation to preload associations
     # @rbs *options: untyped
     # @rbs return: Quo::Query
     def preload(*options)
       copy(_rel_preload: options)
     end
 
-    # @rbs *options: untyped
+    # Calls to underlying AR distinct method
+    # @rbs enabled: bool
     # @rbs return: Quo::Query
-    def select(*options)
-      copy(_rel_select: options)
+    def distinct(enabled = true)
+      copy(_rel_distinct: enabled)
     end
 
     # The following methods actually execute the underlying query
@@ -335,9 +351,6 @@ module Quo
       underlying_query
     end
 
-    # @rbs! def distinct: () -> ActiveRecord::Relation
-    delegate :distinct, to: :configured_query
-
     private
 
     def transformer
@@ -371,6 +384,7 @@ module Quo
       return rel if is_collection?(rel)
 
       rel = rel.group(@_rel_group) if @_rel_group.present?
+      rel = rel.distinct if @_rel_distinct
       rel = rel.order(@_rel_order) if @_rel_order.present?
       rel = rel.limit(@_rel_limit) if @_rel_limit.present?
       rel = rel.preload(@_rel_preload) if @_rel_preload.present?

@@ -13,9 +13,9 @@ module Quo
     def self.wrap(data = nil, props: {}, &block)
       klass = Class.new(self)
       if block
-        klass.define_method(:query, &block)
+        klass.define_method(:collection, &block)
       elsif data
-        klass.define_method(:query) { data }
+        klass.define_method(:collection) { data }
       else
         raise ArgumentError, "either a query or a block must be provided"
       end
@@ -33,6 +33,7 @@ module Quo
     end
     # @rbs override
     alias_method :total_count, :count
+    alias_method :size, :count
 
     # @rbs override
     def page_count
@@ -51,13 +52,41 @@ module Quo
       raise NotImplementedError, "Collection backed query objects must define a 'collection' method"
     end
 
+    # @rbs override
+    def limit(limit)
+      raise NoMethodError, "SQL 'LIMIT' (#limit) is not supported for collection backed queries"
+    end
+
+    # @rbs override
+    def select(*options)
+      raise NoMethodError, "SQL 'SELECT' (#select) is not supported for collection backed queries"
+    end
+
+    # @rbs override
+    def order(options)
+      raise NoMethodError, "SQL 'ORDER BY' (#order) is not supported for collection backed queries"
+    end
+
+    # @rbs override
+    def group(*options)
+      raise NoMethodError, "SQL 'GROUP BY' (#group) is not supported for collection backed queries"
+    end
+
+    # @rbs override
+    alias_method :includes, :preload
+
     # The default implementation of `query` calls `collection` and preloads the includes, however you can also
     # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.
     # @rbs return: Object & Enumerable[untyped]
     def query
       records = collection
-      preload_includes(records) if @_rel_includes
+      records = records.uniq if @_rel_distinct
+      preload_includes(records) if @_rel_preload
       records
+    end
+
+    def results
+      Quo::Results.new(self, transformer: transformer)
     end
 
     # @rbs override
@@ -70,11 +99,21 @@ module Quo
       true
     end
 
+    # @rbs override
+    def to_collection
+      self
+    end
+
+    # @rbs return: Object & Enumerable[untyped]
+    def unwrap
+      underlying_query
+    end
+
     private
 
     # @rbs override
     def underlying_query
-      unwrap_relation(query)
+      query
     end
 
     # @rbs (untyped records, ?untyped? preload) -> untyped
