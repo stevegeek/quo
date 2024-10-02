@@ -127,6 +127,12 @@ module Quo
     # Gets the count of all results ignoring the current page and page size (if set).
     def count: () -> Integer
 
+    # Total number of items without paging applied.
+    def total_count: () -> Integer
+
+    # Alias for count
+    def size: () -> Integer
+
     # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
     # all results)
     def page_count: () -> Integer

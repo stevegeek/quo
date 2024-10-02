@@ -367,8 +367,15 @@ module Quo
     # The configured query is the underlying query with paging
     def configured_query #: ActiveRecord::Relation
       q = underlying_query
-      return q unless paged? && q.is_a?(ActiveRecord::Relation)
-      q.offset(offset).limit(sanitised_page_size)
+      return q unless paged?
+
+      if q.is_a?(ActiveRecord::Relation)
+        q.offset(offset).limit(sanitised_page_size)
+      elsif q.respond_to?(:[])
+        q[offset, sanitised_page_size]
+      else
+        q
+      end
     end
 
     def sanitised_page_size #: Integer

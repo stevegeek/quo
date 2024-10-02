@@ -36,6 +36,9 @@ module Quo
     # @rbs override
     def group: ...
 
+    # @rbs override
+    def includes: ...
+
     # The default implementation of `query` calls `collection` and preloads the includes, however you can also
     # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.
     # @rbs return: Object & Enumerable[untyped]
@@ -51,9 +54,6 @@ module Quo
 
     # @rbs override
     def to_collection: ...
-
-    # @rbs return: Object & Enumerable[untyped]
-    def unwrap: () -> (Object & Enumerable[untyped])
 
     private
 

@@ -103,11 +103,6 @@ module Quo
       self
     end
 
-    # @rbs return: Object & Enumerable[untyped]
-    def unwrap
-      underlying_query
-    end
-
     private
 
     # @rbs override
