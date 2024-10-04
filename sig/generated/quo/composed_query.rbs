@@ -21,6 +21,12 @@ module Quo
 
     attr_reader _right_query: untyped
 
+    def self.inspect: () -> untyped
+
+    # @rbs operand: Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation
+    # @rbs return: String
+    def self.quo_operand_desc: (Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation operand) -> String
+
     # We can also merge instance of prepared queries
     # @rbs left_instance: Quo::Query | ::ActiveRecord::Relation
     # @rbs right_instance: Quo::Query | ::ActiveRecord::Relation
@@ -29,21 +35,18 @@ module Quo
     def merge_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance, ?joins: untyped) -> Quo::ComposedQuery
 
     # @rbs override
-    def self.inspect: ...
-
-    # @rbs override
     def query: ...
-
-    # @rbs return: Quo::Query | ::ActiveRecord::Relation
-    def left: () -> (Quo::Query | ::ActiveRecord::Relation)
-
-    # @rbs return: Quo::Query | ::ActiveRecord::Relation
-    def right: () -> (Quo::Query | ::ActiveRecord::Relation)
 
     # @rbs override
     def inspect: ...
 
     private
+
+    # The underlying query now needs to handle the possibilty of the return from the merge being either a relation or a collection
+    def underlying_query: () -> ActiveRecord::Relation
+
+    # The configured query is the underlying query with paging
+    def configured_query: () -> ActiveRecord::Relation
 
     # @rbs return: Hash[Symbol, untyped]
     def child_options: (untyped query_class) -> Hash[Symbol, untyped]
@@ -51,13 +54,18 @@ module Quo
     # @rbs return: Array[Symbol]
     def property_names: (untyped query_class) -> Array[Symbol]
 
-    # @rbs return: ActiveRecord::Relation | Object & Enumerable[untyped]
-    def merge_left_and_right: (untyped left, untyped right, untyped joins) -> (ActiveRecord::Relation | Object & Enumerable[untyped])
+    # @rbs return: Quo::Query | ::ActiveRecord::Relation
+    def left: () -> (Quo::Query | ::ActiveRecord::Relation)
+
+    # @rbs return: Quo::Query | ::ActiveRecord::Relation
+    def right: () -> (Quo::Query | ::ActiveRecord::Relation)
+
+    # @rbs return: ActiveRecord::Relation | CollectionBackedQuery
+    def merge_left_and_right: () -> (ActiveRecord::Relation | CollectionBackedQuery)
 
     # @rbs left_rel: ActiveRecord::Relation
-    # @rbs joins: untyped
     # @rbs return: ActiveRecord::Relation
-    def apply_joins: (ActiveRecord::Relation left_rel, untyped joins) -> ActiveRecord::Relation
+    def apply_joins: (ActiveRecord::Relation left_rel) -> ActiveRecord::Relation
 
     # @rbs rel: untyped
     # @rbs return: bool
@@ -77,12 +85,5 @@ module Quo
     # @rbs right: untyped
     # @rbs return: bool
     def left_enumerable_right_relation?: (untyped left, untyped right) -> bool
-
-    # @rbs override
-    def unwrap_relation: ...
-
-    # @rbs operand: Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation
-    # @rbs return: String
-    def operand_desc: (Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation operand) -> String
   end
 end

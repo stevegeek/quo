@@ -34,6 +34,8 @@ module Quo
 
     private
 
+    def validated_query: () -> untyped
+
     # @rbs return: Object & Enumerable[untyped]
     def underlying_query: () -> (Object & Enumerable[untyped])
 

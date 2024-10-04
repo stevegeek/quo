@@ -4,8 +4,9 @@ module Quo
   class Query < Literal::Struct
     include Literal::Types
 
-    # @rbs ovveride
-    def self.prop: (untyped name, untyped type, ?untyped kind, ?reader: untyped, ?writer: untyped, ?default: untyped, ?shadow_check: untyped) -> untyped
+    def self.inspect: () -> untyped
+
+    def inspect: () -> untyped
 
     COERCE_TO_INT: untyped
 
@@ -63,13 +64,15 @@ module Quo
 
     def transformer: () -> untyped
 
+    def validated_query: () -> untyped
+
+    # The underlying query is essentially the configured query with optional extras setup
+    def underlying_query: () -> void
+
     # The configured query is the underlying query with paging
     def configured_query: () -> void
 
     def sanitised_page_size: () -> Integer
-
-    # The underlying query is essentially the configured query with optional extras setup
-    def underlying_query: () -> void
 
     # @rbs rel: untyped
     # @rbs return: bool
@@ -78,5 +81,7 @@ module Quo
     # @rbs rel: untyped
     # @rbs return: bool
     def test_relation: (untyped rel) -> bool
+
+    def quo_unwrap_unpaginated_query: (untyped q) -> untyped
   end
 end

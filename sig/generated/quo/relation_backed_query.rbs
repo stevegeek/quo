@@ -28,7 +28,7 @@ module Quo
 
     @_rel_group: untyped?
 
-    @__rel_distinct: bool?
+    @_rel_distinct: bool?
 
     @_rel_order: untyped?
 
@@ -85,14 +85,12 @@ module Quo
 
     private
 
+    def validated_query: () -> untyped
+
     # The underlying query is essentially the configured query with optional extras setup
     def underlying_query: () -> ActiveRecord::Relation
 
     # The configured query is the underlying query with paging
     def configured_query: () -> ActiveRecord::Relation
-
-    # @rbs query: Quo::Query | ::ActiveRecord::Relation
-    # @rbs return: ActiveRecord::Relation
-    def unwrap_relation: (Quo::Query | ::ActiveRecord::Relation query) -> ActiveRecord::Relation
   end
 end
