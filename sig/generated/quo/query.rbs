@@ -6,7 +6,17 @@ module Quo
 
     def self.inspect: () -> untyped
 
+    def self.to_s: () -> untyped
+
     def inspect: () -> untyped
+
+    def to_s: () -> untyped
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    # @rbs return: Quo::Query & Quo::ComposedQuery
+    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> (Quo::Query & Quo::ComposedQuery)
 
     COERCE_TO_INT: untyped
 

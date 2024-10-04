@@ -24,6 +24,20 @@ module Quo
       inspect
     end
 
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    # @rbs return: Quo::Query & Quo::ComposedQuery
+    def self.compose(right, joins: nil)
+      super_class = if self < Quo::CollectionBackedQuery || right < Quo::CollectionBackedQuery
+        Quo::CollectionBackedQuery
+      else
+        Quo::RelationBackedQuery
+      end
+      ComposedQuery.composer(super_class, self, right, joins: joins)
+    end
+    singleton_class.alias_method :+, :compose
+
     COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
       return if value == Literal::Null
       value&.to_i

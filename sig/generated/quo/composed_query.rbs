@@ -42,12 +42,6 @@ module Quo
 
     private
 
-    # The underlying query now needs to handle the possibilty of the return from the merge being either a relation or a collection
-    def underlying_query: () -> ActiveRecord::Relation
-
-    # The configured query is the underlying query with paging
-    def configured_query: () -> ActiveRecord::Relation
-
     # @rbs return: Hash[Symbol, untyped]
     def child_options: (untyped query_class) -> Hash[Symbol, untyped]
 

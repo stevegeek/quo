@@ -67,33 +67,19 @@ module Quo
       if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
         return composer(left_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance, joins: joins).new(**left_instance.to_h)
       elsif right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
-        return composer(Quo::RelationBackedQuery, left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
+        return composer(right_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
       elsif left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
         props = left_instance.to_h.merge(right_instance.to_h.compact)
-        return composer(left_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance.class, joins: joins).new(**props)
+        return composer((left_instance.is_a?(Quo::RelationBackedQuery) && right_instance.is_a?(Quo::RelationBackedQuery)) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance.class, joins: joins).new(**props)
       end
-      composer(Quo::RelationBackedQuery, left_instance, right_instance, joins: joins).new # Both are relations
+      composer(Quo::RelationBackedQuery, left_instance, right_instance, joins: joins).new # Both are AR relations
     end
     module_function :merge_instances
 
     # @rbs override
     def query
-      merge_left_and_right(left, right, _composing_joins)
+      merge_left_and_right
     end
-
-    # @rbs return: Quo::Query | ::ActiveRecord::Relation
-    def left
-      return _left_query if is_relation?(_left_query)
-      _left_query.new(**child_options(_left_query))
-    end
-
-    # @rbs return: Quo::Query | ::ActiveRecord::Relation
-    def right
-      return _right_query if is_relation?(_right_query)
-      _right_query.new(**child_options(_right_query))
-    end
-
-    delegate :_composing_joins, :_left_query, :_right_query, to: :class
 
     # @rbs override
     def inspect
@@ -114,13 +100,26 @@ module Quo
       query_class.literal_properties.properties_index.keys
     end
 
-    # @rbs return: ActiveRecord::Relation | Object & Enumerable[untyped]
-    def merge_left_and_right(left, right, joins)
-      left_rel = unwrap_relation(left)
-      right_rel = unwrap_relation(right)
-      # FIXME: Skipping type checks here, as not sure how to make this type check with RBS
-      __skip__ = if both_relations?(left_rel, right_rel)
-        apply_joins(left_rel, joins).merge(right_rel)
+    # @rbs return: Quo::Query | ::ActiveRecord::Relation
+    def left
+      lq = self.class._left_query
+      return lq if is_relation?(lq)
+      lq.new(**child_options(lq))
+    end
+
+    # @rbs return: Quo::Query | ::ActiveRecord::Relation
+    def right
+      rq = self.class._right_query
+      return rq if is_relation?(rq)
+      rq.new(**child_options(rq))
+    end
+
+    # @rbs return: ActiveRecord::Relation | CollectionBackedQuery
+    def merge_left_and_right
+      left_rel = quo_unwrap_unpaginated_query(left)
+      right_rel = quo_unwrap_unpaginated_query(right)
+      if both_relations?(left_rel, right_rel)
+        apply_joins(left_rel).merge(right_rel) # ActiveRecord::Relation
       elsif left_relation_right_enumerable?(left_rel, right_rel)
         left_rel.to_a + right_rel
       elsif left_enumerable_right_relation?(left_rel, right_rel) && left_rel.respond_to?(:+)
@@ -133,9 +132,9 @@ module Quo
     end
 
     # @rbs left_rel: ActiveRecord::Relation
-    # @rbs joins: untyped
     # @rbs return: ActiveRecord::Relation
-    def apply_joins(left_rel, joins)
+    def apply_joins(left_rel)
+      joins = self.class._composing_joins
       joins.present? ? left_rel.joins(joins) : left_rel
     end
 
@@ -164,11 +163,6 @@ module Quo
     # @rbs return: bool
     def left_enumerable_right_relation?(left, right)
       !is_relation?(left) && is_relation?(right)
-    end
-
-    # @rbs override
-    def unwrap_relation(query)
-      query.is_a?(Quo::Query) ? query.unwrap_unpaginated : query
     end
   end
 end

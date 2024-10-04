@@ -3,11 +3,6 @@
 module Quo
   # @rbs inherits Quo::Query
   class CollectionBackedQuery < Quo::Query
-    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
-    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
-    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
-    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> untyped
-
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
     # @rbs return: Quo::CollectionBackedQuery

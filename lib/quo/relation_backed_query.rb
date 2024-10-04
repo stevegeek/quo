@@ -31,14 +31,6 @@ module Quo
       klass
     end
 
-    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
-    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
-    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
-    def self.compose(right, joins: nil)
-      ComposedQuery.composer(Quo::RelationBackedQuery, self, right, joins: joins)
-    end
-    singleton_class.alias_method :+, :compose
-
     # @rbs conditions: untyped?
     # @rbs return: String
     def self.sanitize_sql_for_conditions(conditions)

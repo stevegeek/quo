@@ -7,14 +7,6 @@ module Quo
   class CollectionBackedQuery < Quo.base_query_class
     prop :total_count, _Nilable(Integer)
 
-    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
-    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
-    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
-    def self.compose(right, joins: nil)
-      ComposedQuery.composer(Quo::CollectionBackedQuery, self, right, joins: joins)
-    end
-    singleton_class.alias_method :+, :compose
-
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
     # @rbs return: Quo::CollectionBackedQuery

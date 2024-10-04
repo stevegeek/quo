@@ -9,11 +9,6 @@ module Quo
     # @rbs return: Quo::RelationBackedQuery
     def self.wrap: (?ActiveRecord::Relation | Quo::Query query, ?props: Hash[Symbol, untyped]) ?{ (?) -> untyped } -> Quo::RelationBackedQuery
 
-    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
-    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
-    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
-    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> untyped
-
     # @rbs conditions: untyped?
     # @rbs return: String
     def self.sanitize_sql_for_conditions: (untyped? conditions) -> String
