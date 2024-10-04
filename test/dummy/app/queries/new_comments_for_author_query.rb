@@ -2,7 +2,7 @@
 
 # A query to fetch new unread comments that are on a particular author's posts.
 # Takes an `author_id` option argument
-class NewCommentsForAuthorQuery < Quo::Query
+class NewCommentsForAuthorQuery < Quo::RelationBackedQuery
   prop :author_id, Integer
 
   def query

@@ -3,17 +3,17 @@
 # rbs_inline: enabled
 
 module Quo
-  # @rbs inherits Quo::Query
-  class ComposedQuery < Quo.base_query_class
+  module ComposedQuery
     # Combine two Query classes into a new composed query class
     # Combine two query-like or composeable entities:
     # These can be Quo::Query, Quo::ComposedQuery, Quo::CollectionBackedQuery and ActiveRecord::Relations.
     # See the `README.md` docs for more details.
+    # @rbs chosen_superclass: singleton(Quo::RelationBackedQuery | Quo::CollectionBackedQuery)
     # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
-    def self.composer(left_query_class, right_query_class, joins: nil)
+    def composer(chosen_superclass, left_query_class, right_query_class, joins: nil)
       unless left_query_class.respond_to?(:<) && right_query_class.respond_to?(:<)
         raise ArgumentError, "Cannot compose #{left_query_class} and #{right_query_class}, are they both classes? If you want to use instances use `.merge_instances`"
       end
@@ -21,7 +21,9 @@ module Quo
       props.merge!(left_query_class.literal_properties.properties_index) if left_query_class < Quo::Query
       props.merge!(right_query_class.literal_properties.properties_index) if right_query_class < Quo::Query
 
-      klass = Class.new(self) do
+      klass = Class.new(chosen_superclass) do
+        include Quo::ComposedQuery
+
         class << self
           attr_reader :_composing_joins, :_left_query, :_right_query
         end
@@ -36,25 +38,27 @@ module Quo
       # klass.set_temporary_name = "quo::ComposedQuery" # Ruby 3.3+
       klass
     end
+    module_function :composer
 
     # We can also merge instance of prepared queries
     # @rbs left_instance: Quo::Query | ::ActiveRecord::Relation
     # @rbs right_instance: Quo::Query | ::ActiveRecord::Relation
     # @rbs joins: untyped
     # @rbs return: Quo::ComposedQuery
-    def self.merge_instances(left_instance, right_instance, joins: nil)
+    def merge_instances(left_instance, right_instance, joins: nil)
       raise ArgumentError, "Cannot merge, left has incompatible type #{left_instance.class}" unless left_instance.is_a?(Quo::Query) || left_instance.is_a?(::ActiveRecord::Relation)
       raise ArgumentError, "Cannot merge, right has incompatible type #{right_instance.class}" unless right_instance.is_a?(Quo::Query) || right_instance.is_a?(::ActiveRecord::Relation)
       if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
-        return composer(left_instance.class, right_instance, joins: joins).new(**left_instance.to_h)
+        return composer(left_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance, joins: joins).new(**left_instance.to_h)
       elsif right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
-        return composer(left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
+        return composer(Quo::RelationBackedQuery, left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
       elsif left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
         props = left_instance.to_h.merge(right_instance.to_h.compact)
-        return composer(left_instance.class, right_instance.class, joins: joins).new(**props)
+        return composer(left_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance.class, joins: joins).new(**props)
       end
-      composer(left_instance, right_instance, joins: joins).new # Both are relations
+      composer(Quo::RelationBackedQuery, left_instance, right_instance, joins: joins).new # Both are relations
     end
+    module_function :merge_instances
 
     # @rbs override
     def self.inspect

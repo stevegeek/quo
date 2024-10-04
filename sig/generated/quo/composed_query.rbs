@@ -1,17 +1,19 @@
 # Generated from lib/quo/composed_query.rb with RBS::Inline
 
 module Quo
-  # @rbs inherits Quo::Query
-  class ComposedQuery < Quo::Query
+  module ComposedQuery
     # Combine two Query classes into a new composed query class
     # Combine two query-like or composeable entities:
     # These can be Quo::Query, Quo::ComposedQuery, Quo::CollectionBackedQuery and ActiveRecord::Relations.
     # See the `README.md` docs for more details.
+    # @rbs chosen_superclass: singleton(Quo::RelationBackedQuery | Quo::CollectionBackedQuery)
     # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
-    def self.composer: (untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
+    def composer: (untyped chosen_superclass, untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
+
+    include Quo::ComposedQuery
 
     attr_reader _composing_joins: untyped
 
@@ -24,7 +26,7 @@ module Quo
     # @rbs right_instance: Quo::Query | ::ActiveRecord::Relation
     # @rbs joins: untyped
     # @rbs return: Quo::ComposedQuery
-    def self.merge_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance, ?joins: untyped) -> Quo::ComposedQuery
+    def merge_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance, ?joins: untyped) -> Quo::ComposedQuery
 
     # @rbs override
     def self.inspect: ...

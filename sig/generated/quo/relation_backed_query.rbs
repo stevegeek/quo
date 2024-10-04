@@ -1,0 +1,98 @@
+# Generated from lib/quo/relation_backed_query.rb with RBS::Inline
+
+module Quo
+  # @rbs inherits Quo::Query
+  class RelationBackedQuery < Quo::Query
+    # @rbs query: ActiveRecord::Relation | Quo::Query
+    # @rbs props: Hash[Symbol, untyped]
+    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]
+    # @rbs return: Quo::RelationBackedQuery
+    def self.wrap: (?ActiveRecord::Relation | Quo::Query query, ?props: Hash[Symbol, untyped]) ?{ (?) -> untyped } -> Quo::RelationBackedQuery
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> untyped
+
+    # @rbs conditions: untyped?
+    # @rbs return: String
+    def self.sanitize_sql_for_conditions: (untyped? conditions) -> String
+
+    # @rbs string: String
+    # @rbs return: String
+    def self.sanitize_sql_string: (String string) -> String
+
+    # @rbs value: untyped
+    # @rbs return: String
+    def self.sanitize_sql_parameter: (untyped value) -> String
+
+    @_rel_group: untyped?
+
+    @__rel_distinct: bool?
+
+    @_rel_order: untyped?
+
+    @_rel_limit: untyped?
+
+    @_rel_preload: untyped?
+
+    @_rel_includes: untyped?
+
+    @_rel_select: untyped?
+
+    # SQL 'SELECT' configuration, calls to underlying AR relation
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def select: (*untyped options) -> Quo::Query
+
+    # SQL 'LIMIT' configuration, calls to underlying AR relation
+    # @rbs limit: untyped
+    # @rbs return: Quo::Query
+    def limit: (untyped limit) -> Quo::Query
+
+    # SQL 'ORDER BY' configuration, calls to underlying AR relation
+    # @rbs options: untyped
+    # @rbs return: Quo::Query
+    def order: (untyped options) -> Quo::Query
+
+    # SQL 'GROUP BY' configuration, calls to underlying AR relation
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def group: (*untyped options) -> Quo::Query
+
+    # Configures underlying AR relation to include associations
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def includes: (*untyped options) -> Quo::Query
+
+    # Configures underlying AR relation to preload associations
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def preload: (*untyped options) -> Quo::Query
+
+    # Calls to underlying AR distinct method
+    # @rbs enabled: bool
+    # @rbs return: Quo::Query
+    def distinct: (?bool enabled) -> Quo::Query
+
+    # @rbs return: Quo::CollectionBackedQuery
+    def to_collection: (?total_count: untyped) -> Quo::CollectionBackedQuery
+
+    def results: () -> Quo::Results
+
+    # Return the SQL string for this query if its a relation type query object
+    def to_sql: () -> String
+
+    private
+
+    # The underlying query is essentially the configured query with optional extras setup
+    def underlying_query: () -> ActiveRecord::Relation
+
+    # The configured query is the underlying query with paging
+    def configured_query: () -> ActiveRecord::Relation
+
+    # @rbs query: Quo::Query | ::ActiveRecord::Relation
+    # @rbs return: ActiveRecord::Relation
+    def unwrap_relation: (Quo::Query | ::ActiveRecord::Relation query) -> ActiveRecord::Relation
+  end
+end

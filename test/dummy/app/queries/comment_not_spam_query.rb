@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # A query to fetch all the comments that are not spam
-class CommentNotSpamQuery < Quo::Query
+class CommentNotSpamQuery < Quo::RelationBackedQuery
   prop :spam_score_threshold, _Float(0..1.0)
 
   def query

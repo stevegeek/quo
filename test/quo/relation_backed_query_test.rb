@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-class Quo::QueryTest < ActiveSupport::TestCase
+class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   def setup
     a1 = Author.create!(name: "John")
     a2 = Author.create!(name: "Jane")
@@ -23,67 +23,42 @@ class Quo::QueryTest < ActiveSupport::TestCase
   test "#order" do
     q = UnreadCommentsQuery.new + Comment.joins(post: :author)
     comments = q.order("authors.name" => :asc)
-    assert_equal "Jane", comments.first.post.author.name
+    assert_equal "Jane", comments.results.first.post.author.name
   end
 
   test "#limit" do
-    assert_equal 1, UnreadCommentsQuery.new.limit(1).count
+    assert_equal 1, UnreadCommentsQuery.new.limit(1).results.count
   end
 
   test "#group" do
     q = UnreadCommentsQuery.new + Comment.joins(post: :author)
-    grouped = q.group("authors.id").count
+    grouped = q.group("authors.id").results.count
     assert_equal 2, grouped.size
   end
 
   test "#includes" do
     q = UnreadCommentsQuery.new
     comments = q.includes(post: :author)
-    assert_equal "John", comments.first.post.author.name
+    assert_equal "John", comments.results.first.post.author.name
   end
 
   test "#preload" do
     q = UnreadCommentsQuery.new
     comments = q.preload(post: :author)
-    assert_equal "John", comments.first.post.author.name
+    assert_equal "John", comments.results.first.post.author.name
   end
 
   test "#select" do
     q = UnreadCommentsQuery.new
     comments = q.select("id")
-    c = comments.first
+    c = comments.results.first
     assert_raises(ActiveModel::MissingAttributeError) { c.body }
     refute_nil c.id
   end
 
-  test "#count" do
-    assert_equal 2, UnreadCommentsQuery.new.count
-  end
-
-  test "#paged?" do
-    assert UnreadCommentsQuery.new(page: 1, page_size: 1).paged?
-    refute UnreadCommentsQuery.new.paged?
-  end
-
-  test "#count with paging" do
-    assert_equal 2, UnreadCommentsQuery.new(page_size: 1).count
-  end
-
-  test "#count with selects" do
-    assert_equal 2, Quo::WrappedQuery.wrap(Comment.where(read: false).joins(:post).select(:id, "posts.id")).new.count
-  end
-
-  test "#page_count" do
-    assert_equal 2, UnreadCommentsQuery.new.page_count
-  end
-
-  test "#page_count with paging" do
-    assert_equal 1, UnreadCommentsQuery.new(page: 1, page_size: 1).page_count
-  end
-
   test "#to_a" do
-    assert_instance_of Array, UnreadCommentsQuery.new.to_a
-    assert_equal 2, UnreadCommentsQuery.new.to_a.size
+    assert_instance_of Array, UnreadCommentsQuery.new.results.to_a
+    assert_equal 2, UnreadCommentsQuery.new.results.to_a.size
   end
 
   test "#exists?/none?" do
@@ -97,10 +72,10 @@ class Quo::QueryTest < ActiveSupport::TestCase
     eager = q.to_collection
     assert_kind_of Quo::CollectionBackedQuery, eager
     assert eager.collection?
-    assert_equal 2, eager.count
+    assert_equal 2, eager.results.count
 
     eager = q.to_collection(total_count: 100)
-    assert_equal 100, eager.total_count
+    assert_equal 100, eager.results.total_count
   end
 
   test "#relation?/collection?" do
@@ -111,61 +86,15 @@ class Quo::QueryTest < ActiveSupport::TestCase
     refute Quo::CollectionBackedQuery.wrap([]).new.relation?
   end
 
-  test "#first" do
-    q = UnreadCommentsQuery.new
-    assert_equal "abc", q.first.body
-    assert_equal ["abc", "def"], q.first(2).map(&:body)
-
-    q = q.copy(page: 1, page_size: 1)
-    assert_equal "abc", q.first.body
-    q = q.copy(page: 2, page_size: 1)
-    assert_equal "def", q.first.body
-    q = q.copy(page: 3, page_size: 1)
-    assert_nil q.first
-  end
-
-  test ".call" do
-    c = UnreadCommentsQuery.call
-    assert_equal "abc", c.body
-    assert_nil NewCommentsForAuthorQuery.call(author_id: 1001)
-  end
-
-  test ".call!" do
-    c = UnreadCommentsQuery.call
-    assert_equal "abc", c.body
-  end
-
-  test "#first!" do
-    q = UnreadCommentsQuery.new
-    assert_equal "abc", q.first!.body
-    assert_raises(ActiveRecord::RecordNotFound) { NewCommentsForAuthorQuery.new(author_id: 1001).first! }
-
-    q = q.copy(page: 1, page_size: 1)
-    assert_equal "abc", q.first.body
-    q = q.copy(page: 2, page_size: 1)
-    assert_equal "def", q.first.body
-    q = q.copy(page: 3, page_size: 1)
-    assert_raises(ActiveRecord::RecordNotFound) { q.first! }
-  end
-
-  test ".call! raises when no item exists" do
-    assert_raises(ActiveRecord::RecordNotFound) { NewCommentsForAuthorQuery.call!(author_id: 1001) }
-  end
-
-  test "#last" do
-    q = UnreadCommentsQuery.new
-    assert_equal "def", q.last.body
-    assert_equal ["abc", "def"], q.last(2).map(&:body)
-  end
-
   test "#transform" do
     q = UnreadCommentsQuery.new.transform do |c|
       c.body = "hello #{c.body} world"
       c
     end
-    assert_equal "hello abc world", q.first.body
-    assert_equal "hello def world", q.last.body
-    assert_equal ["hello abc world", "hello def world"], q.first(2).map(&:body)
+    results = q.results
+    assert_equal "hello abc world", results.first.body
+    assert_equal "hello def world", results.last.body
+    assert_equal ["hello abc world", "hello def world"], results.first(2).map(&:body)
   end
 
   test "#tranform copies to new query" do
@@ -174,7 +103,7 @@ class Quo::QueryTest < ActiveSupport::TestCase
       c
     end
     q = q.select(:body)
-    assert_equal "hello abc world", q.first.body
+    assert_equal "hello abc world", q.results.first.body
   end
 
   test "#transform?" do
@@ -227,5 +156,43 @@ class Quo::QueryTest < ActiveSupport::TestCase
     prev_q = q.previous_page_query
     assert_equal 1, prev_q.page
     assert_equal 1, prev_q.page_size
+  end
+
+  test "it wraps an ActiveRecord relation" do
+    query = Quo::RelationBackedQuery.wrap do
+      Comment.not_spam
+    end
+
+    assert_equal Comment.not_spam.to_sql, query.new.to_sql
+  end
+
+  test "it wraps an ActiveRecord relation as argument" do
+    query = Quo::RelationBackedQuery.wrap(Comment.not_spam)
+    assert_equal Comment.not_spam.to_sql, query.new.to_sql
+  end
+
+  test "it wraps an ActiveRecord relation with props" do
+    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Literal::Types::FloatType.new(0...1.0)}) do
+      Comment.not_spam(spam_score)
+    end
+
+    assert_equal Comment.not_spam.to_sql, query.new(spam_score: 0.5).to_sql
+    assert query < Quo::RelationBackedQuery
+  end
+
+  test "it raises when wrapping an ActiveRecord relation with prop that shadows a method" do
+    assert_raises ArgumentError do
+      Quo::RelationBackedQuery.wrap(props: {to_sql: Literal::Types::FloatType.new(0...1.0)}) do
+        Comment.not_spam
+      end
+    end
+  end
+
+  test "it wraps a query object" do
+    query = Quo::RelationBackedQuery.wrap(props: {threshold: Float}) do
+      CommentNotSpamQuery.new(spam_score_threshold: threshold)
+    end
+
+    assert_equal CommentNotSpamQuery.new(spam_score_threshold: 0.9).to_sql, query.new(threshold: 0.9).to_sql
   end
 end

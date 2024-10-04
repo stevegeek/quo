@@ -5,7 +5,15 @@
 module Quo
   # @rbs inherits Quo::Query
   class CollectionBackedQuery < Quo.base_query_class
-    prop :total_count, _Nilable(Integer), shadow_check: false, reader: false
+    prop :total_count, _Nilable(Integer), shadow_check: false
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    def self.compose(right, joins: nil)
+      ComposedQuery.composer(Quo::CollectionBackedQuery, self, right, joins: joins)
+    end
+    singleton_class.alias_method :+, :compose
 
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
@@ -23,69 +31,20 @@ module Quo
       klass
     end
 
-    # TODO: review this, count should be the paged count, while total_count should be the total count
-    # Optionally return the `total_count` option if it has been set.
-    # This is useful when the total count is known and not equal to size
-    # of wrapped collection.
-    # @rbs override
-    def count
-      @total_count || underlying_query.size
-    end
-
-    # @rbs override
-    def page_count
-      configured_query.size
-    end
-
-    # Is this query object paged? (when no total count)
-    # TODO: review this...
-    # @rbs override
-    def paged?
-      @total_count.nil? && page_index.present?
-    end
-
     # @rbs return: Object & Enumerable[untyped]
     def collection
       raise NotImplementedError, "Collection backed query objects must define a 'collection' method"
     end
 
-    # @rbs override
-    def limit(limit)
-      raise NoMethodError, "SQL 'LIMIT' (#limit) is not supported for collection backed queries"
-    end
-
-    # @rbs override
-    def select(*options)
-      raise NoMethodError, "SQL 'SELECT' (#select) is not supported for collection backed queries"
-    end
-
-    # @rbs override
-    def order(options)
-      raise NoMethodError, "SQL 'ORDER BY' (#order) is not supported for collection backed queries"
-    end
-
-    # @rbs override
-    def group(*options)
-      raise NoMethodError, "SQL 'GROUP BY' (#group) is not supported for collection backed queries"
-    end
-
-    # @rbs override
-    def includes(*options)
-      preload(*options)
-    end
-
-    # The default implementation of `query` calls `collection` and preloads the includes, however you can also
+    # The default implementation of `query` just calls `collection`, however you can also
     # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.
     # @rbs return: Object & Enumerable[untyped]
     def query
-      records = collection
-      records = records.uniq if @_rel_distinct
-      preload_includes(records) if @_rel_preload
-      records
+      collection
     end
 
     def results
-      Quo::Results.new(self, transformer: transformer)
+      Quo::CollectionResults.new(self, transformer: transformer)
     end
 
     # @rbs override
@@ -105,17 +64,21 @@ module Quo
 
     private
 
-    # @rbs override
+    # @rbs return: Object & Enumerable[untyped]
     def underlying_query
       query
     end
 
-    # @rbs (untyped records, ?untyped? preload) -> untyped
-    def preload_includes(records, preload = nil)
-      ::ActiveRecord::Associations::Preloader.new(
-        records: records,
-        associations: preload || @_rel_preload
-      ).call
+    # The configured query is the underlying query with paging
+    def configured_query #: Object & Enumerable[untyped]
+      q = underlying_query
+      return q unless paged?
+
+      if q.respond_to?(:[])
+        q[offset, sanitised_page_size]
+      else
+        q
+      end
     end
   end
 end

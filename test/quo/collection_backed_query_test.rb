@@ -6,7 +6,7 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
   test "creates a new loaded query object from an array" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
     assert_kind_of Quo::CollectionBackedQuery, q
-    assert_equal [1, 2, 3], q.to_a
+    assert_equal [1, 2, 3], q.results.to_a
     assert_equal 3, q.results.size
   end
 
@@ -31,22 +31,22 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
 
   test "#count returns the size of the collection" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal 3, q.count
+    assert_equal 3, q.results.count
   end
 
   test "#total_count returns the size of the collection" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal 3, q.total_count
+    assert_equal 3, q.results.total_count
   end
 
   test "#size returns the size of the collection" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal 3, q.size
+    assert_equal 3, q.results.size
   end
 
   test "#page_count returns the size of the collection" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal 3, q.page_count
+    assert_equal 3, q.results.page_count
   end
 
   test "#paged? returns false when total_count is nil and page_index is not present" do
@@ -59,55 +59,21 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
     assert_not q.relation?
   end
 
-  test "#select" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_raises { q.select { |x| x > 1 } }
-  end
-
-  test "#order" do
-    q = Quo::CollectionBackedQuery.wrap([3, 1, 2]).new
-    assert_raises { q.order(:itself) }
-  end
-
-  test "#limit" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_raises { q.limit(2) }
-  end
-
-  test "#group" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3, 1, 2, 3]).new
-    assert_raises { q.group(&:itself) }
-  end
-
-  test "#includes" do
-    author = Author.create!(name: "John")
-    q = Quo::CollectionBackedQuery.wrap([author]).new
-    q = q.includes(:posts)
-    assert q.first.posts.loaded?
-  end
-
-  test "#preload" do
-    author = Author.create!(name: "John")
-    q = Quo::CollectionBackedQuery.wrap([author]).new
-    q = q.preload(:posts)
-    assert q.first.posts.loaded?
-  end
-
   test "#first" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal 1, q.first
-    assert_equal [1, 2], q.first(2)
+    assert_equal 1, q.results.first
+    assert_equal [1, 2], q.results.first(2)
   end
 
   test "#last" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal 3, q.last
-    assert_equal [2, 3], q.last(2)
+    assert_equal 3, q.results.last
+    assert_equal [2, 3], q.results.last(2)
   end
 
   test "#to_a" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_equal [1, 2, 3], q.to_a
+    assert_equal [1, 2, 3], q.results.to_a
   end
 
   test "#exists?" do
@@ -126,17 +92,12 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
 
   test "#transform" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new.transform { |x| x * 2 }
-    assert_equal [2, 4, 6], q.to_a
+    assert_equal [2, 4, 6], q.results.to_a
   end
 
   test "#transform?" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new.transform { |x| x }
     assert q.transform?
-  end
-
-  test "#to_sql" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
-    assert_nil q.to_sql
   end
 
   test "#unwrap" do
@@ -155,11 +116,5 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
     mapped = q.results.map { |x| x * 2 }
     assert_equal [2, 4, 6], mapped
-  end
-
-  test "#distinct" do
-    q = Quo::CollectionBackedQuery.wrap([1, 2, 3, 1, 2, 3]).new
-    distinct = q.distinct
-    assert_equal [1, 2, 3], distinct.results.to_a
   end
 end

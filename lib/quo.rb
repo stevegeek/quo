@@ -9,10 +9,13 @@ module Quo
   extend ActiveSupport::Autoload
 
   autoload :Query
+  autoload :Preloadable
+  autoload :RelationBackedQuery
   autoload :Results
+  autoload :RelationResults
+  autoload :CollectionResults
   autoload :ComposedQuery
   autoload :CollectionBackedQuery
-  autoload :WrappedQuery
 
   mattr_accessor :base_query_class, default: "Quo::Query"
   mattr_accessor :max_page_size, default: 200

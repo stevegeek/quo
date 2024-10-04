@@ -2,29 +2,16 @@
 
 module Quo
   class Results
-    extend Forwardable
-
-    # @rbs query: Quo::Query
-    # @rbs transformer: (^(untyped, ?Integer) -> untyped)?
-    # @rbs return: void
-    def initialize: (Quo::Query query, ?transformer: (^(untyped, ?Integer) -> untyped)?) -> void
-
-    def include?: () -> bool
-
-    def member?: () -> bool
-
-    def all?: () -> bool
-
-    def any?: () -> bool
-
-    def none?: () -> bool
-
-    def one?: () -> bool
-
-    # Are there any results for this query?
-    def exists?: () -> bool
-
     def empty?: () -> bool
+
+    # Alias for total_count
+    def count: () -> Integer
+
+    # Alias for total_count
+    def size: () -> Integer
+
+    # Alias for page_count
+    def page_size: () -> Integer
 
     # @rbs &block: (untyped, *untyped) -> untyped
     # @rbs return: Hash[untyped, Array[untyped]]
@@ -39,19 +26,14 @@ module Quo
     # @rbs return: bool
     def respond_to_missing?: (Symbol name, ?bool include_private) -> bool
 
+    def transform?: () -> bool
+
     private
 
-    attr_reader query: Quo::Query
-
-    attr_reader transformer: (^(untyped, ?Integer) -> untyped)?
-
-    attr_reader unwrapped: ActiveRecord::Relation | Object & Enumerable[untyped]
+    @transformer: (^(untyped, ?Integer) -> untyped)?
 
     # @rbs results: untyped
     # @rbs return: untyped
     def transform_results: (untyped results) -> untyped
-
-    # @rbs return: Array[Symbol]
-    def enumerable_methods_supported: () -> Array[Symbol]
   end
 end

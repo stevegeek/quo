@@ -11,10 +11,10 @@ class Quo::CustomBaseClassTest < ActiveSupport::TestCase
     Comment.create!(post: p1, body: "abc", read: false)
     Comment.create!(post: p2, body: "def", read: false, spam_score: 0.8)
 
-    @q1 = Quo::WrappedQuery.wrap(props: {since_date: Time}) do
+    @q1 = Quo::RelationBackedQuery.wrap(props: {since_date: Time}) do
       Comment.recent(since_date)
     end
-    @q2 = Quo::WrappedQuery.wrap(props: {spam_score: Float}) do
+    @q2 = Quo::RelationBackedQuery.wrap(props: {spam_score: Float}) do
       Comment.not_spam(spam_score)
     end
   end
@@ -23,7 +23,7 @@ class Quo::CustomBaseClassTest < ActiveSupport::TestCase
     assert_kind_of ApplicationQuery, @q1.new(since_date: 1.day.ago)
     assert_equal "world", @q1.new(since_date: 1.day.ago).hello
 
-    klass = Quo::ComposedQuery.composer(Comment.recent, Comment.not_spam)
+    klass = Quo::RelationBackedQuery.wrap(Comment.recent).compose(Comment.not_spam)
     assert_kind_of ApplicationQuery, klass.new
   end
 end

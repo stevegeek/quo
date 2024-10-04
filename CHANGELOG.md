@@ -9,8 +9,11 @@ Nearly everything has had changes. Porting will require some effort.
 
 - Quo now depends on `literal`, meaning attributes (options) to queries are typed and explicit
 - Composing query objects now allows you to compose query classes rather than just instances of query objects
-- `MergedQuery` is now `ComposedQuery`
-- `EagerQuery` & `LoadedQuery` are now simply `CollectionBackedQuery`
+- `MergedQuery`, `EagerQuery` & `LoadedQuery` have been removed
+- `Query` is now an abstract base class for `RelationBackedQuery` and `CollectionBackedQuery`
+- The API of `Query` has been reduced/simplified significantly
+- `Query` classes only build queries, to actually execute/take actions on them you need to call `#results` and get a `Results` object
+- `preload`ing behaviour is now a separate concern from `Query` and is handled by `Preloadable` module.
 - Drop support for Ruby <= 3.1 and Rails < 7.0
 - Gem is now a Rails engine and relies on autoloading
 

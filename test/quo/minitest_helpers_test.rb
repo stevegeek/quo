@@ -9,7 +9,7 @@ class Quo::MinitestHelpersTest < ActiveSupport::TestCase
   test "stub_query" do
     stub_query(CommentNotSpamQuery, results: [1, 2]) do
       q = CommentNotSpamQuery.new(spam_score_threshold: 0.8)
-      assert_equal 2, q.count
+      assert_equal 2, q.results.count
       assert_equal 1, q.results.first
     end
   end
@@ -18,7 +18,7 @@ class Quo::MinitestHelpersTest < ActiveSupport::TestCase
     mock = mock_query(CommentNotSpamQuery, kwargs: {spam_score_threshold: 0.8}, results: [1, 2])
     stub_query(CommentNotSpamQuery, mock: mock, results: [1, 2]) do
       q = CommentNotSpamQuery.new(spam_score_threshold: 0.8)
-      assert_equal 2, q.count
+      assert_equal 2, q.results.count
       assert_equal 1, q.results.first
       assert_mock mock
     end

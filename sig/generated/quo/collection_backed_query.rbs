@@ -3,43 +3,20 @@
 module Quo
   # @rbs inherits Quo::Query
   class CollectionBackedQuery < Quo::Query
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> untyped
+
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
     # @rbs return: Quo::CollectionBackedQuery
     def self.wrap: (?untyped data, ?props: untyped) ?{ (?) -> untyped } -> Quo::CollectionBackedQuery
 
-    # Optionally return the `total_count` option if it has been set.
-    # This is useful when the total count is known and not equal to size
-    # of wrapped collection.
-    # @rbs override
-    def count: ...
-
-    # @rbs override
-    def page_count: ...
-
-    # Is this query object paged? (when no total count)
-    # @rbs override
-    def paged?: ...
-
     # @rbs return: Object & Enumerable[untyped]
     def collection: () -> (Object & Enumerable[untyped])
 
-    # @rbs override
-    def limit: ...
-
-    # @rbs override
-    def select: ...
-
-    # @rbs override
-    def order: ...
-
-    # @rbs override
-    def group: ...
-
-    # @rbs override
-    def includes: ...
-
-    # The default implementation of `query` calls `collection` and preloads the includes, however you can also
+    # The default implementation of `query` just calls `collection`, however you can also
     # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.
     # @rbs return: Object & Enumerable[untyped]
     def query: () -> (Object & Enumerable[untyped])
@@ -57,10 +34,10 @@ module Quo
 
     private
 
-    # @rbs override
-    def underlying_query: ...
+    # @rbs return: Object & Enumerable[untyped]
+    def underlying_query: () -> (Object & Enumerable[untyped])
 
-    # @rbs (untyped records, ?untyped? preload) -> untyped
-    def preload_includes: (untyped records, ?untyped? preload) -> untyped
+    # The configured query is the underlying query with paging
+    def configured_query: () -> (Object & Enumerable[untyped])
   end
 end

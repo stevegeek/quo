@@ -16,6 +16,9 @@ The core implementation provides the following functionality:
 * acts as a callable which executes the underlying query with `.first`
 * can return an `Enumerable` of results
 
+
+`Quo::Query` subclasses are the builders, they retain configuration of the queries, and prepare the underlying query or data collections. Query objects then return `Quo::Results` which take the built queries and then take action on them, such as to fetch data or to count records.
+
 ## Creating a Quo query object
 
 The query object must inherit from `Quo::Query` and provide an implementation for the `query` method.
@@ -105,7 +108,7 @@ query object or and `ActiveRecord::Relation`. However `Quo::Query.compose(left, 
 ### Examples
 
 ```ruby
-class CompanyToBeApproved < Quo::Query
+class CompanyToBeApproved < Quo::RelationBackedQuery
   def query
     Registration
       .left_joins(:approval)
@@ -113,7 +116,7 @@ class CompanyToBeApproved < Quo::Query
   end
 end
 
-class CompanyInUsState < Quo::Query
+class CompanyInUsState < Quo::RelationBackedQuery
   def query
     Registration
       .joins(company: :address)
@@ -143,7 +146,7 @@ It is also possible to compose with an `ActiveRecord::Relation`. This can be use
 build up the `query` relation. For example:
 
 ```ruby
-class RegistrationToBeApproved < Quo::Query
+class RegistrationToBeApproved < Quo::RelationBackedQuery
   def query
     done = Registration.where(step: "complete")
     approved = CompanyToBeApproved.new
@@ -160,13 +163,13 @@ query = RegistrationToBeApproved.new + Registration.where(blocked: false)
 Also you can use joins:
 
 ```ruby
-class TagByName < Quo::Query
+class TagByName < Quo::RelationBackedQuery
   def query
     Tag.where(name: options[:name])
   end
 end
 
-class CategoryByName < Quo::Query
+class CategoryByName < Quo::RelationBackedQuery
   def query
     Category.where(name: options[:name])
   end
@@ -244,7 +247,7 @@ results are returned from the other queries. An loaded or eager query will force
 Examples of composition of eager loaded queries
 
 ```ruby
-class CachedTags < Quo::Query
+class CachedTags < Quo::RelationBackedQuery
   def query
     @tags ||= Tag.where(active: true).to_a
   end
