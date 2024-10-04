@@ -154,5 +154,9 @@ module Quo
     def test_relation(rel)
       rel.is_a?(ActiveRecord::Relation)
     end
+
+    def quo_unwrap_unpaginated_query(q)
+      q.is_a?(Quo::Query) ? q.unwrap_unpaginated : q
+    end
   end
 end

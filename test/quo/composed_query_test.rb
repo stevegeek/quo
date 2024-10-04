@@ -20,7 +20,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
       Comment.not_spam(spam_score)
     end
 
-    @q_composed = Quo::RelationBackedQuery.wrap(::UnreadCommentsQuery).compose(::Comment.joins(post: :author))
+    @q_composed = Quo::RelationBackedQuery.wrap(::UnreadCommentsQuery.new).compose(::Comment.joins(post: :author))
   end
 
   test "merges two active record queries" do
@@ -71,7 +71,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   test "composes collection queries" do
     left = Quo::CollectionBackedQuery.wrap([1, 2, 3])
     right = Quo::CollectionBackedQuery.wrap([4, 5, 6])
-    composed = Quo::ComposedQuery.composer(left, right)
+    composed = left + right
     assert_equal [1, 2, 3, 4, 5, 6], composed.new.results.to_a
   end
 
@@ -130,19 +130,19 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
   test "#inspect when 1 source is a query object subclass" do
     merged = CommentNotSpamQuery.compose(Quo::CollectionBackedQuery)
-    assert_equal "Quo::ComposedQuery[CommentNotSpamQuery, Quo::CollectionBackedQuery]", merged.inspect
+    assert_equal "Quo::RelationBackedQuery<Quo::ComposedQuery>[CommentNotSpamQuery, Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#inspect when 2 collection sources are provided" do
     merged = Quo::CollectionBackedQuery.wrap([]).new.merge(Quo::CollectionBackedQuery.wrap([]).new)
     assert_kind_of Quo::ComposedQuery, merged
-    assert_equal "Quo::ComposedQuery[Quo::CollectionBackedQuery, Quo::CollectionBackedQuery]", merged.inspect
+    assert_includes merged.inspect, "Quo::CollectionBackedQuery<Quo::ComposedQuery>[Quo::CollectionBackedQuery, Quo::CollectionBackedQuery]"
   end
 
   test "#inspect when 1 source is a merged query" do
     nested = CommentNotSpamQuery.compose(UnreadCommentsQuery)
     merged = nested.compose(Quo::CollectionBackedQuery)
-    assert_equal "Quo::ComposedQuery[Quo::ComposedQuery[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
+    assert_equal "Quo::RelationBackedQuery<Quo::ComposedQuery>[Quo::RelationBackedQuery<Quo::ComposedQuery>[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#copy makes a copy of this query object with different options" do
