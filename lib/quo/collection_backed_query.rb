@@ -5,7 +5,7 @@
 module Quo
   # @rbs inherits Quo::Query
   class CollectionBackedQuery < Quo.base_query_class
-    prop :total_count, _Nilable(Integer), shadow_check: false
+    prop :total_count, _Nilable(Integer)
 
     # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
     # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]

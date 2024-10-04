@@ -8,17 +8,6 @@ module Quo
   class Query < Literal::Struct
     include Literal::Types
 
-    # @rbs ovveride
-    def self.prop(name, type, kind = :keyword, reader: :public, writer: :public, default: nil, shadow_check: true)
-      if shadow_check && reader && instance_methods.include?(name.to_sym)
-        raise ArgumentError, "Property name '#{name}' shadows an existing method"
-      end
-      if shadow_check && writer && instance_methods.include?(:"#{name}=")
-        raise ArgumentError, "Property name '#{name}' shadows an existing writer method '#{name}='"
-      end
-      super(name, type, kind, reader: reader, writer: writer, default: default)
-    end
-
     COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
       return if value == Literal::Null
       value&.to_i
