@@ -8,6 +8,14 @@ module Quo
   class Query < Literal::Struct
     include Literal::Types
 
+    def self.inspect
+      "#{name || "(anonymous)"}<#{superclass}>"
+    end
+
+    def inspect
+      "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{paged? ? "" : "not "}paginated>#{super}"
+    end
+
     COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
       return if value == Literal::Null
       value&.to_i
@@ -19,7 +27,6 @@ module Quo
     #   @current_page: Integer?
     prop :page, _Nilable(Integer), &COERCE_TO_INT
     prop(:page_size, _Nilable(Integer), default: -> { Quo.default_page_size || 20 }, &COERCE_TO_INT)
-
 
     def next_page_query #: Quo::Query
       copy(page: page + 1)
@@ -101,7 +108,6 @@ module Quo
     def unwrap_unpaginated #: ActiveRecord::Relation
       underlying_query
     end
-
 
     private
 

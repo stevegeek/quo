@@ -26,16 +26,32 @@ module Quo
 
         class << self
           attr_reader :_composing_joins, :_left_query, :_right_query
+
+          def inspect
+            left_desc = quo_operand_desc(_left_query)
+            right_desc = quo_operand_desc(_right_query)
+            klass_name = (self < Quo::RelationBackedQuery) ? Quo::RelationBackedQuery.name : Quo::CollectionBackedQuery.name
+            "#{klass_name}<Quo::ComposedQuery>[#{left_desc}, #{right_desc}]"
+          end
+
+          # @rbs operand: Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation
+          # @rbs return: String
+          def quo_operand_desc(operand)
+            if operand < Quo::ComposedQuery
+              operand.inspect
+            else
+              operand.name || operand.superclass&.name || "(anonymous)"
+            end
+          end
         end
 
         props.each do |name, property|
-          prop name, property.type, property.kind, reader: property.reader, writer: property.writer, default: property.default, shadow_check: false
+          prop name, property.type, property.kind, reader: property.reader, writer: property.writer, default: property.default
         end
       end
       klass.instance_variable_set(:@_composing_joins, joins)
       klass.instance_variable_set(:@_left_query, left_query_class)
       klass.instance_variable_set(:@_right_query, right_query_class)
-      # klass.set_temporary_name = "quo::ComposedQuery" # Ruby 3.3+
       klass
     end
     module_function :composer
@@ -61,15 +77,6 @@ module Quo
     module_function :merge_instances
 
     # @rbs override
-    def self.inspect
-      left = _left_query
-      left_desc = (left < Quo::ComposedQuery) ? left.inspect : (left.name || "(anonymous)")
-      right = _right_query
-      right_desc = (right < Quo::ComposedQuery) ? right.inspect : (right.name || "(anonymous)")
-      "Quo::ComposedQuery[#{left_desc}, #{right_desc}]"
-    end
-
-    # @rbs override
     def query
       merge_left_and_right(left, right, _composing_joins)
     end
@@ -90,7 +97,8 @@ module Quo
 
     # @rbs override
     def inspect
-      "Quo::ComposedQuery[#{operand_desc(left)}, #{operand_desc(right)}]"
+      klass_name = is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery.name : Quo::CollectionBackedQuery.name
+      "#{klass_name}<Quo::ComposedQuery>[#{self.class.quo_operand_desc(left.class)}, #{self.class.quo_operand_desc(right.class)}](#{super})"
     end
 
     private
@@ -161,16 +169,6 @@ module Quo
     # @rbs override
     def unwrap_relation(query)
       query.is_a?(Quo::Query) ? query.unwrap_unpaginated : query
-    end
-
-    # @rbs operand: Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation
-    # @rbs return: String
-    def operand_desc(operand)
-      if operand.is_a? Quo::ComposedQuery
-        operand.inspect
-      else
-        operand.class.name || operand.class.superclass&.name || "(anonymous)"
-      end
     end
   end
 end
