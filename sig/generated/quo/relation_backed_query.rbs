@@ -1,8 +1,7 @@
 # Generated from lib/quo/relation_backed_query.rb with RBS::Inline
 
 module Quo
-  # @rbs inherits Quo::Query
-  class RelationBackedQuery < Quo::Query
+  class RelationBackedQuery < Query
     # @rbs query: ActiveRecord::Relation | Quo::Query
     # @rbs props: Hash[Symbol, untyped]
     # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]

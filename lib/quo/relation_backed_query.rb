@@ -5,8 +5,7 @@
 require "literal"
 
 module Quo
-  # @rbs inherits Quo::Query
-  class RelationBackedQuery < Quo.base_query_class
+  class RelationBackedQuery < Query
     # @rbs query: ActiveRecord::Relation | Quo::Query
     # @rbs props: Hash[Symbol, untyped]
     # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]

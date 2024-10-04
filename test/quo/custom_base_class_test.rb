@@ -11,7 +11,7 @@ class Quo::CustomBaseClassTest < ActiveSupport::TestCase
     Comment.create!(post: p1, body: "abc", read: false)
     Comment.create!(post: p2, body: "def", read: false, spam_score: 0.8)
 
-    @q1 = Quo::RelationBackedQuery.wrap(props: {since_date: Time}) do
+    @q1 = ApplicationRelationQuery.wrap(props: {since_date: Time}) do
       Comment.recent(since_date)
     end
     @q2 = Quo::RelationBackedQuery.wrap(props: {spam_score: Float}) do
@@ -20,10 +20,10 @@ class Quo::CustomBaseClassTest < ActiveSupport::TestCase
   end
 
   test "wrapped query inherits from custom base class" do
-    assert_kind_of ApplicationQuery, @q1.new(since_date: 1.day.ago)
-    assert_equal "world", @q1.new(since_date: 1.day.ago).hello
+    assert_kind_of ApplicationRelationQuery, @q1.new(since_date: 1.day.ago)
+    assert_equal "relation", @q1.new(since_date: 1.day.ago).hello
 
     klass = Quo::RelationBackedQuery.wrap(Comment.recent).compose(Comment.not_spam)
-    assert_kind_of ApplicationQuery, klass.new
+    assert_kind_of ApplicationRelationQuery, klass.new
   end
 end

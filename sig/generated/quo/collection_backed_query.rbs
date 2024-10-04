@@ -1,8 +1,7 @@
 # Generated from lib/quo/collection_backed_query.rb with RBS::Inline
 
 module Quo
-  # @rbs inherits Quo::Query
-  class CollectionBackedQuery < Quo::Query
+  class CollectionBackedQuery < Query
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
     # @rbs return: Quo::CollectionBackedQuery

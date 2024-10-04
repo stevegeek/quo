@@ -17,11 +17,16 @@ module Quo
   autoload :ComposedQuery
   autoload :CollectionBackedQuery
 
-  mattr_accessor :base_query_class, default: "Quo::Query"
+  mattr_accessor :relation_backed_query_base_class, default: "Quo::RelationBackedQuery"
+  mattr_accessor :collection_backed_query_base_class, default: "Quo::CollectionBackedQuery"
   mattr_accessor :max_page_size, default: 200
   mattr_accessor :default_page_size, default: 20
 
-  def self.base_query_class #: Quo::Query
-    @@base_query_class.constantize
+  def self.relation_backed_query_base_class #: Quo::RelationBackedQuery
+    @@relation_backed_query_base_class.constantize
+  end
+
+  def self.collection_backed_query_base_class #: Quo::CollectionBackedQuery
+    @@collection_backed_query_base_class.constantize
   end
 end

@@ -3,8 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
-  # @rbs inherits Quo::Query
-  class CollectionBackedQuery < Quo.base_query_class
+  class CollectionBackedQuery < Query
     prop :total_count, _Nilable(Integer)
 
     # Wrap an enumerable collection or a block that returns an enumerable collection

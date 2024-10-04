@@ -12,6 +12,7 @@ module Quo
 
     def to_s: () -> untyped
 
+    # TODO: put this in a module with the composer and merge_instances methods
     # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
     # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
     # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]

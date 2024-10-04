@@ -32,8 +32,8 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
   test "merged result is a Quo Query and inherits from configured base class" do
     klass = Quo::RelationBackedQuery.wrap(::Comment.recent).compose(::Comment.not_spam)
-    assert_equal Quo::RelationBackedQuery, klass.superclass
-    assert_equal "world", klass.new.hello
+    assert_equal ApplicationRelationQuery, klass.superclass
+    assert_equal "relation", klass.new.hello
   end
 
   test "merges two Quo::Query objects" do
@@ -72,6 +72,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     left = Quo::CollectionBackedQuery.wrap([1, 2, 3])
     right = Quo::CollectionBackedQuery.wrap([4, 5, 6])
     composed = left + right
+    assert_equal "collection", composed.new.hello
     assert_equal [1, 2, 3, 4, 5, 6], composed.new.results.to_a
   end
 
@@ -130,7 +131,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
   test "#inspect when 1 source is a query object subclass" do
     merged = CommentNotSpamQuery.compose(Quo::CollectionBackedQuery)
-    assert_equal "Quo::RelationBackedQuery<Quo::ComposedQuery>[CommentNotSpamQuery, Quo::CollectionBackedQuery]", merged.inspect
+    assert_equal "ApplicationRelationQuery<Quo::ComposedQuery>[CommentNotSpamQuery, Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#inspect when 2 collection sources are provided" do
@@ -142,7 +143,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   test "#inspect when 1 source is a merged query" do
     nested = CommentNotSpamQuery.compose(UnreadCommentsQuery)
     merged = nested.compose(Quo::CollectionBackedQuery)
-    assert_equal "Quo::RelationBackedQuery<Quo::ComposedQuery>[Quo::RelationBackedQuery<Quo::ComposedQuery>[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
+    assert_equal "ApplicationRelationQuery<Quo::ComposedQuery>[ApplicationRelationQuery<Quo::ComposedQuery>[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
   end
 
   test "#copy makes a copy of this query object with different options" do

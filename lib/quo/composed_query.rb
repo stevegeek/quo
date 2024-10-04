@@ -30,7 +30,7 @@ module Quo
           def inspect
             left_desc = quo_operand_desc(_left_query)
             right_desc = quo_operand_desc(_right_query)
-            klass_name = (self < Quo::RelationBackedQuery) ? Quo::RelationBackedQuery.name : Quo::CollectionBackedQuery.name
+            klass_name = (self < Quo::RelationBackedQuery) ? Quo.relation_backed_query_base_class.name : Quo.collection_backed_query_base_class.name
             "#{klass_name}<Quo::ComposedQuery>[#{left_desc}, #{right_desc}]"
           end
 
@@ -65,14 +65,14 @@ module Quo
       raise ArgumentError, "Cannot merge, left has incompatible type #{left_instance.class}" unless left_instance.is_a?(Quo::Query) || left_instance.is_a?(::ActiveRecord::Relation)
       raise ArgumentError, "Cannot merge, right has incompatible type #{right_instance.class}" unless right_instance.is_a?(Quo::Query) || right_instance.is_a?(::ActiveRecord::Relation)
       if left_instance.is_a?(Quo::Query) && right_instance.is_a?(::ActiveRecord::Relation)
-        return composer(left_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance, joins: joins).new(**left_instance.to_h)
+        return composer(left_instance.is_a?(Quo::RelationBackedQuery) ? Quo.relation_backed_query_base_class : Quo.collection_backed_query_base_class, left_instance.class, right_instance, joins: joins).new(**left_instance.to_h)
       elsif right_instance.is_a?(Quo::Query) && left_instance.is_a?(::ActiveRecord::Relation)
-        return composer(right_instance.is_a?(Quo::RelationBackedQuery) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
+        return composer(right_instance.is_a?(Quo::RelationBackedQuery) ? Quo.relation_backed_query_base_class : Quo.collection_backed_query_base_class, left_instance, right_instance.class, joins: joins).new(**right_instance.to_h)
       elsif left_instance.is_a?(Quo::Query) && right_instance.is_a?(Quo::Query)
         props = left_instance.to_h.merge(right_instance.to_h.compact)
-        return composer((left_instance.is_a?(Quo::RelationBackedQuery) && right_instance.is_a?(Quo::RelationBackedQuery)) ? Quo::RelationBackedQuery : Quo::CollectionBackedQuery, left_instance.class, right_instance.class, joins: joins).new(**props)
+        return composer((left_instance.is_a?(Quo::RelationBackedQuery) && right_instance.is_a?(Quo::RelationBackedQuery)) ? Quo.relation_backed_query_base_class : Quo.collection_backed_query_base_class, left_instance.class, right_instance.class, joins: joins).new(**props)
       end
-      composer(Quo::RelationBackedQuery, left_instance, right_instance, joins: joins).new # Both are AR relations
+      composer(Quo.relation_backed_query_base_class, left_instance, right_instance, joins: joins).new # Both are AR relations
     end
     module_function :merge_instances
 
