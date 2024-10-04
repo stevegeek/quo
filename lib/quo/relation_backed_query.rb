@@ -12,9 +12,16 @@ module Quo
     # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]
     # @rbs return: Quo::RelationBackedQuery
     def self.wrap(query = nil, props: {}, &block)
+      raise ArgumentError, "either a query or a block must be provided" unless query || block
+      raise ArgumentError, "wrapped query must be a ActiveRecord Relation or a Quo::Query instance" unless query.nil? || query.is_a?(::ActiveRecord::Relation) || query.is_a?(Quo::Query)
+
       klass = Class.new(self) do
-        props.each do |name, type|
-          prop name, type
+        props.each do |name, property|
+          if property.is_a?(Literal::Property)
+            prop name, property.type, property.kind, reader: property.reader, writer: property.writer, default: property.default
+          else
+            prop name, property
+          end
         end
       end
       if block
