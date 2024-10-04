@@ -12,8 +12,16 @@ module Quo
       "#{name || "(anonymous)"}<#{superclass}>"
     end
 
+    def self.to_s
+      inspect
+    end
+
     def inspect
       "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{paged? ? "" : "not "}paginated>#{super}"
+    end
+
+    def to_s
+      inspect
     end
 
     COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
