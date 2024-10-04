@@ -60,7 +60,7 @@ module Quo
     # These store options related to building the underlying query, we don't want to expose these as public properties
     # @rbs!
     #   @_rel_group: untyped?
-    #   @__rel_distinct: bool?
+    #   @_rel_distinct: bool?
     #   @_rel_order: untyped?
     #   @_rel_limit: untyped?
     #   @_rel_preload: untyped?
@@ -155,7 +155,7 @@ module Quo
 
     # The underlying query is essentially the configured query with optional extras setup
     def underlying_query #: ActiveRecord::Relation
-      rel = unwrap_relation(validated_query)
+      rel = quo_unwrap_unpaginated_query(validated_query)
 
       rel = rel.group(@_rel_group) if @_rel_group.present?
       rel = rel.distinct if @_rel_distinct
@@ -172,12 +172,6 @@ module Quo
       return q unless paged?
 
       q.offset(offset).limit(sanitised_page_size)
-    end
-
-    # @rbs query: Quo::Query | ::ActiveRecord::Relation
-    # @rbs return: ActiveRecord::Relation
-    def unwrap_relation(query)
-      query.is_a?(Quo::Query) ? query.unwrap : query
     end
   end
 end
