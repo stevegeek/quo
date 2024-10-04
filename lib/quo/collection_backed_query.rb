@@ -72,9 +72,13 @@ module Quo
 
     private
 
+    def validated_query
+      query
+    end
+
     # @rbs return: Object & Enumerable[untyped]
     def underlying_query
-      query
+      validated_query
     end
 
     # The configured query is the underlying query with paging

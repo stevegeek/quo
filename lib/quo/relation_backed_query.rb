@@ -13,7 +13,6 @@ module Quo
     # @rbs return: Quo::RelationBackedQuery
     def self.wrap(query = nil, props: {}, &block)
       raise ArgumentError, "either a query or a block must be provided" unless query || block
-      raise ArgumentError, "wrapped query must be a ActiveRecord Relation or a Quo::Query instance" unless query.nil? || query.is_a?(::ActiveRecord::Relation) || query.is_a?(Quo::Query)
 
       klass = Class.new(self) do
         props.each do |name, property|
@@ -26,12 +25,9 @@ module Quo
       end
       if block
         klass.define_method(:query, &block)
-      elsif query
-        klass.define_method(:query) { query }
       else
-        raise ArgumentError, "either a query or a block must be provided"
+        klass.define_method(:query) { query }
       end
-      # klass.set_temporary_name = "quo::Wrapper" # Ruby 3.3+
       klass
     end
 
@@ -151,10 +147,15 @@ module Quo
 
     private
 
+    def validated_query
+      query.tap do |q|
+        raise ArgumentError, "#query must return an ActiveRecord Relation or a Quo::Query instance" unless query.nil? || q.is_a?(::ActiveRecord::Relation) || q.is_a?(Quo::Query)
+      end
+    end
+
     # The underlying query is essentially the configured query with optional extras setup
     def underlying_query #: ActiveRecord::Relation
-      rel = unwrap_relation(query)
-      return rel if is_collection?(rel)
+      rel = unwrap_relation(validated_query)
 
       rel = rel.group(@_rel_group) if @_rel_group.present?
       rel = rel.distinct if @_rel_distinct

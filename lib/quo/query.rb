@@ -115,9 +115,18 @@ module Quo
       @__transformer
     end
 
+    def validated_query
+      raise NoMethodError, "Query objects must define a 'validated_query' method"
+    end
+
+    # The underlying query is essentially the configured query with optional extras setup
+    def underlying_query #: void
+      raise NoMethodError, "Query objects must define a 'underlying_query' method"
+    end
+
     # The configured query is the underlying query with paging
     def configured_query #: void
-      raise NotImplementedError, "Query objects must define a 'configured_query' method"
+      raise NoMethodError, "Query objects must define a 'configured_query' method"
     end
 
     def sanitised_page_size #: Integer
@@ -132,11 +141,6 @@ module Quo
       else
         Quo.default_page_size || 20
       end
-    end
-
-    # The underlying query is essentially the configured query with optional extras setup
-    def underlying_query #: void
-      raise NoMethodError, "Query objects must define a 'underlying_query' method"
     end
 
     # @rbs rel: untyped

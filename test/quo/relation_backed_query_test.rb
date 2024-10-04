@@ -180,11 +180,17 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     assert query < Quo::RelationBackedQuery
   end
 
-  test "it raises when wrapping an ActiveRecord relation with prop that shadows a method" do
+  test "it raises when wrapping something that is not a relation of Query instance" do
+    assert_raises ArgumentError do
+      Quo::RelationBackedQuery.wrap(CommentNotSpamQuery).new.unwrap # not an instance of Query
+    end
+  end
+
+  test "it raises when wrapping something that is not a relation of Query instance with query from block" do
     assert_raises ArgumentError do
       Quo::RelationBackedQuery.wrap(props: {to_sql: Literal::Types::FloatType.new(0...1.0)}) do
-        Comment.not_spam
-      end
+        CommentNotSpamQuery # not an instance of Query
+      end.new.unwrap
     end
   end
 
