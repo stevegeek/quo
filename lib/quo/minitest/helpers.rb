@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "minitest/mock"
+
 require_relative "../testing/collection_backed_fake"
 require_relative "../testing/relation_backed_fake"
 
