@@ -3,7 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
-  module Fakes
+  module Testing
     class CollectionBackedFake < Quo.collection_backed_query_base_class
       prop :results, _Any, reader: false
       prop :page_count, _Nilable(Integer), reader: false
