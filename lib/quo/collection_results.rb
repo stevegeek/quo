@@ -5,8 +5,9 @@
 module Quo
   class CollectionResults < Results
     # @rbs override
-    def initialize(query, transformer: nil)
+    def initialize(query, transformer: nil, total_count: nil)
       raise ArgumentError, "Query must be a CollectionBackedQuery" unless query.is_a?(Quo::CollectionBackedQuery)
+      @total_count = total_count
       @query = query
       @configured_query = query.unwrap
       @transformer = transformer
@@ -27,7 +28,7 @@ module Quo
     # of wrapped collection.
     # @rbs override
     def total_count #: Integer
-      @query.total_count || @query.unwrap_unpaginated.size
+      @total_count || @query.unwrap_unpaginated.size
     end
 
     # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of

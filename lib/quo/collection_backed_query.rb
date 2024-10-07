@@ -4,7 +4,7 @@
 
 module Quo
   class CollectionBackedQuery < Query
-    prop :total_count, _Nilable(Integer)
+    prop :total_count, _Nilable(Integer), reader: false
 
     # Wrap an enumerable collection or a block that returns an enumerable collection
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
@@ -43,7 +43,7 @@ module Quo
     end
 
     def results
-      Quo::CollectionResults.new(self, transformer: transformer)
+      Quo::CollectionResults.new(self, transformer: transformer, total_count: @total_count)
     end
 
     # @rbs override
