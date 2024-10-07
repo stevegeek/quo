@@ -22,13 +22,13 @@ module Quo
             end
           end
           query_class.stub(:new, ->(**kwargs) {
-            klass.new(**kwargs, results: results, total_count: total_count, page_count: page_count)
+            klass.new(results: results, total_count: total_count, page_count: page_count)
           }) do
             yield
           end
         elsif query_class < Quo::RelationBackedQuery
           query_class.stub(:new, ->(**kwargs) {
-            Quo::Fakes::RelationBackedFake.new(**kwargs, results: results, total_count: total_count, page_count: page_count)
+            Quo::Fakes::RelationBackedFake.new(results: results, total_count: total_count, page_count: page_count)
           }) do
             yield
           end

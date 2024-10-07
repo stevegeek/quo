@@ -17,8 +17,8 @@ class Quo::FakeQueryTest < ActiveSupport::TestCase
   end
 
   test "RelationBackedFake acts like a RelationBackedQuery" do
-    fake_query(UnreadCommentsQuery, results: [1, 2]) do
-      q = UnreadCommentsQuery.new
+    fake_query(NewCommentsForAuthorQuery, results: [1, 2]) do
+      q = NewCommentsForAuthorQuery.new(author_id: 1)
       assert q.results.is_a?(Quo::RelationResults)
       assert q.is_a?(Quo::RelationBackedQuery)
       assert_equal 2, q.results.count
