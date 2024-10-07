@@ -4,7 +4,7 @@
 
 module Quo
   module Fakes
-    class CollectionBackedFake < CollectionBackedQuery
+    class CollectionBackedFake < Quo.collection_backed_query_base_class
       prop :results, _Any, reader: false
       prop :page_count, _Nilable(Integer), reader: false
 

@@ -21,6 +21,7 @@ class Quo::FakeQueryTest < ActiveSupport::TestCase
       q = NewCommentsForAuthorQuery.new(author_id: 1)
       assert q.results.is_a?(Quo::RelationResults)
       assert q.is_a?(Quo::RelationBackedQuery)
+      assert_equal "relation", q.hello
       assert_equal 2, q.results.count
       assert_equal 1, q.results.first
       assert_nothing_raised do
@@ -35,6 +36,7 @@ class Quo::FakeQueryTest < ActiveSupport::TestCase
       q = klass.new
       assert q.results.is_a?(Quo::CollectionResults)
       assert q.is_a?(Quo::CollectionBackedQuery)
+      assert_equal "collection", q.hello
       assert_equal 2, q.results.count
       assert_equal 1, q.results.first
       assert_nothing_raised do
