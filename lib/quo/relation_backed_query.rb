@@ -65,7 +65,6 @@ module Quo
     prop :_rel_includes, _Nilable(_Any), reader: false, writer: false
     prop :_rel_select, _Nilable(_Any), reader: false, writer: false
 
-
     # Methods to prepare the query
 
     # SQL 'SELECT' configuration, calls to underlying AR relation
@@ -124,7 +123,7 @@ module Quo
 
     # @rbs return: Quo::CollectionBackedQuery
     def to_collection(total_count: nil)
-      Quo::CollectionBackedQuery.wrap(results.to_a).new(total_count:)
+      Quo.collection_backed_query_base_class.wrap(results.to_a).new(total_count:)
     end
 
     def results #: Quo::Results
