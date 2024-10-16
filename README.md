@@ -1,5 +1,7 @@
 # 'Quo' query objects for ActiveRecord
 
+> Note: these docs are for pre-V1 and need updating. I'm working on it!
+
 Quo query objects can help you abstract ActiveRecord DB queries into reusable and composable objects with a chainable
 interface.
 
@@ -341,11 +343,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/steveg
 
 ## Inspired by `rectify`
 
-Note this implementation is loosely based on that in the `Rectify` gem; https://github.com/andypike/rectify.
-
-See https://github.com/andypike/rectify#query-objects for more information.
-
-Thanks to Andy Pike for the inspiration.
+Note this implementation is inspired by the `Rectify` gem; https://github.com/andypike/rectify. Thanks to Andy Pike for the inspiration.
 
 ## License
 
