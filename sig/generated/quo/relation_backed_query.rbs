@@ -20,12 +20,12 @@ module Quo
     # @rbs return: String
     def self.sanitize_sql_parameter: (untyped value) -> String
 
-    @_specification: Quo::QuerySpecification?
+    @_specification: Quo::RelationBackedQuerySpecification?
 
     # Apply a query specification to this query
-    # @rbs specification: Quo::QuerySpecification
+    # @rbs specification: Quo::RelationBackedQuerySpecification
     # @rbs return: Quo::Query
-    def with_specification: (Quo::QuerySpecification specification) -> Quo::Query
+    def with_specification: (Quo::RelationBackedQuerySpecification specification) -> Quo::Query
 
     # Apply query options using the specification
     # @rbs options: Hash[Symbol, untyped]

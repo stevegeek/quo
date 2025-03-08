@@ -371,7 +371,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   test "#with_specification using immutable specifications" do
     query = UnreadCommentsQuery.new
 
-    spec1 = Quo::QuerySpecification.new(limit: 2)
+    spec1 = Quo::RelationBackedQuerySpecification.new(limit: 2)
     spec2 = spec1.merge(order: {id: :desc})
 
     query1 = query.with_specification(spec1)

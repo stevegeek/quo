@@ -3,10 +3,10 @@
 # rbs_inline: enabled
 
 module Quo
-  # QuerySpecification encapsulates all the options for building a SQL query
+  # RelationBackedQuerySpecification encapsulates all the options for building a SQL query
   # This separates the storage of query options from the actual query construction
   # and provides a cleaner interface for RelationBackedQuery
-  class QuerySpecification
+  class RelationBackedQuerySpecification
     # @rbs!
     #   @options: Hash[Symbol, untyped]
     attr_reader :options

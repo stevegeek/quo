@@ -50,14 +50,14 @@ module Quo
 
     # The query specification stores all options related to building the query
     # @rbs!
-    #   @_specification: Quo::QuerySpecification?
-    prop :_specification, _Nilable(Quo::QuerySpecification),
-      default: -> { QuerySpecification.blank },
+    #   @_specification: Quo::RelationBackedQuerySpecification?
+    prop :_specification, _Nilable(Quo::RelationBackedQuerySpecification),
+      default: -> { RelationBackedQuerySpecification.blank },
       reader: false,
       writer: false
 
     # Apply a query specification to this query
-    # @rbs specification: Quo::QuerySpecification
+    # @rbs specification: Quo::RelationBackedQuerySpecification
     # @rbs return: Quo::Query
     def with_specification(specification)
       copy(_specification: specification)
@@ -67,7 +67,7 @@ module Quo
     # @rbs options: Hash[Symbol, untyped]
     # @rbs return: Quo::Query
     def with(options = {})
-      spec = @_specification || QuerySpecification.blank
+      spec = @_specification || RelationBackedQuerySpecification.blank
       with_specification(spec.merge(options))
     end
 
@@ -98,16 +98,16 @@ module Quo
     # @rbs &block: untyped
     # @rbs return: Quo::Query
     def method_missing(method_name, *args, **kwargs, &block)
-      spec = @_specification || QuerySpecification.blank
+      spec = @_specification || RelationBackedQuerySpecification.blank
 
-      # Check if the method exists in QuerySpecification
+      # Check if the method exists in RelationBackedQuerySpecification
       if spec.respond_to?(method_name)
         # Call the method on the specification and return a new query with the updated specification
         updated_spec = spec.method(method_name).call(*args, **kwargs, &block)
         return with_specification(updated_spec)
       end
 
-      # Forward to underlying query if method not found in QuerySpecification
+      # Forward to underlying query if method not found in RelationBackedQuerySpecification
       super
     end
 
@@ -115,7 +115,7 @@ module Quo
     # @rbs include_private: bool
     # @rbs return: bool
     def respond_to_missing?(method_name, include_private = false)
-      spec_instance = QuerySpecification.new
+      spec_instance = RelationBackedQuerySpecification.new
       spec_instance.respond_to?(method_name, include_private) || super
     end
 
