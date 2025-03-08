@@ -2,6 +2,16 @@
 
 require_relative "../test_helper"
 
+module Quo
+  module Test
+    module TestExtension
+      def custom_method
+        "extended"
+      end
+    end
+  end
+end
+
 class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   setup do
     @spec = Quo::QuerySpecification.new
@@ -47,7 +57,7 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   test "apply_to with select option" do
     spec = Quo::QuerySpecification.new(select: ["id", "body"])
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "SELECT \"comments\".\"id\", \"comments\".\"body\""
     assert_not_includes result.to_sql, "\"comments\".\"post_id\""
   end
@@ -55,56 +65,56 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   test "apply_to with where option" do
     spec = Quo::QuerySpecification.new(where: {body: "test"})
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "WHERE \"comments\".\"body\" = 'test'"
   end
 
   test "apply_to with order option" do
     spec = Quo::QuerySpecification.new(order: {body: :desc})
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "ORDER BY \"comments\".\"body\" DESC"
   end
 
   test "apply_to with group option" do
     spec = Quo::QuerySpecification.new(group: ["post_id"])
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "GROUP BY \"comments\".\"post_id\""
   end
 
   test "apply_to with limit option" do
     spec = Quo::QuerySpecification.new(limit: 5)
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "LIMIT 5"
   end
 
   test "apply_to with offset option" do
     spec = Quo::QuerySpecification.new(offset: 10)
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "OFFSET 10"
   end
 
   test "apply_to with joins option" do
     spec = Quo::QuerySpecification.new(joins: :post)
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\""
   end
 
   test "apply_to with left_outer_joins option" do
     spec = Quo::QuerySpecification.new(left_outer_joins: :post)
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "LEFT OUTER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\""
   end
 
   test "apply_to with includes option" do
     spec = Quo::QuerySpecification.new(includes: [:post])
     result = spec.apply_to(@relation)
-    
+
     # The effect of includes is difficult to test through SQL, as it varies by Rails version
     # Instead, we'll check that the result contains the information needed for eager loading
     assert result.includes_values.include?(:post)
@@ -113,7 +123,7 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   test "apply_to with preload option" do
     spec = Quo::QuerySpecification.new(preload: [:post])
     result = spec.apply_to(@relation)
-    
+
     # preload doesn't modify the SQL directly, but adds to preload_values
     assert result.preload_values.include?(:post)
   end
@@ -121,14 +131,14 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   test "apply_to with eager_load option" do
     spec = Quo::QuerySpecification.new(eager_load: [:post])
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "LEFT OUTER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\""
   end
 
   test "apply_to with distinct option" do
     spec = Quo::QuerySpecification.new(distinct: true)
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "SELECT DISTINCT \"comments\".*"
   end
 
@@ -136,21 +146,15 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
     relation = @relation.order(:id)
     spec = Quo::QuerySpecification.new(reorder: {body: :desc})
     result = spec.apply_to(relation)
-    
+
     assert_not_includes result.to_sql, "ORDER BY \"comments\".\"id\""
     assert_includes result.to_sql, "ORDER BY \"comments\".\"body\" DESC"
   end
 
   test "apply_to with extending option" do
-    module TestExtension
-      def custom_method
-        "extended"
-      end
-    end
-
-    spec = Quo::QuerySpecification.new(extending: [TestExtension])
+    spec = Quo::QuerySpecification.new(extending: [Quo::Test::TestExtension])
     result = spec.apply_to(@relation)
-    
+
     assert_respond_to result, :custom_method
     assert_equal "extended", result.custom_method
   end
@@ -159,7 +163,7 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
     relation = @relation.where(read: true).order(:id)
     spec = Quo::QuerySpecification.new(unscope: :where)
     result = spec.apply_to(relation)
-    
+
     assert_not_includes result.to_sql, "WHERE"
     assert_includes result.to_sql, "ORDER BY"
   end
@@ -172,7 +176,7 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
       limit: 5
     )
     result = spec.apply_to(@relation)
-    
+
     assert_includes result.to_sql, "SELECT \"comments\".\"id\", \"comments\".\"body\""
     assert_includes result.to_sql, "WHERE \"comments\".\"read\" = 0"
     assert_includes result.to_sql, "ORDER BY \"comments\".\"id\" DESC"
@@ -182,10 +186,10 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   test "chaining multiple apply_to calls" do
     spec1 = Quo::QuerySpecification.new(where: {read: false})
     spec2 = Quo::QuerySpecification.new(limit: 5)
-    
+
     # Apply specs sequentially
     result = spec2.apply_to(spec1.apply_to(@relation))
-    
+
     assert_includes result.to_sql, "WHERE \"comments\".\"read\" = 0"
     assert_includes result.to_sql, "LIMIT 5"
   end
@@ -193,11 +197,11 @@ class Quo::QuerySpecificationTest < ActiveSupport::TestCase
   test "using specification with a Quo query" do
     spec = Quo::QuerySpecification.new(where: {read: false}, limit: 5)
     query = UnreadCommentsQuery.new
-    
+
     # Apply the specification to the query
     query_with_spec = query.with_specification(spec)
     result = query_with_spec.results
-    
+
     assert_kind_of Quo::Results, result
     assert_includes query_with_spec.to_sql, "LIMIT 5"
   end

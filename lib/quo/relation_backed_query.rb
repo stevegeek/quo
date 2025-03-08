@@ -51,10 +51,10 @@ module Quo
     # The query specification stores all options related to building the query
     # @rbs!
     #   @_specification: Quo::QuerySpecification?
-    prop :_specification, _Nilable(Quo::QuerySpecification), 
-         default: -> { QuerySpecification.blank }, 
-         reader: false, 
-         writer: false
+    prop :_specification, _Nilable(Quo::QuerySpecification),
+      default: -> { QuerySpecification.blank },
+      reader: false,
+      writer: false
 
     # Apply a query specification to this query
     # @rbs specification: Quo::QuerySpecification
@@ -65,7 +65,7 @@ module Quo
 
     # Apply query options using the specification
     # @rbs options: Hash[Symbol, untyped]
-    # @rbs return: Quo::Query 
+    # @rbs return: Quo::Query
     def with(options = {})
       spec = @_specification || QuerySpecification.blank
       with_specification(spec.merge(options))
@@ -90,6 +90,35 @@ module Quo
       configured_query.to_sql if relation?
     end
 
+    # Implements a fluent API for query methods
+    # This allows methods to be chained like query.where(...).order(...).limit(...)
+    # @rbs method_name: Symbol
+    # @rbs *args: untyped
+    # @rbs **kwargs: untyped
+    # @rbs &block: untyped
+    # @rbs return: Quo::Query
+    def method_missing(method_name, *args, **kwargs, &block)
+      spec = @_specification || QuerySpecification.blank
+
+      # Check if the method exists in QuerySpecification
+      if spec.respond_to?(method_name)
+        # Call the method on the specification and return a new query with the updated specification
+        updated_spec = spec.method(method_name).call(*args, **kwargs, &block)
+        return with_specification(updated_spec)
+      end
+
+      # Forward to underlying query if method not found in QuerySpecification
+      super
+    end
+
+    # @rbs method_name: Symbol
+    # @rbs include_private: bool
+    # @rbs return: bool
+    def respond_to_missing?(method_name, include_private = false)
+      spec_instance = QuerySpecification.new
+      spec_instance.respond_to?(method_name, include_private) || super
+    end
+
     private
 
     def validated_query
@@ -101,7 +130,7 @@ module Quo
     # The underlying query is essentially the configured query with optional extras setup
     def underlying_query #: ActiveRecord::Relation
       rel = quo_unwrap_unpaginated_query(validated_query)
-      
+
       # Apply specification if it exists
       if @_specification
         @_specification.apply_to(rel)

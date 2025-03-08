@@ -47,7 +47,7 @@ module Quo
     end
 
     # Create helpers for each query option
-    
+
     # @rbs *fields: untyped
     # @rbs return: Quo::QuerySpecification
     def select(*fields)

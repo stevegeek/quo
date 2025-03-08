@@ -208,7 +208,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
       select: ["post_id", "COUNT(*) as comment_count"],
       group: ["post_id"]
     )
-    
+
     assert_includes modified_query.to_sql, "COUNT(*) as comment_count"
     assert_includes modified_query.to_sql, "GROUP BY"
     assert_includes modified_query.to_sql, "post_id"
@@ -219,7 +219,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     modified_query = query.with(
       where: ["body LIKE ? OR post_id IN (?)", "%abc%", [1, 2]]
     )
-    
+
     sql = modified_query.to_sql
     assert_includes sql, "body LIKE '%abc%'"
     assert_includes sql, "post_id IN (1, 2)"
@@ -229,10 +229,10 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     # Create a more complex join query
     query = UnreadCommentsQuery.new
     modified_query = query.with(
-      joins: { post: :author },
-      where: { authors: { name: "John" } }
+      joins: {post: :author},
+      where: {authors: {name: "John"}}
     )
-    
+
     sql = modified_query.to_sql
     assert_includes sql, "INNER JOIN \"posts\" ON"
     assert_includes sql, "INNER JOIN \"authors\" ON"
@@ -242,9 +242,9 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   test "#with method for ordering by multiple columns" do
     query = UnreadCommentsQuery.new
     modified_query = query.with(
-      order: { post_id: :asc, id: :desc }
+      order: {post_id: :asc, id: :desc}
     )
-    
+
     sql = modified_query.to_sql
     assert_includes sql, "ORDER BY"
     assert_includes sql, "\"comments\".\"post_id\" ASC"
@@ -254,12 +254,12 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   test "#with method for eager loading with multiple levels" do
     query = UnreadCommentsQuery.new
     modified_query = query.with(
-      includes: { post: :author }
+      includes: {post: :author}
     )
-    
+
     includes_values = modified_query.unwrap.includes_values
     assert includes_values.present?
-    
+
     if includes_values.first.is_a?(Hash)
       assert_includes includes_values.map(&:keys).flatten, :post
     else
@@ -270,15 +270,15 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   test "#with method for combining preload with where" do
     query = UnreadCommentsQuery.new
     post_with_comments = Post.first
-    
+
     modified_query = query.with(
       preload: :post,
-      where: { post_id: post_with_comments.id }
+      where: {post_id: post_with_comments.id}
     )
-    
+
     results = modified_query.results.to_a
     assert_not_empty results
-    
+
     # Preloaded associations should be loaded without additional queries
     ActiveRecord::Base.connection.materialize_transactions
     query_count = 0
@@ -288,35 +288,35 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
         comment.post # This should not trigger a query if preloaded
       end
     end
-    
+
     assert_equal 0, query_count, "Expected preloaded associations to not trigger additional queries"
   end
 
   test "#with method for distinct with select" do
     Comment.create!(post: Post.first, body: "duplicate", read: false)
     Comment.create!(post: Post.first, body: "duplicate", read: false)
-    
+
     query = UnreadCommentsQuery.new
     modified_query = query.with(
       select: :body,
       distinct: true
     )
-    
+
     assert_includes modified_query.to_sql, "SELECT DISTINCT"
   end
 
   test "#with method for offset and limit for pagination" do
     3.times { Comment.create!(post: Post.first, body: SecureRandom.hex(4), read: false) }
-    
+
     query = UnreadCommentsQuery.new
     page_size = 2
-    
+
     page1 = query.with(limit: page_size, offset: 0)
     page2 = query.with(limit: page_size, offset: page_size)
-    
+
     assert_equal page_size, page1.results.count
     assert_not_equal page1.results.to_a, page2.results.to_a
-    
+
     assert_includes page1.to_sql, "LIMIT #{page_size}"
     assert_includes page1.to_sql, "OFFSET 0"
     assert_includes page2.to_sql, "LIMIT #{page_size}"
@@ -325,15 +325,15 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
 
   test "#with method for complex query combining multiple options" do
     query = UnreadCommentsQuery.new
-    
+
     complex_query = query.with(
       select: ["comments.id", "comments.body", "posts.title as post_title"],
       joins: :post,
-      where: { posts: { id: Post.first.id } },
-      order: { id: :desc },
+      where: {posts: {id: Post.first.id}},
+      order: {id: :desc},
       limit: 5
     )
-    
+
     sql = complex_query.to_sql
     assert_includes sql, "SELECT"
     assert_includes sql, "INNER JOIN \"posts\""
@@ -341,16 +341,16 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     assert_includes sql, "\"posts\".\"id\" ="
     assert_includes sql, "ORDER BY \"comments\".\"id\" DESC"
     assert_includes sql, "LIMIT 5"
-    
+
     results = complex_query.results.to_a
     assert_not_empty results
   end
 
   test "#with method for unscope" do
     query = UnreadCommentsQuery.new
-    query_with_filter = query.with(where: { body: "test" })
+    query_with_filter = query.with(where: {body: "test"})
     unscoped_query = query_with_filter.with(unscope: :where)
-    
+
     assert_not_equal query_with_filter.to_sql, unscoped_query.to_sql
     assert_includes query_with_filter.to_sql, "WHERE"
     assert_includes query_with_filter.to_sql, "body"
@@ -360,9 +360,9 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
 
   test "#with method for reorder" do
     query = UnreadCommentsQuery.new
-    ordered_query = query.with(order: { id: :asc })
-    reordered_query = ordered_query.with(reorder: { id: :desc })
-    
+    ordered_query = query.with(order: {id: :asc})
+    reordered_query = ordered_query.with(reorder: {id: :desc})
+
     # Original order should be ASC, reordered should be DESC
     assert_includes ordered_query.to_sql, "\"comments\".\"id\" ASC"
     assert_includes reordered_query.to_sql, "\"comments\".\"id\" DESC"
@@ -370,32 +370,32 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
 
   test "#with_specification using immutable specifications" do
     query = UnreadCommentsQuery.new
-    
+
     spec1 = Quo::QuerySpecification.new(limit: 2)
-    spec2 = spec1.merge(order: { id: :desc })
-    
+    spec2 = spec1.merge(order: {id: :desc})
+
     query1 = query.with_specification(spec1)
     query2 = query.with_specification(spec2)
-    
+
     assert_includes query1.to_sql, "LIMIT 2"
     assert_not_includes query1.to_sql, "ORDER BY"
-    
+
     assert_includes query2.to_sql, "LIMIT 2"
     assert_includes query2.to_sql, "ORDER BY \"comments\".\"id\" DESC"
-    
-    assert_equal({ limit: 2 }, spec1.options)
-    assert_equal({ limit: 2, order: { id: :desc } }, spec2.options)
+
+    assert_equal({limit: 2}, spec1.options)
+    assert_equal({limit: 2, order: {id: :desc}}, spec2.options)
   end
 
   test "chaining multiple with calls" do
     query = UnreadCommentsQuery.new
-    
+
     result = query
       .with(select: ["id", "body"])
-      .with(where: { body: "abc" })
-      .with(order: { id: :desc })
+      .with(where: {body: "abc"})
+      .with(order: {id: :desc})
       .with(limit: 1)
-    
+
     sql = result.to_sql
     assert_includes sql, "SELECT \"comments\".\"id\", \"comments\".\"body\""
     assert_includes sql, "WHERE"
