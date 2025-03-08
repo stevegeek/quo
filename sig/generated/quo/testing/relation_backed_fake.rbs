@@ -1,0 +1,23 @@
+# Generated from lib/quo/testing/relation_backed_fake.rb with RBS::Inline
+
+module Quo
+  module Testing
+    class RelationBackedFake
+      def query: () -> untyped
+
+      def results: () -> untyped
+
+      def page_count: () -> untyped
+
+      def total_count: () -> untyped
+
+      private
+
+      def validated_query: () -> untyped
+
+      def underlying_query: () -> untyped
+
+      def configured_query: () -> untyped
+    end
+  end
+end
