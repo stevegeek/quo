@@ -11,34 +11,58 @@ module Quo
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
-    def composer: (untyped chosen_superclass, untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
-
-    include Quo::ComposedQuery
-
-    attr_reader _composing_joins: untyped
-
-    attr_reader _left_query: untyped
-
-    attr_reader _right_query: untyped
-
-    def self.inspect: () -> untyped
-
-    # @rbs operand: Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation
-    # @rbs return: String
-    def self.quo_operand_desc: (Quo::ComposedQuery | Quo::Query | ::ActiveRecord::Relation operand) -> String
+    def self?.composer: (untyped chosen_superclass, untyped left_query_class, untyped right_query_class, ?joins: untyped) -> singleton(Quo::ComposedQuery)
 
     # We can also merge instance of prepared queries
     # @rbs left_instance: Quo::Query | ::ActiveRecord::Relation
     # @rbs right_instance: Quo::Query | ::ActiveRecord::Relation
     # @rbs joins: untyped
     # @rbs return: Quo::ComposedQuery
-    def merge_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance, ?joins: untyped) -> Quo::ComposedQuery
+    def self?.merge_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance, ?joins: untyped) -> Quo::ComposedQuery
 
     # @rbs override
     def query: ...
 
     # @rbs override
     def inspect: ...
+
+    # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    private def self.validate_query_classes: (untyped left_query_class, untyped right_query_class) -> untyped
+
+    # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    private def self.collect_properties: (untyped left_query_class, untyped right_query_class) -> untyped
+
+    private def self.create_composed_class: (untyped chosen_superclass, untyped props) -> untyped
+
+    # @rbs klass: Class
+    # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
+    # @rbs joins: untyped
+    private def self.assign_query_metadata: (Class klass, untyped left_query_class, untyped right_query_class, untyped joins) -> untyped
+
+    # @rbs left_instance: Quo::Query | ::ActiveRecord::Relation
+    # @rbs right_instance: Quo::Query | ::ActiveRecord::Relation
+    private def self.validate_instances: (Quo::Query | ::ActiveRecord::Relation left_instance, Quo::Query | ::ActiveRecord::Relation right_instance) -> untyped
+
+    # @rbs relation: ::ActiveRecord::Relation
+    # @rbs query: Quo::Query
+    # @rbs joins: untyped
+    private def self.merge_query_and_relation: (Quo::Query query, ::ActiveRecord::Relation relation, untyped joins) -> untyped
+
+    # @rbs relation: ::ActiveRecord::Relation
+    # @rbs query: Quo::Query
+    # @rbs joins: untyped
+    private def self.merge_relation_and_query: (::ActiveRecord::Relation relation, Quo::Query query, untyped joins) -> untyped
+
+    # @rbs left_query: Quo::Query | ::ActiveRecord::Relation
+    # @rbs right_query: Quo::Query | ::ActiveRecord::Relation
+    private def self.merge_query_instances: (Quo::Query | ::ActiveRecord::Relation left_query, Quo::Query | ::ActiveRecord::Relation right_query, untyped joins) -> untyped
+
+    # @rbs left_query: Quo::Query | ::ActiveRecord::Relation
+    # @rbs right_query: Quo::Query | ::ActiveRecord::Relation
+    private def self.determine_base_class_for_queries: (Quo::Query | ::ActiveRecord::Relation left_query, Quo::Query | ::ActiveRecord::Relation right_query) -> untyped
 
     private
 
@@ -56,6 +80,11 @@ module Quo
 
     # @rbs return: ActiveRecord::Relation | CollectionBackedQuery
     def merge_left_and_right: () -> (ActiveRecord::Relation | CollectionBackedQuery)
+
+    # @rbs left_rel: ActiveRecord::Relation
+    # @rbs right_rel: ActiveRecord::Relation
+    # @rbs return: ActiveRecord::Relation
+    def merge_active_record_relations: (ActiveRecord::Relation left_rel, ActiveRecord::Relation right_rel) -> ActiveRecord::Relation
 
     # @rbs left_rel: ActiveRecord::Relation
     # @rbs return: ActiveRecord::Relation
