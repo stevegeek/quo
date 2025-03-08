@@ -18,5 +18,5 @@ group :development, :test do
 
   gem "steep", require: false
 
-  gem "rbs-inline", "~> 0.8.0", require: false
+  gem "rbs-inline", "~> 0.11.0", require: false
 end

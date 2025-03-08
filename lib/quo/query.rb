@@ -91,7 +91,6 @@ module Quo
     end
     alias_method :+, :merge
 
-
     # @rbs @__transformer: nil | ^(untyped, ?Integer) -> untyped
 
     # Set a block used to transform data after query fetching

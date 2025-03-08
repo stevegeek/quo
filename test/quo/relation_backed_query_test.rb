@@ -172,7 +172,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   end
 
   test "it wraps an ActiveRecord relation with props" do
-    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Literal::Types::FloatType.new(0...1.0)}) do
+    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Literal::Types::ConstraintType.new(0...1.0)}) do
       Comment.not_spam(spam_score)
     end
 
@@ -188,7 +188,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
 
   test "it raises when wrapping something that is not a relation of Query instance with query from block" do
     assert_raises ArgumentError do
-      Quo::RelationBackedQuery.wrap(props: {to_sql: Literal::Types::FloatType.new(0...1.0)}) do
+      Quo::RelationBackedQuery.wrap(props: {to_sql: Literal::Types::ConstraintType.new(0...1.0)}) do
         CommentNotSpamQuery # not an instance of Query
       end.new.unwrap
     end

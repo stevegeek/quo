@@ -22,7 +22,6 @@ class Quo::CollectionResultsTest < ActiveSupport::TestCase
     end
     assert_equal ["hello 1 0 world", "hello 2 1 world", "hello 3 2 world", "hello 4 3 world"], mapped
 
-
     mapped = Quo::CollectionResults.new(@collection, transformer: @transformer).to_a
     assert_equal [101, 103, 105, 107], mapped
   end
