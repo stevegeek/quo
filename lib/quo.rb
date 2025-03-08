@@ -10,6 +10,7 @@ module Quo
 
   autoload :Query
   autoload :Preloadable
+  autoload :QuerySpecification
   autoload :RelationBackedQuery
   autoload :Results
   autoload :RelationResults

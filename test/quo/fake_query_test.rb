@@ -25,7 +25,7 @@ class Quo::FakeQueryTest < ActiveSupport::TestCase
       assert_equal 2, q.results.count
       assert_equal 1, q.results.first
       assert_nothing_raised do
-        q.includes(:foo).order(:bar).limit(10).preload(:x).results.first
+        q.with(includes: [:foo], order: :bar, limit: 10, preload: [:x]).results.first
       end
     end
   end

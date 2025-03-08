@@ -48,72 +48,27 @@ module Quo
       sanitize_sql_for_conditions(["?", value])
     end
 
-    # These store options related to building the underlying query, we don't want to expose these as public properties
+    # The query specification stores all options related to building the query
     # @rbs!
-    #   @_rel_group: untyped?
-    #   @_rel_distinct: bool?
-    #   @_rel_order: untyped?
-    #   @_rel_limit: untyped?
-    #   @_rel_preload: untyped?
-    #   @_rel_includes: untyped?
-    #   @_rel_select: untyped?
-    prop :_rel_group, _Nilable(_Any), reader: false, writer: false
-    prop :_rel_distinct, _Nilable(_Boolean), reader: false, writer: false
-    prop :_rel_order, _Nilable(_Any), reader: false, writer: false
-    prop :_rel_limit, _Nilable(_Any), reader: false, writer: false
-    prop :_rel_preload, _Nilable(_Any), reader: false, writer: false
-    prop :_rel_includes, _Nilable(_Any), reader: false, writer: false
-    prop :_rel_select, _Nilable(_Any), reader: false, writer: false
+    #   @_specification: Quo::QuerySpecification?
+    prop :_specification, _Nilable(Quo::QuerySpecification), 
+         default: -> { QuerySpecification.blank }, 
+         reader: false, 
+         writer: false
 
-    # Methods to prepare the query
-
-    # SQL 'SELECT' configuration, calls to underlying AR relation
-    # @rbs *options: untyped
+    # Apply a query specification to this query
+    # @rbs specification: Quo::QuerySpecification
     # @rbs return: Quo::Query
-    def select(*options)
-      copy(_rel_select: options)
+    def with_specification(specification)
+      copy(_specification: specification)
     end
 
-    # SQL 'LIMIT' configuration, calls to underlying AR relation
-    # @rbs limit: untyped
-    # @rbs return: Quo::Query
-    def limit(limit)
-      copy(_rel_limit: limit)
-    end
-
-    # SQL 'ORDER BY' configuration, calls to underlying AR relation
-    # @rbs options: untyped
-    # @rbs return: Quo::Query
-    def order(options)
-      copy(_rel_order: options)
-    end
-
-    # SQL 'GROUP BY' configuration, calls to underlying AR relation
-    # @rbs *options: untyped
-    # @rbs return: Quo::Query
-    def group(*options)
-      copy(_rel_group: options)
-    end
-
-    # Configures underlying AR relation to include associations
-    # @rbs *options: untyped
-    # @rbs return: Quo::Query
-    def includes(*options)
-      copy(_rel_includes: options)
-    end
-
-    # Configures underlying AR relation to preload associations
-    # @rbs *options: untyped
-    # @rbs return: Quo::Query
-    def preload(*options)
-      copy(_rel_preload: options)
-    end
-
-    # Calls to underlying AR distinct method
-    # @rbs enabled: bool
-    # @rbs return: Quo::Query
-    def distinct(enabled = true)
-      copy(_rel_distinct: enabled)
+    # Apply query options using the specification
+    # @rbs options: Hash[Symbol, untyped]
+    # @rbs return: Quo::Query 
+    def with(options = {})
+      spec = @_specification || QuerySpecification.blank
+      with_specification(spec.merge(options))
     end
 
     # Delegate methods that let us get the model class (available on AR relations)
@@ -146,14 +101,13 @@ module Quo
     # The underlying query is essentially the configured query with optional extras setup
     def underlying_query #: ActiveRecord::Relation
       rel = quo_unwrap_unpaginated_query(validated_query)
-
-      rel = rel.group(@_rel_group) if @_rel_group.present?
-      rel = rel.distinct if @_rel_distinct
-      rel = rel.order(@_rel_order) if @_rel_order.present?
-      rel = rel.limit(@_rel_limit) if @_rel_limit.present?
-      rel = rel.preload(@_rel_preload) if @_rel_preload.present?
-      rel = rel.includes(@_rel_includes) if @_rel_includes.present?
-      @_rel_select.present? ? rel.select(@_rel_select) : rel
+      
+      # Apply specification if it exists
+      if @_specification
+        @_specification.apply_to(rel)
+      else
+        rel
+      end
     end
 
     # The configured query is the underlying query with paging
