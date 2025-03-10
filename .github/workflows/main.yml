@@ -19,8 +19,9 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
       - name: Install gems
         run: |
-          bundle update --bundler
+          gem install bundler
           bundle install
+          bundle update --bundler
           bundle exec appraisal install --jobs 4 --retry 3
       - name: Run test
         env:
