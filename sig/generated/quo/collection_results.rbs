@@ -1,0 +1,30 @@
+# Generated from lib/quo/collection_results.rb with RBS::Inline
+
+module Quo
+  class CollectionResults < Results
+    # @rbs override
+    def initialize: ...
+
+    # Are there any results for this query?
+    def exists?: () -> bool
+
+    def empty?: () -> bool
+
+    # Gets the count of all results ignoring the current page and page size (if set).
+    # Optionally return the `total_count` option if it has been set.
+    # This is useful when the total count is known and not equal to size
+    # of wrapped collection.
+    # @rbs override
+    def total_count: ...
+
+    # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
+    # all results)
+    def page_count: () -> Integer
+
+    @query: Quo::CollectionBackedQuery
+
+    @transformer: (^(untyped, ?Integer) -> untyped)?
+
+    @configured_query: Object & Enumerable[untyped]
+  end
+end

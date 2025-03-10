@@ -5,16 +5,18 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in quo.gemspec
 gemspec
 
+gem "rails", "~> 7.2"
+
 group :development, :test do
   gem "sqlite3"
-
-  gem "rails", ">= 6", "< 8"
 
   gem "rake", "~> 13.0"
 
   gem "minitest", "~> 5.0"
 
-  gem "standard", "~> 1.3"
+  gem "standard", require: false
 
-  gem "steep", "~> 1.2"
+  gem "steep", require: false
+
+  gem "rbs-inline", "~> 0.11.0", require: false
 end

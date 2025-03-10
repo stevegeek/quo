@@ -1,0 +1,38 @@
+# Generated from lib/quo/relation_results.rb with RBS::Inline
+
+module Quo
+  class RelationResults < Results
+    # @rbs query: Quo::Query
+    # @rbs transformer: (^(untyped, ?Integer) -> untyped)?
+    # @rbs return: void
+    def initialize: (Quo::Query query, ?transformer: (^(untyped, ?Integer) -> untyped)?) -> void
+
+    # Are there any results for this query?
+    def exists?: () -> bool
+
+    # Gets the count of all results ignoring the current page and page size (if set).
+    def total_count: () -> Integer
+
+    # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
+    # all results)
+    def page_count: () -> Integer
+
+    private
+
+    @query: Quo::RelationBackedQuery
+
+    @configured_query: ActiveRecord::Relation
+
+    # Note we reselect the query as this prevents query errors if the SELECT clause is not compatible with COUNT
+    # (SQLException: wrong number of arguments to function COUNT()). We do this in two ways, either with the primary key
+    # or with Arel.star. The primary key is the most compatible way to count, but if the query does not have a primary
+    # we fallback. The fallback "*" wont work in certain situations though, specifically if we have a limit() on the query
+    # which Arel constructs as a subquery. In this case we will get a SQL error as the generated SQL contains
+    # `SELECT COUNT(count_column) FROM (SELECT * AS count_column FROM ...) subquery_for_count` where the error is:
+    # `ActiveRecord::StatementInvalid: SQLite3::SQLException: near "AS": syntax error`
+    # Either way DB engines know how to count efficiently.
+    # @rbs query: ActiveRecord::Relation
+    # @rbs return: Integer
+    def count_query: (ActiveRecord::Relation query) -> Integer
+  end
+end

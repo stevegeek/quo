@@ -1,302 +1,184 @@
 # frozen_string_literal: true
 
-require_relative "./utilities/callstack"
-require_relative "./utilities/compose"
-require_relative "./utilities/sanitize"
-require_relative "./utilities/wrap"
+# rbs_inline: enabled
+
+require "literal"
 
 module Quo
-  class Query
-    include Quo::Utilities::Callstack
+  class Query < Literal::Struct
+    include Literal::Types
 
-    extend Quo::Utilities::Compose
-    extend Quo::Utilities::Sanitize
-    extend Quo::Utilities::Wrap
-
-    class << self
-      def call(**options)
-        new(**options).first
-      end
-
-      def call!(**options)
-        new(**options).first!
-      end
+    def self.inspect
+      "#{name || "(anonymous)"}<#{superclass}>"
     end
 
-    attr_reader :current_page, :page_size, :options
+    def self.to_s
+      inspect
+    end
 
-    def initialize(**options)
-      @options = options
-      @current_page = options[:page]&.to_i || options[:current_page]&.to_i
-      @page_size = options[:page_size]&.to_i || Quo.configuration.default_page_size || 20
+    def inspect
+      "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{paged? ? "" : "not "}paginated>#{super}"
+    end
+
+    def to_s
+      inspect
+    end
+
+    # TODO: put this in a module with the composer and merge_instances methods
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    # @rbs return: Quo::Query & Quo::ComposedQuery
+    def self.compose(right, joins: nil)
+      super_class = if self < Quo::CollectionBackedQuery || right < Quo::CollectionBackedQuery
+        Quo.collection_backed_query_base_class
+      else
+        Quo.relation_backed_query_base_class
+      end
+      ComposedQuery.composer(super_class, self, right, joins: joins)
+    end
+    singleton_class.alias_method :+, :compose
+
+    COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
+      return if value == Literal::Null
+      value&.to_i
+    end
+
+    # @rbs!
+    #   attr_accessor page (): Integer?
+    #   attr_accessor page_size (): Integer?
+    #   @current_page: Integer?
+    prop :page, _Nilable(Integer), &COERCE_TO_INT
+    prop(:page_size, _Nilable(Integer), default: -> { Quo.default_page_size || 20 }, &COERCE_TO_INT)
+
+    def next_page_query #: Quo::Query
+      copy(page: page + 1)
+    end
+
+    def previous_page_query #: Quo::Query
+      copy(page: [page - 1, 1].max)
+    end
+
+    def offset #: Integer
+      per_page = sanitised_page_size
+      page_with_default = if page&.positive?
+        page
+      else
+        1
+      end
+      per_page * (page_with_default - 1)
     end
 
     # Returns a active record query, or a Quo::Query instance
-    def query
+    def query #: Quo::Query | ::ActiveRecord::Relation
       raise NotImplementedError, "Query objects must define a 'query' method"
     end
 
-    # Combine (compose) this query object with another composeable entity, see notes for `.compose` above.
-    # Compose is aliased as `+`. Can optionally take `joins()` parameters to perform a joins before the merge
-    def compose(right, joins: nil)
-      Quo::QueryComposer.new(self, right, joins).compose
-    end
-
-    alias_method :+, :compose
-
-    def copy(**options)
-      self.class.new(**@options.merge(options))
-    end
-
-    # Methods to prepare the query
-    def limit(limit)
-      copy(limit: limit)
-    end
-
-    def order(options)
-      copy(order: options)
-    end
-
-    def group(*options)
-      copy(group: options)
-    end
-
-    def includes(*options)
-      copy(includes: options)
-    end
-
-    def preload(*options)
-      copy(preload: options)
-    end
-
-    def select(*options)
-      copy(select: options)
-    end
-
-    # The following methods actually execute the underlying query
-
-    # Delegate SQL calculation methods to the underlying query
-    delegate :sum, :average, :minimum, :maximum, to: :query_with_logging
-
-    # Gets the count of all results ignoring the current page and page size (if set)
-    delegate :count, to: :underlying_query
-    alias_method :total_count, :count
-    alias_method :size, :count
-
-    # Gets the actual count of elements in the page of results (assuming paging is being used, otherwise the count of
-    # all results)
-    def page_count
-      query_with_logging.count
-    end
-
-    # Delegate methods that let us get the model class (available on AR relations)
-    delegate :model, :klass, to: :underlying_query
-
-    # Get first elements
-    def first(limit = nil)
-      if transform?
-        res = query_with_logging.first(limit)
-        if res.is_a? Array
-          res.map.with_index { |r, i| transformer&.call(r, i) }
-        elsif !res.nil?
-          transformer&.call(query_with_logging.first(limit))
-        end
-      elsif limit
-        query_with_logging.first(limit)
-      else
-        # Array#first will not take nil as a limit
-        query_with_logging.first
+    # @rbs **overrides: untyped
+    # @rbs return: Quo::Query
+    def copy(**overrides)
+      self.class.new(**to_h.merge(overrides)).tap do |q|
+        q.instance_variable_set(:@__transformer, transformer)
       end
     end
 
-    def first!(limit = nil)
-      item = first(limit)
-      raise ActiveRecord::RecordNotFound, "No item could be found!" unless item
-      item
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ::ActiveRecord::Relation
+    # @rbs joins: untyped
+    # @rbs return: Quo::ComposedQuery
+    def merge(right, joins: nil)
+      ComposedQuery.merge_instances(self, right, joins: joins)
     end
+    alias_method :+, :merge
 
-    # Get last elements
-    def last(limit = nil)
-      if transform?
-        res = query_with_logging.last(limit)
-        if res.is_a? Array
-          res.map.with_index { |r, i| transformer&.call(r, i) }
-        elsif !res.nil?
-          transformer&.call(res)
-        end
-      elsif limit
-        query_with_logging.last(limit)
-      else
-        query_with_logging.last
-      end
-    end
-
-    # Convert to array
-    def to_a
-      arr = query_with_logging.to_a
-      transform? ? arr.map.with_index { |r, i| transformer&.call(r, i) } : arr
-    end
-
-    def to_eager(more_opts = {})
-      Quo::LoadedQuery.new(to_a, **options.merge(more_opts))
-    end
-    alias_method :load, :to_eager
-
-    def results
-      Quo::Results.new(self, transformer: transformer)
-    end
-
-    # Some convenience methods for working with results
-    delegate :each,
-      :find_each,
-      :map,
-      :flat_map,
-      :reduce,
-      :reject,
-      :filter,
-      :find,
-      :include?,
-      :each_with_object,
-      to: :results
+    # @rbs @__transformer: nil | ^(untyped, ?Integer) -> untyped
 
     # Set a block used to transform data after query fetching
+    # @rbs block: ^(untyped, ?Integer) -> untyped
+    # @rbs return: self
     def transform(&block)
-      @options[:__transformer] = block
+      @__transformer = block
       self
     end
 
-    # Are there any results for this query?
-    def exists?
-      return query_with_logging.exists? if relation?
-      query_with_logging.present?
-    end
-
-    # Are there no results for this query?
-    def none?
-      !exists?
-    end
-    alias_method :empty?, :none?
-
-    # Is this query object a relation under the hood? (ie not eager loaded)
-    def relation?
+    # Is this query object a ActiveRecord relation under the hood?
+    def relation? #: bool
       test_relation(configured_query)
     end
 
-    # Is this query object eager loaded data under the hood? (ie not a relation)
-    def eager?
-      test_eager(configured_query)
+    # Is this query object loaded data/collection under the hood? (ie not a AR relation)
+    def collection? #: bool
+      is_collection?(configured_query)
     end
 
     # Is this query object paged? (ie is paging enabled)
-    def paged?
-      current_page.present?
+    def paged? #: bool
+      page.present?
     end
 
     # Is this query object transforming results?
-    def transform?
+    def transform? #: bool
       transformer.present?
     end
 
-    # Return the SQL string for this query if its a relation type query object
-    def to_sql
-      configured_query.to_sql if relation?
-    end
-
     # Unwrap the paginated query
-    def unwrap
+    def unwrap #: ActiveRecord::Relation
       configured_query
     end
 
     # Unwrap the un-paginated query
-    def unwrap_unpaginated
+    def unwrap_unpaginated #: ActiveRecord::Relation
       underlying_query
     end
 
-    delegate :distinct, to: :configured_query
-
     private
 
-    def formatted_queries?
-      !!Quo.configuration.formatted_query_log
-    end
-
-    # 'trim' a query, ie remove comments and remove newlines
-    # This will remove dashes from inside strings too
-    def trim_query(sql)
-      sql.gsub(/--[^\n'"]*\n/m, " ").tr("\n", " ").strip
-    end
-
-    def format_query(sql_str)
-      formatted_queries? ? sql_str : trim_query(sql_str)
-    end
-
     def transformer
-      options[:__transformer]
+      @__transformer
     end
 
-    def offset
-      per_page = sanitised_page_size
-      page = if current_page && current_page&.positive?
-        current_page
-      else
-        1
-      end
-      per_page * (page - 1)
+    def validated_query
+      raise NoMethodError, "Query objects must define a 'validated_query' method"
+    end
+
+    # The underlying query is essentially the configured query with optional extras setup
+    def underlying_query #: void
+      raise NoMethodError, "Query objects must define a 'underlying_query' method"
     end
 
     # The configured query is the underlying query with paging
-    def configured_query
-      q = underlying_query
-      return q unless paged? && q.is_a?(ActiveRecord::Relation)
-      q.offset(offset).limit(sanitised_page_size)
+    def configured_query #: void
+      raise NoMethodError, "Query objects must define a 'configured_query' method"
     end
 
-    def sanitised_page_size
-      if page_size && page_size.positive?
+    def sanitised_page_size #: Integer
+      if page_size&.positive?
         given_size = page_size.to_i
-        max_page_size = Quo.configuration.max_page_size || 200
+        max_page_size = Quo.max_page_size || 200
         if given_size > max_page_size
           max_page_size
         else
           given_size
         end
       else
-        Quo.configuration.default_page_size || 20
+        Quo.default_page_size || 20
       end
     end
 
-    def query_with_logging
-      debug_callstack
-      configured_query
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def is_collection?(rel)
+      rel.is_a?(Quo::CollectionBackedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
     end
 
-    # The underlying query is essentially the configured query with optional extras setup
-    def underlying_query
-      @underlying_query ||=
-        begin
-          rel = unwrap_relation(query)
-          unless test_eager(rel)
-            rel = rel.group(@options[:group]) if @options[:group].present?
-            rel = rel.order(@options[:order]) if @options[:order].present?
-            rel = rel.limit(@options[:limit]) if @options[:limit].present?
-            rel = rel.preload(@options[:preload]) if @options[:preload].present?
-            rel = rel.includes(@options[:includes]) if @options[:includes].present?
-            rel = rel.select(@options[:select]) if @options[:select].present?
-          end
-          rel
-        end
-    end
-
-    def unwrap_relation(query)
-      query.is_a?(Quo::Query) ? query.unwrap : query
-    end
-
-    def test_eager(rel)
-      rel.is_a?(Quo::LoadedQuery) || (rel.is_a?(Enumerable) && !test_relation(rel))
-    end
-
+    # @rbs rel: untyped
+    # @rbs return: bool
     def test_relation(rel)
       rel.is_a?(ActiveRecord::Relation)
+    end
+
+    def quo_unwrap_unpaginated_query(q)
+      q.is_a?(Quo::Query) ? q.unwrap_unpaginated : q
     end
   end
 end

@@ -1,0 +1,29 @@
+# Generated from lib/quo/preloadable.rb with RBS::Inline
+
+module Quo
+  module Preloadable
+    def self.included: (untyped base) -> untyped
+
+    # This implementation of `query` calls `collection` and preloads the includes.
+    # @rbs return: Object & Enumerable[untyped]
+    def query: () -> (Object & Enumerable[untyped])
+
+    # For use with collections of ActiveRecord models.
+    # Configures ActiveRecord::Associations::Preloader to load associations of models in the collection
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def preload: (*untyped options) -> Quo::Query
+
+    # Alias for `preload`
+    # @rbs *options: untyped
+    # @rbs return: Quo::Query
+    def includes: (*untyped options) -> Quo::Query
+
+    private
+
+    @_rel_preload: untyped?
+
+    # @rbs (untyped records, ?untyped? preload) -> untyped
+    def preload_includes: (untyped records, ?untyped? preload) -> untyped
+  end
+end

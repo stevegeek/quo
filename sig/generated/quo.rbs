@@ -1,0 +1,9 @@
+# Generated from lib/quo.rb with RBS::Inline
+
+module Quo
+  extend ActiveSupport::Autoload
+
+  def self.relation_backed_query_base_class: () -> Quo::RelationBackedQuery
+
+  def self.collection_backed_query_base_class: () -> Quo::CollectionBackedQuery
+end

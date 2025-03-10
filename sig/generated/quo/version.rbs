@@ -1,0 +1,5 @@
+# Generated from lib/quo/version.rb with RBS::Inline
+
+module Quo
+  VERSION: ::String
+end

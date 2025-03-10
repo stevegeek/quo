@@ -1,40 +1,33 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 require_relative "quo/version"
-require_relative "quo/railtie" if defined?(Rails)
-require_relative "quo/query"
-require_relative "quo/eager_query"
-require_relative "quo/loaded_query"
-require_relative "quo/merged_query"
-require_relative "quo/wrapped_query"
-require_relative "quo/query_composer"
-require_relative "quo/results"
+require "quo/engine"
 
 module Quo
-  class << self
-    def configuration
-      @configuration ||= Configuration.new
-    end
+  extend ActiveSupport::Autoload
 
-    def configure
-      yield(configuration) if block_given?
-      configuration
-    end
+  autoload :Query
+  autoload :Preloadable
+  autoload :RelationBackedQuerySpecification
+  autoload :RelationBackedQuery
+  autoload :Results
+  autoload :RelationResults
+  autoload :CollectionResults
+  autoload :ComposedQuery
+  autoload :CollectionBackedQuery
+
+  mattr_accessor :relation_backed_query_base_class, default: "Quo::RelationBackedQuery"
+  mattr_accessor :collection_backed_query_base_class, default: "Quo::CollectionBackedQuery"
+  mattr_accessor :max_page_size, default: 200
+  mattr_accessor :default_page_size, default: 20
+
+  def self.relation_backed_query_base_class #: Quo::RelationBackedQuery
+    @@relation_backed_query_base_class.constantize
   end
 
-  class Configuration
-    attr_accessor :formatted_query_log,
-      :query_show_callstack_size,
-      :logger,
-      :max_page_size,
-      :default_page_size
-
-    def initialize
-      @formatted_query_log = true
-      @query_show_callstack_size = 10
-      @logger = nil
-      @max_page_size = 200
-      @default_page_size = 20
-    end
+  def self.collection_backed_query_base_class #: Quo::CollectionBackedQuery
+    @@collection_backed_query_base_class.constantize
   end
 end

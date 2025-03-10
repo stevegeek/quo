@@ -1,0 +1,39 @@
+# Generated from lib/quo/results.rb with RBS::Inline
+
+module Quo
+  class Results
+    def empty?: () -> bool
+
+    # Alias for total_count
+    def count: () -> Integer
+
+    # Alias for total_count
+    def size: () -> Integer
+
+    # Alias for page_count
+    def page_size: () -> Integer
+
+    # @rbs &block: (untyped, *untyped) -> untyped
+    # @rbs return: Hash[untyped, Array[untyped]]
+    def group_by: () { (untyped, *untyped) -> untyped } -> Hash[untyped, Array[untyped]]
+
+    # Delegate other enumerable methods to underlying collection but also transform
+    # @rbs override
+    def method_missing: ...
+
+    # @rbs name: Symbol
+    # @rbs include_private: bool
+    # @rbs return: bool
+    def respond_to_missing?: (Symbol name, ?bool include_private) -> bool
+
+    def transform?: () -> bool
+
+    private
+
+    @transformer: (^(untyped, ?Integer) -> untyped)?
+
+    # @rbs results: untyped
+    # @rbs return: untyped
+    def transform_results: (untyped results) -> untyped
+  end
+end

@@ -2,4 +2,9 @@
 
 class Comment < ActiveRecord::Base
   belongs_to :post
+
+  scope :recent, proc { |since| where("created_at > ?", since || 1.week.ago) }
+  scope :not_spam, proc { |score| where("spam_score IS NULL OR spam_score < ?", score || 0.5) }
+  scope :read, -> { where(read: true) }
+  scope :unread, -> { where(read: false) }
 end

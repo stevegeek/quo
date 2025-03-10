@@ -1,0 +1,39 @@
+# Generated from lib/quo/collection_backed_query.rb with RBS::Inline
+
+module Quo
+  class CollectionBackedQuery < Query
+    # Wrap an enumerable collection or a block that returns an enumerable collection
+    # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
+    # @rbs return: Quo::CollectionBackedQuery
+    def self.wrap: (?untyped data, ?props: untyped) ?{ (?) -> untyped } -> Quo::CollectionBackedQuery
+
+    # @rbs return: Object & Enumerable[untyped]
+    def collection: () -> (Object & Enumerable[untyped])
+
+    # The default implementation of `query` just calls `collection`, however you can also
+    # override this method to return an ActiveRecord::Relation or any other query-like object as usual in a Query object.
+    # @rbs return: Object & Enumerable[untyped]
+    def query: () -> (Object & Enumerable[untyped])
+
+    def results: () -> untyped
+
+    # @rbs override
+    def relation?: ...
+
+    # @rbs override
+    def collection?: ...
+
+    # @rbs override
+    def to_collection: ...
+
+    private
+
+    def validated_query: () -> untyped
+
+    # @rbs return: Object & Enumerable[untyped]
+    def underlying_query: () -> (Object & Enumerable[untyped])
+
+    # The configured query is the underlying query with paging
+    def configured_query: () -> (Object & Enumerable[untyped])
+  end
+end

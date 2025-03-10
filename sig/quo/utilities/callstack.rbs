@@ -1,7 +1,0 @@
-module Quo
-  module Utilities
-    module Callstack
-      def debug_callstack: () -> void
-    end
-  end
-end

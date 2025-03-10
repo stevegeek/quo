@@ -1,0 +1,6 @@
+# Generated from lib/quo/engine.rb with RBS::Inline
+
+module Quo
+  class Engine < ::Rails::Engine
+  end
+end

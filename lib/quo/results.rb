@@ -1,85 +1,89 @@
 # frozen_string_literal: true
 
-require "forwardable"
-require_relative "./utilities/callstack"
+# rbs_inline: enabled
 
 module Quo
   class Results
-    extend Forwardable
-    include Quo::Utilities::Callstack
-
-    def initialize(query, transformer: nil)
-      @query = query
-      @unwrapped = query.unwrap
-      @transformer = transformer
+    def empty? #: bool
+      !exists?
     end
 
-    def_delegators :unwrapped,
-      :include?,
-      :member?,
-      :all?,
-      :any?,
-      :none?,
-      :one?,
-      :count
+    # Alias for total_count
+    def count #: Integer
+      total_count
+    end
 
+    # Alias for total_count
+    def size #: Integer
+      total_count
+    end
+
+    # Alias for page_count
+    def page_size #: Integer
+      page_count
+    end
+
+    # @rbs &block: (untyped, *untyped) -> untyped
+    # @rbs return: Hash[untyped, Array[untyped]]
     def group_by(&block)
-      debug_callstack
-      grouped = unwrapped.group_by do |*block_args|
+      grouped = @configured_query.group_by do |*block_args|
         x = block_args.first
-        transformed = transformer ? transformer.call(x) : x
+        transformed = transform? ? @transformer.call(x) : x
         block ? block.call(transformed, *(block_args[1..] || [])) : transformed
       end
 
       grouped.tap do |groups|
         groups.transform_values! do |values|
-          transformer ? values.map { |x| transformer.call(x) } : values
+          @transformer ? values.map { |x| @transformer.call(x) } : values
         end
       end
     end
 
     # Delegate other enumerable methods to underlying collection but also transform
+    # @rbs override
     def method_missing(method, *args, **kwargs, &block)
-      if unwrapped.respond_to?(method)
-        debug_callstack
-        if block
-          unwrapped.send(method, *args, **kwargs) do |*block_args|
-            x = block_args.first
-            transformed = transformer ? transformer.call(x) : x
-            other_args = block_args[1..] || []
-            block.call(transformed, *other_args)
-          end
-        else
-          raw = unwrapped.send(method, *args, **kwargs)
-          # FIXME: consider how to handle applying a transformer to a Enumerator...
-          return raw if raw.is_a?(Quo::Results) || raw.is_a?(::Enumerator)
-          transform_results(raw)
+      return super unless respond_to_missing?(method)
+
+      if block
+        @configured_query.send(method, *args, **kwargs) do |*block_args|
+          x = block_args.first
+          transformed = transform? ? @transformer.call(x) : x
+          other_args = block_args[1..] || []
+          block.call(transformed, *other_args)
         end
       else
-        super
+        raw = @configured_query.send(method, *args, **kwargs)
+        # FIXME: consider how to handle applying a transformer to a Enumerator...
+        return raw if raw.is_a?(Quo::RelationResults) || raw.is_a?(::Enumerator)
+        transform_results(raw)
       end
     end
 
+    # @rbs name: Symbol
+    # @rbs include_private: bool
+    # @rbs return: bool
     def respond_to_missing?(name, include_private = false)
-      enumerable_methods_supported.include?(name)
+      @configured_query.respond_to?(name, include_private)
+    end
+
+    def transform? #: bool
+      @transformer.present?
     end
 
     private
 
-    attr_reader :transformer, :unwrapped
+    # @rbs @transformer: (^(untyped, ?Integer) -> untyped)?
 
+    # @rbs results: untyped
+    # @rbs return: untyped
     def transform_results(results)
-      return results unless transformer
+      return results unless transform?
 
       if results.is_a?(Enumerable)
-        results.map.with_index { |item, i| transformer.call(item, i) }
+        results.map.with_index { |item, i| @transformer.call(item, i) }
       else
-        transformer.call(results)
+        @transformer.call(results)
       end
-    end
-
-    def enumerable_methods_supported
-      [:find_each] + Enumerable.instance_methods
     end
   end
 end

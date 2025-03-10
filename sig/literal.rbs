@@ -1,0 +1,7 @@
+module Literal
+  class Struct
+  end
+
+  module Types
+  end
+end

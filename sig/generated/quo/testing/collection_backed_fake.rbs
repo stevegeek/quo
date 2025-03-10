@@ -1,0 +1,13 @@
+# Generated from lib/quo/testing/collection_backed_fake.rb with RBS::Inline
+
+module Quo
+  module Testing
+    class CollectionBackedFake
+      def collection: () -> untyped
+
+      def results: () -> untyped
+
+      def page_count: () -> untyped
+    end
+  end
+end

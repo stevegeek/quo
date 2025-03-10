@@ -1,0 +1,98 @@
+# Generated from lib/quo/query.rb with RBS::Inline
+
+module Quo
+  class Query < Literal::Struct
+    include Literal::Types
+
+    def self.inspect: () -> untyped
+
+    def self.to_s: () -> untyped
+
+    def inspect: () -> untyped
+
+    def to_s: () -> untyped
+
+    # TODO: put this in a module with the composer and merge_instances methods
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
+    # @rbs return: Quo::Query & Quo::ComposedQuery
+    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> (Quo::Query & Quo::ComposedQuery)
+
+    COERCE_TO_INT: untyped
+
+    attr_accessor page(): Integer?
+
+    attr_accessor page_size(): Integer?
+
+    @current_page: Integer?
+
+    def next_page_query: () -> Quo::Query
+
+    def previous_page_query: () -> Quo::Query
+
+    def offset: () -> Integer
+
+    # Returns a active record query, or a Quo::Query instance
+    def query: () -> (Quo::Query | ::ActiveRecord::Relation)
+
+    # @rbs **overrides: untyped
+    # @rbs return: Quo::Query
+    def copy: (**untyped overrides) -> Quo::Query
+
+    # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.
+    # @rbs right: Quo::Query | ::ActiveRecord::Relation
+    # @rbs joins: untyped
+    # @rbs return: Quo::ComposedQuery
+    def merge: (Quo::Query | ::ActiveRecord::Relation right, ?joins: untyped) -> Quo::ComposedQuery
+
+    @__transformer: nil | ^(untyped, ?Integer) -> untyped
+
+    # Set a block used to transform data after query fetching
+    # @rbs block: ^(untyped, ?Integer) -> untyped
+    # @rbs return: self
+    def transform: () ?{ (?) -> untyped } -> self
+
+    # Is this query object a ActiveRecord relation under the hood?
+    def relation?: () -> bool
+
+    # Is this query object loaded data/collection under the hood? (ie not a AR relation)
+    def collection?: () -> bool
+
+    # Is this query object paged? (ie is paging enabled)
+    def paged?: () -> bool
+
+    # Is this query object transforming results?
+    def transform?: () -> bool
+
+    # Unwrap the paginated query
+    def unwrap: () -> ActiveRecord::Relation
+
+    # Unwrap the un-paginated query
+    def unwrap_unpaginated: () -> ActiveRecord::Relation
+
+    private
+
+    def transformer: () -> untyped
+
+    def validated_query: () -> untyped
+
+    # The underlying query is essentially the configured query with optional extras setup
+    def underlying_query: () -> void
+
+    # The configured query is the underlying query with paging
+    def configured_query: () -> void
+
+    def sanitised_page_size: () -> Integer
+
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def is_collection?: (untyped rel) -> bool
+
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def test_relation: (untyped rel) -> bool
+
+    def quo_unwrap_unpaginated_query: (untyped q) -> untyped
+  end
+end
