@@ -13,13 +13,13 @@ module Quo
     # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
     # @rbs joins: untyped
     # @rbs return: singleton(Quo::ComposedQuery)
-    def composer(chosen_superclass, left_query_class, right_query_class, joins: nil)
+    def composer(chosen_superclass, left_query_class, right_query_class, joins: nil, left_spec: nil, right_spec: nil)
       validate_query_classes(left_query_class, right_query_class)
 
       props = collect_properties(left_query_class, right_query_class)
       klass = create_composed_class(chosen_superclass, props)
 
-      assign_query_metadata(klass, left_query_class, right_query_class, joins)
+      assign_query_metadata(klass, left_query_class, right_query_class, joins, left_spec, right_spec)
       klass
     end
     module_function :composer
@@ -81,7 +81,7 @@ module Quo
           include Quo::ComposedQuery
 
           class << self
-            attr_reader :_composing_joins, :_left_query, :_right_query
+            attr_reader :_composing_joins, :_left_specification, :_right_specification, :_left_query, :_right_query
 
             def inspect
               left_desc = quo_operand_desc(_left_query)
@@ -129,8 +129,16 @@ module Quo
       # @rbs left_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
       # @rbs right_query_class: singleton(Quo::Query | ::ActiveRecord::Relation)
       # @rbs joins: untyped
-      def assign_query_metadata(klass, left_query_class, right_query_class, joins)
-        klass.instance_variable_set(:@_composing_joins, joins)
+      def assign_query_metadata(klass, left_query_class, right_query_class, joins, left_spec, right_spec)
+        # merge spec and joins
+        left_joins = left_spec ? left_spec[:joins] : []
+        left_joins = left_joins.is_a?(Array) ? left_joins : [left_joins]
+        joins = joins.is_a?(Array) ? joins : [joins] if joins
+        merge_left_joins = joins ? joins + left_joins : left_joins
+
+        klass.instance_variable_set(:@_composing_joins, merge_left_joins)
+        klass.instance_variable_set(:@_left_specification, left_spec)
+        klass.instance_variable_set(:@_right_specification, right_spec)
         klass.instance_variable_set(:@_left_query, left_query_class)
         klass.instance_variable_set(:@_right_query, right_query_class)
       end
@@ -171,11 +179,22 @@ module Quo
 
       # @rbs left_query: Quo::Query | ::ActiveRecord::Relation
       # @rbs right_query: Quo::Query | ::ActiveRecord::Relation
+      # @rbs joins: untyped
       def merge_query_instances(left_query, right_query, joins)
-        props = left_query.to_h.merge(right_query.to_h.compact)
+        left_props = left_query.to_h
+        # Do not merge query specifications as those apply to the specific query they are for.
+        left_props.delete(:_specification)
+        right_props = right_query.to_h.compact
+        right_props.delete(:_specification)
+        props = left_props.merge(right_props)
+
+        joins ||= []
+        joins = joins.is_a?(Array) ? joins : [joins]
+        left_spec = left_query._specification if left_query.is_a?(Quo::RelationBackedQuery)
+        right_spec = right_query._specification if right_query.is_a?(Quo::RelationBackedQuery)
 
         base_class = determine_base_class_for_queries(left_query, right_query)
-        composer(base_class, left_query.class, right_query.class, joins: joins).new(**props)
+        composer(base_class, left_query.class, right_query.class, joins: joins, left_spec: left_spec, right_spec: right_spec).new(**props)
       end
 
       # @rbs left_query: Quo::Query | ::ActiveRecord::Relation
@@ -206,14 +225,25 @@ module Quo
     def left
       lq = self.class._left_query
       return lq if is_relation?(lq)
-      lq.new(**child_options(lq))
+      instance = lq.new(**child_options(lq))
+      if lq < Quo::RelationBackedQuery
+        instance.with_specification(self.class._left_specification)
+      else
+        instance
+      end
     end
 
     # @rbs return: Quo::Query | ::ActiveRecord::Relation
     def right
       rq = self.class._right_query
       return rq if is_relation?(rq)
-      rq.new(**child_options(rq))
+      # rq.new(**child_options(rq)).with_specification(self.class._right_specification)
+      instance = rq.new(**child_options(rq))
+      if rq < Quo::RelationBackedQuery
+        instance.with_specification(self.class._right_specification)
+      else
+        instance
+      end
     end
 
     # @rbs return: ActiveRecord::Relation | CollectionBackedQuery
@@ -238,14 +268,9 @@ module Quo
     # @rbs right_rel: ActiveRecord::Relation
     # @rbs return: ActiveRecord::Relation
     def merge_active_record_relations(left_rel, right_rel)
-      apply_joins(left_rel).merge(right_rel)
-    end
-
-    # @rbs left_rel: ActiveRecord::Relation
-    # @rbs return: ActiveRecord::Relation
-    def apply_joins(left_rel)
       joins = self.class._composing_joins
-      joins.present? ? left_rel.joins(joins) : left_rel
+      left_rel = left_rel.joins(joins) if joins
+      left_rel.merge(right_rel)
     end
 
     # @rbs rel: untyped

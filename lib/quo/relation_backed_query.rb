@@ -53,7 +53,6 @@ module Quo
     #   @_specification: Quo::RelationBackedQuerySpecification?
     prop :_specification, _Nilable(Quo::RelationBackedQuerySpecification),
       default: -> { RelationBackedQuerySpecification.blank },
-      reader: false,
       writer: false
 
     # Apply a query specification to this query
