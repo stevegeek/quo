@@ -125,7 +125,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
   test "raises when invalid objects are composed" do
     assert_raises(ArgumentError) do
-      Quo::ComposedQuery.composer(Quo::CollectionBackedQuery, Object.new, Quo::CollectionBackedQuery.wrap([]))
+      Quo::Composing.composer(Quo::CollectionBackedQuery, Object.new, Quo::CollectionBackedQuery.wrap([]))
     end
   end
 

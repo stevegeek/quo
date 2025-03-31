@@ -17,6 +17,7 @@ module Quo
   autoload :CollectionResults
   autoload :ComposedQuery
   autoload :CollectionBackedQuery
+  autoload :Composing
 
   mattr_accessor :relation_backed_query_base_class, default: "Quo::RelationBackedQuery"
   mattr_accessor :collection_backed_query_base_class, default: "Quo::CollectionBackedQuery"

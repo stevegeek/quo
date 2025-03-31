@@ -35,7 +35,7 @@ module Quo
       else
         Quo.relation_backed_query_base_class
       end
-      ComposedQuery.composer(super_class, self, right, joins: joins)
+      Composing.composer(super_class, self, right, joins: joins)
     end
     singleton_class.alias_method :+, :compose
 
@@ -87,7 +87,7 @@ module Quo
     # @rbs joins: untyped
     # @rbs return: Quo::ComposedQuery
     def merge(right, joins: nil)
-      ComposedQuery.merge_instances(self, right, joins: joins)
+      Composing.merge_instances(self, right, joins: joins)
     end
     alias_method :+, :merge
 

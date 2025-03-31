@@ -30,7 +30,7 @@ class Quo::ComposedQueryJoinsTest < ActiveSupport::TestCase
 
   def post_relation
     posts = Post.arel_table
-    length_function = Arel::Nodes::NamedFunction.new('LENGTH', [posts[:title]])
+    length_function = Arel::Nodes::NamedFunction.new("LENGTH", [posts[:title]])
     Post.where(length_function.gt(30))
   end
 
@@ -88,7 +88,7 @@ class Quo::ComposedQueryJoinsTest < ActiveSupport::TestCase
     comment_relation = Comment.unread
     post_query = LongTitlePostQuery.new
 
-    composed_query = Quo::ComposedQuery.merge_instances(comment_relation, post_query, joins: :post)
+    composed_query = Quo::Composing.merge_instances(comment_relation, post_query, joins: :post)
 
     assert_results(composed_query)
   end
@@ -97,7 +97,7 @@ class Quo::ComposedQueryJoinsTest < ActiveSupport::TestCase
     comment_relation = Comment.unread.joins(:post)
     post_query = LongTitlePostQuery.new
 
-    composed_query = Quo::ComposedQuery.merge_instances(comment_relation, post_query)
+    composed_query = Quo::Composing.merge_instances(comment_relation, post_query)
 
     assert_results(composed_query)
   end
@@ -105,7 +105,7 @@ class Quo::ComposedQueryJoinsTest < ActiveSupport::TestCase
   test "composes relations with explicit joins" do
     comment_relation = Comment.unread.joins(:post)
 
-    composed_query = Quo::ComposedQuery.merge_instances(comment_relation, post_relation)
+    composed_query = Quo::Composing.merge_instances(comment_relation, post_relation)
 
     assert_results(composed_query)
   end
