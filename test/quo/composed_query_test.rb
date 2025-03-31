@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../test_helper"
+require "test_helper"
 
 class Quo::ComposedQueryTest < ActiveSupport::TestCase
   def setup
@@ -125,7 +125,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
   test "raises when invalid objects are composed" do
     assert_raises(ArgumentError) do
-      Quo::ComposedQuery.composer(Quo::CollectionBackedQuery, Object.new, Quo::CollectionBackedQuery.wrap([]))
+      Quo::Composing.composer(Quo::CollectionBackedQuery, Object.new, Quo::CollectionBackedQuery.wrap([]))
     end
   end
 
@@ -254,5 +254,18 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
       c
     end
     assert_equal ["hello 0", "hello 1", "hello 2"], mapped.map(&:body)
+  end
+
+  test "merged query applies specifications when composing relation backed queries" do
+    query_with_order = Quo::RelationBackedQuery.wrap(Comment.all).new.order(:created_at)
+    query_with_joins = Quo::RelationBackedQuery.wrap(Comment.all).new.joins(post: :author)
+
+    # Merge the queries
+    merged_query = query_with_order.merge(query_with_joins)
+
+    # Verify that the query gets executed properly with both specifications
+    sql = merged_query.to_sql
+    assert_match(/"comments"\."created_at" ASC/, sql)
+    assert_match(/INNER JOIN "authors"/, sql)
   end
 end

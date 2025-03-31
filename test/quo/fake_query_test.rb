@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../test_helper"
+require "test_helper"
 require "quo/minitest/helpers"
 
 class Quo::FakeQueryTest < ActiveSupport::TestCase

@@ -1,0 +1,18 @@
+# Generated from lib/quo/composing/instance_strategy.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Base class for instance composition strategies
+    class InstanceStrategy < BaseStrategy
+      # @rbs left_instance: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+      # @rbs right_instance: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+      # @rbs return: void
+      def validate_instances: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] left_instance, Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right_instance) -> void
+
+      # @rbs left_query: Quo::Query | ActiveRecord::Relation
+      # @rbs right_query: Quo::Query | ActiveRecord::Relation
+      # @rbs return: Class
+      def determine_base_class_for_queries: (Quo::Query | ActiveRecord::Relation left_query, Quo::Query | ActiveRecord::Relation right_query) -> Class
+    end
+  end
+end

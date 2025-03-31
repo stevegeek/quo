@@ -6,10 +6,12 @@ gem "rails", "~> 8.0"
 
 group :development, :test do
   gem "sqlite3"
-  gem "rake"
-  gem "minitest"
-  gem "standard"
-  gem "steep"
+  gem "rake", "~> 13.0"
+  gem "minitest", "~> 5.0"
+  gem "simplecov", require: false
+  gem "standard", require: false
+  gem "steep", require: false
+  gem "rbs-inline", "~> 0.11.0", require: false
 end
 
 gemspec path: "../"

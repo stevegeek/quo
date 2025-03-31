@@ -17,9 +17,10 @@ module Quo
     end
 
     # Creates a new specification with merged options
-    # @rbs new_options: Hash[Symbol, untyped]
+    # @rbs new_options: Hash[Symbol, untyped] | RelationBackedQuerySpecification
     # @rbs return: Quo::QuerySpecification
     def merge(new_options)
+      new_options = new_options.options if new_options.is_a?(self.class)
       self.class.new(options.merge(new_options))
     end
 
@@ -44,6 +45,16 @@ module Quo
       rel = rel.extending(*options[:extending]) if options[:extending]
       rel = rel.unscope(options[:unscope]) if options[:unscope]
       rel
+    end
+
+    # Introspection
+
+    def has?(key)
+      options.key?(key)
+    end
+
+    def [](key)
+      options[key]
     end
 
     # Create helpers for each query option

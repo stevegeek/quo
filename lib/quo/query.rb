@@ -2,24 +2,26 @@
 
 # rbs_inline: enabled
 
-require "literal"
-
 module Quo
   class Query < Literal::Struct
     include Literal::Types
 
+    # @rbs override
     def self.inspect
       "#{name || "(anonymous)"}<#{superclass}>"
     end
 
+    # @rbs override
     def self.to_s
       inspect
     end
 
+    # @rbs override
     def inspect
       "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{paged? ? "" : "not "}paginated>#{super}"
     end
 
+    # @rbs override
     def to_s
       inspect
     end
@@ -35,7 +37,7 @@ module Quo
       else
         Quo.relation_backed_query_base_class
       end
-      ComposedQuery.composer(super_class, self, right, joins: joins)
+      Composing.composer(super_class, self, right, joins: joins)
     end
     singleton_class.alias_method :+, :compose
 
@@ -87,7 +89,7 @@ module Quo
     # @rbs joins: untyped
     # @rbs return: Quo::ComposedQuery
     def merge(right, joins: nil)
-      ComposedQuery.merge_instances(self, right, joins: joins)
+      Composing.merge_instances(self, right, joins: joins)
     end
     alias_method :+, :merge
 

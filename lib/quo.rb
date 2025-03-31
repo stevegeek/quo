@@ -4,6 +4,7 @@
 
 require_relative "quo/version"
 require "quo/engine"
+require "literal"
 
 module Quo
   extend ActiveSupport::Autoload
@@ -17,6 +18,7 @@ module Quo
   autoload :CollectionResults
   autoload :ComposedQuery
   autoload :CollectionBackedQuery
+  autoload :Composing
 
   mattr_accessor :relation_backed_query_base_class, default: "Quo::RelationBackedQuery"
   mattr_accessor :collection_backed_query_base_class, default: "Quo::CollectionBackedQuery"

@@ -13,14 +13,18 @@ module Quo
     def initialize: (?Hash[Symbol, untyped] options) -> untyped
 
     # Creates a new specification with merged options
-    # @rbs new_options: Hash[Symbol, untyped]
+    # @rbs new_options: Hash[Symbol, untyped] | RelationBackedQuerySpecification
     # @rbs return: Quo::QuerySpecification
-    def merge: (Hash[Symbol, untyped] new_options) -> Quo::QuerySpecification
+    def merge: (Hash[Symbol, untyped] | RelationBackedQuerySpecification new_options) -> Quo::QuerySpecification
 
     # Apply all the specification options to the given ActiveRecord relation
     # @rbs relation: ActiveRecord::Relation
     # @rbs return: ActiveRecord::Relation
     def apply_to: (ActiveRecord::Relation relation) -> ActiveRecord::Relation
+
+    def has?: (untyped key) -> untyped
+
+    def []: (untyped key) -> untyped
 
     # @rbs *fields: untyped
     # @rbs return: Quo::QuerySpecification

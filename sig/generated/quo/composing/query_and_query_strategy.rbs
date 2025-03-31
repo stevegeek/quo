@@ -1,0 +1,51 @@
+# Generated from lib/quo/composing/query_and_query_strategy.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Strategy for composing two Query instances
+    class QueryAndQueryStrategy < InstanceStrategy
+      # @rbs override
+      # @rbs left: untyped
+      # @rbs right: untyped
+      # @rbs return: bool
+      def applicable?: ...
+
+      # @rbs override
+      # @rbs left: Quo::Query
+      # @rbs right: Quo::Query
+      # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+      # @rbs return: Quo::Query & Quo::ComposedQuery
+      def compose: ...
+
+      private
+
+      # Merge properties from both queries, excluding specifications
+      # @rbs left: Quo::Query
+      # @rbs right: Quo::Query
+      # @rbs return: Hash[Symbol, untyped]
+      def merged_properties: (Quo::Query left, Quo::Query right) -> Hash[Symbol, untyped]
+
+      # Normalize joins to always be an array
+      # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+      # @rbs return: Array[Symbol | Hash[Symbol, untyped]]
+      def normalize_joins: (Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]? joins) -> Array[Symbol | Hash[Symbol, untyped]]
+
+      # Extract specifications from both queries if they are relation-backed
+      # @rbs left: Quo::Query
+      # @rbs right: Quo::Query
+      # @rbs return: Hash[Symbol, Quo::RelationBackedQuerySpecification?]
+      def extract_specifications: (Quo::Query left, Quo::Query right) -> Hash[Symbol, Quo::RelationBackedQuerySpecification?]
+
+      # Create the composed instance with the appropriate parameters
+      # @rbs base_class: Class
+      # @rbs left_class: Class
+      # @rbs right_class: Class
+      # @rbs joins: Array[Symbol | Hash[Symbol, untyped]]
+      # @rbs left_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs right_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs props: Hash[Symbol, untyped]
+      # @rbs return: Quo::Query & Quo::ComposedQuery
+      def create_composed_instance: (Class base_class, Class left_class, Class right_class, joins: Array[Symbol | Hash[Symbol, untyped]], left_spec: Quo::RelationBackedQuerySpecification?, right_spec: Quo::RelationBackedQuerySpecification?, props: Hash[Symbol, untyped]) -> (Quo::Query & Quo::ComposedQuery)
+    end
+  end
+end
