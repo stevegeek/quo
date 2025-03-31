@@ -1,4 +1,4 @@
-# Quo: Query Objects for ActiveRecord
+# Quo: Query Objects for ActiveRecord & Collections
 
 Quo helps you organize database and collection queries into reusable, composable, and testable objects.
 
