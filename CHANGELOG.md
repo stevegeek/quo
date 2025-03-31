@@ -1,7 +1,17 @@
 ## [Unreleased]
 
+## [1.0.0.beta2] - 2025-04-01
 
-## [1.0.0.rc1] - Unreleased
+### Breaking Changes
+
+- `Quo::ComposedQuery.composer` is now `Quo::Composing.composer`
+- `Quo::ComposedQuery.merge_instances` is now `Quo::Composing.merge_instances`
+
+### Fixed
+
+- Fixed issue with handling of query specifications in the query composer
+
+## [1.0.0.beta1] - 2025-04-01
 
 ### Breaking Changes
 
@@ -25,6 +35,7 @@ Nearly everything has had changes. Porting will require some effort.
 ### Added
 
 - Helpers `stub_query` and `mock_query` for Minitest
+- Support for Rails 8
 
 ## [0.5.0] - 2022-12-23
 
