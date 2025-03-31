@@ -1,0 +1,32 @@
+# Generated from lib/quo/composing/class_strategy.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Base class for class composition strategies
+    class ClassStrategy < BaseStrategy
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs return: void
+      def validate_query_classes: (Class left_query_class, Class right_query_class) -> void
+
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs return: Hash[Symbol, Literal::Property]
+      def collect_properties: (Class left_query_class, Class right_query_class) -> Hash[Symbol, Literal::Property]
+
+      # @rbs chosen_superclass: Class
+      # @rbs props: Hash[Symbol, Literal::Property]
+      # @rbs return: Class & Quo::ComposedQuery
+      def create_composed_class: (Class chosen_superclass, Hash[Symbol, Literal::Property] props) -> (Class & Quo::ComposedQuery)
+
+      # @rbs klass: Class
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+      # @rbs left_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs right_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs return: void
+      def assign_query_metadata: (Class klass, Class left_query_class, Class right_query_class, Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]? joins, Quo::RelationBackedQuerySpecification? left_spec, Quo::RelationBackedQuerySpecification? right_spec) -> void
+    end
+  end
+end

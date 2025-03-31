@@ -8,18 +8,22 @@ module Quo
   class Query < Literal::Struct
     include Literal::Types
 
+    # @rbs override
     def self.inspect
       "#{name || "(anonymous)"}<#{superclass}>"
     end
 
+    # @rbs override
     def self.to_s
       inspect
     end
 
+    # @rbs override
     def inspect
       "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{paged? ? "" : "not "}paginated>#{super}"
     end
 
+    # @rbs override
     def to_s
       inspect
     end

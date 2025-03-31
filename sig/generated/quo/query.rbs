@@ -4,13 +4,17 @@ module Quo
   class Query < Literal::Struct
     include Literal::Types
 
-    def self.inspect: () -> untyped
+    # @rbs override
+    def self.inspect: ...
 
-    def self.to_s: () -> untyped
+    # @rbs override
+    def self.to_s: ...
 
-    def inspect: () -> untyped
+    # @rbs override
+    def inspect: ...
 
-    def to_s: () -> untyped
+    # @rbs override
+    def to_s: ...
 
     # TODO: put this in a module with the composer and merge_instances methods
     # Compose is aliased as `+`. Can optionally take `joins` parameters to add joins on merged relation.

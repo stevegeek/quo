@@ -1,0 +1,24 @@
+# Generated from lib/quo/composing/query_classes_strategy.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Strategy for composing two Query classes
+    class QueryClassesStrategy < ClassStrategy
+      # @rbs override
+      # @rbs left: Class
+      # @rbs right: Class
+      # @rbs return: bool
+      def applicable?: ...
+
+      # @rbs override
+      # @rbs chosen_superclass: Class
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+      # @rbs left_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs right_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs return: Class & Quo::ComposedQuery
+      def compose: ...
+    end
+  end
+end

@@ -1,0 +1,16 @@
+# Generated from lib/quo/composing/base_strategy.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Base class for all composition strategies
+    class BaseStrategy
+      # @rbs left: untyped
+      # @rbs right: untyped
+      # @rbs return: bool
+      def applicable?: (untyped left, untyped right) -> bool
+
+      # @rbs return: untyped
+      def compose: () -> untyped
+    end
+  end
+end

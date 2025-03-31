@@ -1,0 +1,16 @@
+# Generated from lib/quo/composing/class_strategy_registry.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Registry for class composition strategies
+    class ClassStrategyRegistry
+      # @rbs return: Array[Quo::Composing::BaseStrategy]
+      def strategies: () -> Array[Quo::Composing::BaseStrategy]
+
+      # @rbs left: Class
+      # @rbs right: Class
+      # @rbs return: Quo::Composing::BaseStrategy
+      def find_strategy: (Class left, Class right) -> Quo::Composing::BaseStrategy
+    end
+  end
+end

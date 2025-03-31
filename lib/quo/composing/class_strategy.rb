@@ -1,17 +1,25 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 require_relative "base_strategy"
 
 module Quo
   module Composing
     # Base class for class composition strategies
     class ClassStrategy < BaseStrategy
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs return: void
       def validate_query_classes(left_query_class, right_query_class)
         unless left_query_class.respond_to?(:<) && right_query_class.respond_to?(:<)
           raise ArgumentError, "Cannot compose #{left_query_class} and #{right_query_class}, are they both classes? If you want to use instances use `.merge_instances`"
         end
       end
 
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs return: Hash[Symbol, Literal::Property]
       def collect_properties(left_query_class, right_query_class)
         props = {}
         props.merge!(left_query_class.literal_properties.properties_index) if left_query_class < Quo::Query
@@ -19,6 +27,9 @@ module Quo
         props
       end
 
+      # @rbs chosen_superclass: Class
+      # @rbs props: Hash[Symbol, Literal::Property]
+      # @rbs return: Class & Quo::ComposedQuery
       def create_composed_class(chosen_superclass, props)
         Class.new(chosen_superclass) do
           include Quo::ComposedQuery
@@ -26,6 +37,7 @@ module Quo
           class << self
             attr_reader :_composing_joins, :_left_specification, :_right_specification, :_left_query, :_right_query
 
+            # @rbs return: String
             def inspect
               left_desc = quo_operand_desc(_left_query)
               right_desc = quo_operand_desc(_right_query)
@@ -33,6 +45,8 @@ module Quo
               "#{klass_name}<Quo::ComposedQuery>[#{left_desc}, #{right_desc}]"
             end
 
+            # @rbs operand: Class
+            # @rbs return: String
             def quo_operand_desc(operand)
               if operand < Quo::ComposedQuery
                 operand.inspect
@@ -43,6 +57,7 @@ module Quo
 
             private
 
+            # @rbs return: String
             def determine_class_name
               if self < Quo::RelationBackedQuery
                 Quo.relation_backed_query_base_class.name
@@ -65,6 +80,13 @@ module Quo
         end
       end
 
+      # @rbs klass: Class
+      # @rbs left_query_class: Class
+      # @rbs right_query_class: Class
+      # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+      # @rbs left_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs right_spec: Quo::RelationBackedQuerySpecification?
+      # @rbs return: void
       def assign_query_metadata(klass, left_query_class, right_query_class, joins, left_spec, right_spec)
         # merge spec and joins
         left_joins = left_spec ? left_spec[:joins] : []

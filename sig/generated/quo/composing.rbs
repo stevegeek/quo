@@ -1,0 +1,21 @@
+# Generated from lib/quo/composing.rb with RBS::Inline
+
+module Quo
+  # Module for composing Query objects
+  module Composing
+    # @rbs chosen_superclass: Class
+    # @rbs left_query_class: Class
+    # @rbs right_query_class: Class
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+    # @rbs left_spec: Quo::RelationBackedQuerySpecification?
+    # @rbs right_spec: Quo::RelationBackedQuerySpecification?
+    # @rbs return: Class & Quo::ComposedQuery
+    def self.composer: (Class chosen_superclass, Class left_query_class, Class right_query_class, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?, ?left_spec: Quo::RelationBackedQuerySpecification?, ?right_spec: Quo::RelationBackedQuerySpecification?) -> (Class & Quo::ComposedQuery)
+
+    # @rbs left_instance: Quo::Query
+    # @rbs right_instance: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
+    # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
+    # @rbs return: Quo::ComposedQuery
+    def self.merge_instances: (Quo::Query left_instance, Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right_instance, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?) -> Quo::ComposedQuery
+  end
+end
