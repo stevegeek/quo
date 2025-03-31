@@ -2,8 +2,6 @@
 
 # rbs_inline: enabled
 
-require "literal"
-
 module Quo
   class RelationBackedQuery < Query
     # @rbs query: ActiveRecord::Relation | Quo::Query

@@ -4,6 +4,7 @@
 
 require_relative "quo/version"
 require "quo/engine"
+require "literal"
 
 module Quo
   extend ActiveSupport::Autoload

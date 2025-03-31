@@ -2,8 +2,6 @@
 
 # rbs_inline: enabled
 
-require "literal"
-
 module Quo
   class Query < Literal::Struct
     include Literal::Types
