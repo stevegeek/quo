@@ -255,4 +255,17 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     end
     assert_equal ["hello 0", "hello 1", "hello 2"], mapped.map(&:body)
   end
+
+  test "merged query applies specifications when composing relation backed queries" do
+    query_with_order = Quo::RelationBackedQuery.wrap(Comment.all).new.order(:created_at)
+    query_with_joins = Quo::RelationBackedQuery.wrap(Comment.all).new.joins(post: :author)
+
+    # Merge the queries
+    merged_query = query_with_order.merge(query_with_joins)
+
+    # Verify that the query gets executed properly with both specifications
+    sql = merged_query.to_sql
+    assert_match(/"comments"\."created_at" ASC/, sql)
+    assert_match(/INNER JOIN "authors"/, sql)
+  end
 end

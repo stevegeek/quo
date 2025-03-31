@@ -237,7 +237,6 @@ module Quo
     def right
       rq = self.class._right_query
       return rq if is_relation?(rq)
-      # rq.new(**child_options(rq)).with_specification(self.class._right_specification)
       instance = rq.new(**child_options(rq))
       if rq < Quo::RelationBackedQuery
         instance.with_specification(self.class._right_specification)
