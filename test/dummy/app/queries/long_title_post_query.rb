@@ -6,7 +6,7 @@ class LongTitlePostQuery < Quo::RelationBackedQuery
 
   def query
     posts = Post.arel_table
-    length_function = Arel::Nodes::NamedFunction.new('LENGTH', [posts[:title]])
+    length_function = Arel::Nodes::NamedFunction.new("LENGTH", [posts[:title]])
     Post.where(length_function.gt(min_length))
   end
 end
