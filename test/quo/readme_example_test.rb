@@ -3,7 +3,6 @@
 require "test_helper"
 
 class Quo::ReadmeExampleTest < ActiveSupport::TestCase
-  # Define the RecentPostsQuery class from the README
   class RecentPostsQuery < Quo::RelationBackedQuery
     prop :days_ago, Integer, default: -> { 7 }
 
@@ -26,7 +25,6 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
     end
   end
 
-  # Define a presenter class for the transform example
   class PostPresenter
     attr_reader :post
 
@@ -80,7 +78,6 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
   end
 
   test "RecentPostsQuery returns posts created within days_ago" do
-    # Test the default of 7 days
     query = RecentPostsQuery.new
     results = query.results
 
@@ -90,7 +87,6 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
   end
 
   test "RecentPostsQuery with custom days_ago" do
-    # Test with 30 days to include both posts
     query = RecentPostsQuery.new(days_ago: 30)
     results = query.results
 
@@ -100,7 +96,6 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
   end
 
   test "RecentPostsQuery with pagination" do
-    # Add more posts to test pagination
     5.times do |i|
       Post.create!(
         title: "Paginated Post #{i}",
@@ -109,14 +104,12 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
       )
     end
 
-    # Test pagination with page_size of 2
     posts_query = RecentPostsQuery.new(days_ago: 30, page: 1, page_size: 2)
     page1 = posts_query.results
 
     assert_equal 2, page1.to_a.size
     assert_equal 7, page1.total_count  # 7 total posts (2 from setup + 5 created here)
 
-    # Navigate to next page
     page2_query = posts_query.next_page_query
     page2 = page2_query.results
 
@@ -128,34 +121,22 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
     query = CommentNotSpamQuery.new(spam_score_threshold: 0.5)
     results = query.results
 
-    assert_includes results, @comment1       # spam_score: 0.1
-    assert_not_includes results, @comment2   # spam_score: 0.8
-    assert_includes results, @comment3       # spam_score: nil
+    assert_includes results, @comment1
+    assert_not_includes results, @comment2
+    assert_includes results, @comment3
     assert_equal 2, results.count
   end
 
   test "Composed query example with correct join strategy" do
-    # We need to emulate the example from the README more carefully
-    # This tests the composition with a join relationship
-
-    # Get recent posts from the last 10 days
     recent_posts_query = RecentPostsQuery.new(days_ago: 10)
-
-    # Create a comment-centric query that correctly composes with posts
     non_spam_comments_query = CommentNotSpamQuery.new(spam_score_threshold: 0.5)
-
-    # Use the correct composition approach - this relies on Rails' ability to join tables
     composed_query = recent_posts_query.joins(:comments) + non_spam_comments_query
-    # composed_query = recent_posts_query.merge(non_spam_comments_query, joins: :comments)
     results = composed_query.results
-
-    # Only the recent post has non-spam comments
     assert_includes results, @recent_post
     assert_not_includes results, @older_post
   end
 
   test "Transform example" do
-    # Test the transform example from the README
     posts_last_10_days = RecentPostsQuery.new(days_ago: 10)
     transformed_query = posts_last_10_days.transform { |post| PostPresenter.new(post) }
     results = transformed_query.results
