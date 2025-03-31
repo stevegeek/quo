@@ -1,335 +1,324 @@
-# 'Quo' query objects for ActiveRecord
+# Quo: Query Objects for ActiveRecord
 
-> Note: these docs are for pre-V1 and need updating. I'm working on it!
+Quo helps you organize database queries into reusable, composable, and testable objects.
 
-Quo query objects can help you abstract ActiveRecord DB queries into reusable and composable objects with a chainable
-interface.
+## Core Features
 
-The query object can also abstract over any array-like collection meaning that it is possible for example to cache the
-data from a query and reuse it.
+* Wrap around an underlying ActiveRecord relation or array-like collection
+* Supports pagination for ActiveRecord-based queries and collections that respond to `[]`
+* Support composition with the `+` (`compose`) method to merge multiple query objects
+* Allow transforming results with the `transform` method
+* Offer utility methods that operate on the underlying collection (eg `exists?`)
+* Act as a callable with chainable methods like ActiveRecord
+* Provide a clear separation between query definition and execution with enumerable `Results` objects
+* Type-safe properties with optional default values
 
-The core implementation provides the following functionality:
+## Core Concepts
 
-* wrap around an underlying ActiveRecord or array-like collection
-* optionally provides paging behaviour to ActiveRecord based queries
-* provides a number of utility methods that operate on the underlying collection (eg `exists?`)
-* provides a `+` (`compose`) method which merges two query object instances (see section below for details!)
-* can specify a mapping or transform method to `transform` to perform on results
-* acts as a callable which executes the underlying query with `.first`
-* can return an `Enumerable` of results
+Query objects encapsulate query logic in dedicated classes, making complex queries more manageable and reusable.
 
+Quo provides two main components:
+1. **Query Objects** - Define and configure queries
+2. **Results Objects** - Execute queries and provide access to the results
 
-`Quo::Query` subclasses are the builders, they retain configuration of the queries, and prepare the underlying query or data collections. Query objects then return `Quo::Results` which take the built queries and then take action on them, such as to fetch data or to count records.
+## Creating Query Objects
 
-## Creating a Quo query object
+### Relation-Backed Queries
 
-The query object must inherit from `Quo::Query` and provide an implementation for the `query` method.
-
-The `query` method must return either:
-
-- an `ActiveRecord::Relation`
-- an Enumerable (like a 'collection backed' query) 
-- or another `Quo::Query` instance.
-
-Remember that the query object should be useful in composition with other query objects. Thus it should not directly 
-specify things that are not directly needed to fetch the right data for the given context. 
-
-For example the ordering of the results is mostly something that is specified when the query object is used, not as
-part of the query itself (as then it would always enforce the ordering on other queries it was composed with).
-
-## Passing options to queries
-
-If any parameters are need in `query`, these are provided when instantiating the query object using the `options` hash.
-
-It is also possible to pass special configuration options to the constructor options hash. 
-
-Specifically when the underlying collection is a ActiveRecord relation then:
-
-* `order`: the `order` condition for the relation (eg `:desc`)
-* `includes`: the `includes` condition for the relation (eg `account: {user: :profile}`)
-* `group`: the `group` condition for the relation
-* `page`: the current page number to fetch
-* `page_size`: the number of elements to fetch in the page
-
-Note that the above options have no bearing on the query if it is backed by an array-like collection and that some
-options can be configured using the following methods.
-
-## Configuring queries
-
-Note that it is possible to configure a query using chainable methods similar to ActiveRecord:
-
-* limit
-* order
-* group
-* includes
-* left_outer_joins
-* preload
-* joins
-
-Note that these return a new Quo Query and do not mutate the original instance.
-
-## Composition of queries (merging or combining them)
-
-Quo query objects are composeability. In `ActiveRecord::Relation` this is acheived using `merge`
-and so under the hood `Quo::Query` uses that when composing relations. However since Queries can also abstract over
-array-like collections (ie enumerable and define a `+` method) compose also handles concating them together.
-
-Composing can be done with either 
-
-- `Quo::Query.compose(left, right)` 
-- or `left.compose(right)` 
-- or more simply with `left + right`
-
-The composition methods also accept an optional parameter to pass to ActiveRecord relation merges for the `joins`. 
-This allows you to compose together Query objects which return relations which are of different models but still merge 
-them correctly with the appropriate joins. Note with the alias you cant neatly specify optional parameters for joins
-on relations.
-
-Note that the compose process creates a new query object instance, which is a instance of a `Quo::ComposedQuery`.
-
-Consider the following cases:
-
-1. compose two query objects which return `ActiveRecord::Relation`s
-2. compose two query objects, one of which returns a `ActiveRecord::Relation`, and the other an array-like
-3. compose two query objects which return array-likes
-
-In case (1) the compose process uses `ActiveRecords::Relation`'s `merge` method to create another query object
-wrapped around a new 'composed' `ActiveRecords::Relation`.
-
-In case (2) the query object with a `ActiveRecords::Relation` inside is executed, and the result is then concatenated
-to the array-like with `+`
-
-In case (3) the values contained are concatenated with `+`
-
-*Note that*
-
-with `left.compose(right)`, `left` must obviously be an instance of a `Quo::Query`, and `right` can be either a
-query object or and `ActiveRecord::Relation`. However `Quo::Query.compose(left, right)` also accepts
-`ActiveRecord::Relation`s for left.
-
-### Examples
+For queries based on ActiveRecord relations:
 
 ```ruby
-class CompanyToBeApproved < Quo::RelationBackedQuery
+class RecentActiveUsers < Quo::RelationBackedQuery
+  # Define typed properties
+  prop :days_ago, Integer, default: -> { 30 }
+  
   def query
-    Registration
-      .left_joins(:approval)
-      .where(approvals: {completed_at: nil})
+    User
+      .where(active: true)
+      .where("created_at > ?", days_ago.days.ago)
   end
 end
 
-class CompanyInUsState < Quo::RelationBackedQuery
-  def query
-    Registration
-      .joins(company: :address)
-      .where(addresses: {state: options[:state]})
-  end
-end
+# Create and use the query
+query = RecentActiveUsers.new(days_ago: 7)
+results = query.results
 
-query1 = CompanyToBeApproved.new
-query2 = CompanyInUsState.new(state: "California")
-
-# Compose
-composed = query1 + query2 # or Quo::Query.compose(query1, query2) or query1.compose(query2)
-composed.first
+# Work with results
+results.each { |user| puts user.email }
+puts "Found #{results.count} users"
 ```
 
-This effectively executes:
+### Collection-Backed Queries
+
+For queries based on any Enumerable collection:
 
 ```ruby
-Registration
-  .left_joins(:approval)
-  .joins(company: :address)
-  .where(approvals: {completed_at: nil})
-  .where(addresses: {state: options[:state]})
-```
-
-It is also possible to compose with an `ActiveRecord::Relation`. This can be useful in a Query object itself to help
-build up the `query` relation. For example:
-
-```ruby
-class RegistrationToBeApproved < Quo::RelationBackedQuery
-  def query
-    done = Registration.where(step: "complete")
-    approved = CompanyToBeApproved.new
-    # Here we use `.compose` utility method to wrap our Relation in a Query and 
-    # then compose with the other Query
-    Quo::Query.compose(done, approved)
-  end
-end
-
-# A Relation can be composed directly to a Quo::Query
-query = RegistrationToBeApproved.new + Registration.where(blocked: false)
-```
-
-Also you can use joins:
-
-```ruby
-class TagByName < Quo::RelationBackedQuery
-  def query
-    Tag.where(name: options[:name])
-  end
-end
-
-class CategoryByName < Quo::RelationBackedQuery
-  def query
-    Category.where(name: options[:name])
-  end
-end
-
-tags = TagByName.new(name: "Intel")
-for_category = CategoryByName.new(name: "CPUs")
-tags.compose(for_category, :category) # perform join on tag association `category`
-
-# equivalent to Tag.joins(:category).where(name: "Intel").where(categories: {name: "CPUs"})
-```
-
-Collection backed queries can also be composed (see below sections for more details).
-
-### Quo::ComposedQuery
-
-The new instance of `Quo::ComposedQuery` from a compose process, retains references to the original entities that were
-composed. These are then used to create a more useful output from `to_s`, so that it is easier to understand what the
-merged query is actually made up of:
-
-```ruby
-q = FooQuery.new + BarQuery.new
-puts q
-# > "Quo::ComposedQuery[FooQuery, BarQuery]"
-```
-
-## Query Objects & Pagination
-
-Specify extra options to enable pagination:
-
-* `page`: the current page number to fetch
-* `page_size`: the number of elements to fetch in the page
-
-### `Quo::CollectionBackedQuery` & `Quo::CollectionBackedQuery` objects
-
-`Quo::CollectionBackedQuery` is a subclass of `Quo::Query` which can be used to create query objects which are backed 
-by a collection (ie an enumerable such as an Array). This is useful for encapsulating data that doesn't come from an 
-ActiveRecord query or queries that execute immediately. Subclass this and override `collection` to return the data you 
-want to encapsulate.
-
-```ruby
-class MyCollectionBackedQuery < Quo::CollectionBackedQuery
+class CachedUsers < Quo::CollectionBackedQuery
+  prop :role, String
+  
   def collection
-    [1, 2, 3]
+    @cached_users ||= Rails.cache.fetch("all_users", expires_in: 1.hour) do
+      User.all.to_a
+    end.select { |user| user.role == role }
   end
 end
-q = MyCollectionBackedQuery.new
-q.collection? # is it a collection under the hood? Yes it is!
-q.count # '3'
+
+# Use the query
+admins = CachedUsers.new(role: "admin").results
 ```
 
-Sometimes it is useful to create similar Queries without needing to create a explicit subclass of your own. For this
-use `Quo::CollectionBackedQuery`:
+## Quick Queries with Wrap
+
+Create query objects without subclassing:
 
 ```ruby
-q = Quo::CollectionBackedQuery.wrap([1, 2, 3])
-q.collection? # true
-q.count # '3'
+# Relation-backed
+users_query = Quo::RelationBackedQuery.wrap(User.active).new
+active_users = users_query.results
+
+# Collection-backed
+items_query = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
+items = items_query.results
 ```
 
-`Quo::CollectionBackedQuery` also uses `total_count` option value as the specified 'total count', useful when the data is
-actually just a page of the data and not the total count.
+## Type-Safe Properties
 
-Example of an CollectionBackedQuery used to wrap a page of enumerable data:
-
-```ruby
-Quo::CollectionBackedQuery.wrap(my_data, total_count: 100, page: current_page)
-```
-
-If a loaded query is `compose`d with other Query objects then it will be seen as an array-like, and concatenated to whatever 
-results are returned from the other queries. An loaded or eager query will force all other queries to be eager loaded.
-
-### Composition
-
-Examples of composition of eager loaded queries
+Quo uses the `Literal` gem for typed properties:
 
 ```ruby
-class CachedTags < Quo::RelationBackedQuery
+class UsersByState < Quo::RelationBackedQuery
+  prop :state, String
+  prop :minimum_age, Integer, default: -> { 18 }
+  prop :active_only, Boolean, default: -> { true }
+
   def query
-    @tags ||= Tag.where(active: true).to_a
+    scope = User.where(state: state)
+    scope = scope.where("age >= ?", minimum_age) if minimum_age.present?
+    scope = scope.where(active: true) if active_only
+    scope
   end
 end
 
-composed = CachedTags.new(active: false) + [1, 2]
-composed.last
-# => 2
-composed.first
-# => #<Tag id: ...>
-
-Quo::CollectionBackedQuery.new([3, 4]).compose(Quo::CollectionBackedQuery.new([1, 2])).last
-# => 2
-Quo::Query.compose([1, 2], [3, 4]).last
-# => 4
+query = UsersByState.new(state: "California", minimum_age: 21)
 ```
 
-## Transforming results
-
-Sometimes you want to specify a block to execute on each result for any method that returns results, such as `first`,
-`last` and `each`.
-
-This can be specified using the `transform(&block)` instance method. For example:
+## Fluent API for Building Queries
 
 ```ruby
-TagsQuery.new(
-  active: [true, false],
-  page: 1,
-  page_size: 30,
-).transform { |tag| TagPresenter.new(tag) }
- .first
-# => #<TagPresenter ...>
+query = UsersByState.new(state: "California")
+  .order(created_at: :desc)
+  .includes(:profile)
+  .limit(10)
+  .where(verified: true)
+
+users = query.results
 ```
 
-## Tests & stubbing
+Available methods include:
+* `where`
+* `order`
+* `limit`
+* `includes`
+* `preload`
+* `left_outer_joins`
+* `joins`
+* `group`
 
-Tests for Query objects themselves should exercise the actual underlying query. But in other code stubbing the query
-maybe desirable.
+Each method returns a new query instance without modifying the original.
 
-The spec helper method `stub_query(query_class, {results: ..., with: ...})` can do this for you.
-
-It stubs `.new` on the Query object and returns instances of `CollectionBackedQuery` instead with the given `results`. 
-The `with` option is passed to the Query object on initialisation and used when setting up the method stub on the 
-query class.
-
-For example:
+## Pagination
 
 ```ruby
-stub_query(TagQuery, with: {name: "Something"}, results: [t1, t2])
-expect(TagQuery.new(name: "Something").first).to eql t1
+query = UsersByState.new(
+  state: "California",
+  page: 2,
+  page_size: 20
+)
+
+# Get paginated results
+users = query.results
+
+# Navigation
+next_page = query.next_page_query
+prev_page = query.previous_page_query
 ```
 
-*Note that*
+## Composing Queries
 
-This returns an instance of CollectionBackedQuery, so will not work for cases were the actual type of the query instance is
-important or where you are doing a composition of queries backed by relations!
+Combine multiple queries:
 
-If `compose` will be used then `Quo::Query.compose` needs to be stubbed. Something might be possible to make this
-nicer in future.
+```ruby
+class ActiveUsers < Quo::RelationBackedQuery
+  def query
+    User.where(active: true)
+  end
+end
 
-## Other reading
+class PremiumUsers < Quo::RelationBackedQuery
+  def query
+    User.where(subscription_tier: "premium")
+  end
+end
 
-See:
-* [Includes vs preload vs eager_load](http://blog.scoutapp.com/articles/2017/01/24/activerecord-includes-vs-joins-vs-preload-vs-eager_load-when-and-where)
-* [Objects on Rails](http://objectsonrails.com/#sec-14)
+# Compose queries
+active_premium = ActiveUsers.new + PremiumUsers.new
+users = active_premium.results
+```
 
+You can compose queries using:
+* `Quo::Query.compose(left, right)`
+* `left.compose(right)`
+* `left + right`
+
+### Composing with Joins
+
+```ruby
+class ProductsQuery < Quo::RelationBackedQuery
+  def query
+    Product.where(active: true)
+  end
+end
+
+class CategoriesQuery < Quo::RelationBackedQuery
+  def query
+    Category.where(featured: true)
+  end
+end
+
+# Compose with a join
+products = ProductsQuery.new.compose(CategoriesQuery.new, joins: :category)
+
+# Equivalent to:
+# Product.joins(:category)
+#        .where(products: { active: true })
+#        .where(categories: { featured: true })
+```
+
+## Transforming Results
+
+```ruby
+query = UsersByState.new(state: "California")
+  .transform { |user| UserPresenter.new(user) }
+
+# Results are automatically transformed
+presenters = query.results.to_a # Array of UserPresenter objects
+```
+
+## Custom Association Preloading
+
+```ruby
+class UsersWithOrders < Quo::RelationBackedQuery
+  include Quo::Preloadable
+  
+  def query
+    User.all
+  end
+
+  def preload_associations(collection)
+    # Custom preloading logic
+    ActiveRecord::Associations::Preloader.new(
+      records: collection,
+      associations: [:profile, :orders]
+    ).call
+    
+    collection
+  end
+end
+```
+
+## Testing Helpers
+
+### Minitest
+
+```ruby
+class UserQueryTest < ActiveSupport::TestCase
+  include Quo::Minitest::Helpers
+
+  test "filters users by state" do
+    users = [User.new(name: "Alice"), User.new(name: "Bob")]
+    
+    fake_query(UsersByState, results: users) do
+      result = UsersByState.new(state: "California").results.to_a
+      assert_equal users, result
+    end
+  end
+end
+```
+
+### RSpec
+
+```ruby
+RSpec.describe UsersByState do
+  include Quo::RSpec::Helpers
+
+  it "filters users by state" do
+    users = [User.new(name: "Alice"), User.new(name: "Bob")]
+    
+    fake_query(UsersByState, results: users) do
+      result = UsersByState.new(state: "California").results.to_a
+      expect(result).to eq(users)
+    end
+  end
+end
+```
+
+## Project Organization
+
+Suggested directory structure:
+
+```
+app/
+  queries/
+    application_query.rb
+    users/
+      active_users_query.rb
+      by_state_query.rb
+    products/
+      featured_products_query.rb
+```
+
+Base classes:
+
+```ruby
+# app/queries/application_query.rb
+class ApplicationQuery < Quo::RelationBackedQuery
+  # Common functionality
+end
+
+# app/queries/application_collection_query.rb
+class ApplicationCollectionQuery < Quo::CollectionBackedQuery
+  # Common functionality
+end
+```
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
+Add to your Gemfile:
 
-    $ bundle add quo
+```ruby
+gem "quo"
+```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Then execute:
 
-    $ gem install quo
+```
+$ bundle install
+```
 
-## Usage
+## Configuration
 
-TODO: Write usage instructions here
+```ruby
+# config/initializers/quo.rb
+Quo.default_page_size = 25
+Quo.max_page_size = 100
+Quo.relation_backed_query_base_class = "ApplicationQuery"
+Quo.collection_backed_query_base_class = "ApplicationCollectionQuery"
+```
+
+## Requirements
+
+- Ruby 3.1+
+- Rails 7.0+
 
 ## Development
 
@@ -343,7 +332,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/steveg
 
 ## Inspired by `rectify`
 
-Note this implementation is inspired by the `Rectify` gem; https://github.com/andypike/rectify. Thanks to Andy Pike for the inspiration.
+This implementation is inspired by the `Rectify` gem: https://github.com/andypike/rectify. Thanks to Andy Pike for the inspiration.
 
 ## License
 

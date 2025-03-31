@@ -5,7 +5,7 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in quo.gemspec
 gemspec
 
-gem "rails", "~> 7.2"
+gem "rails", "~> 8"
 
 group :development, :test do
   gem "sqlite3"
