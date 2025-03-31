@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../test_helper"
+require "test_helper"
 
 class Quo::ReadmeExampleTest < ActiveSupport::TestCase
   # Define the RecentPostsQuery class from the README
