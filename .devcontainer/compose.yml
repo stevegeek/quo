@@ -1,0 +1,10 @@
+name: "quo"
+
+services:
+  quo-dev-env:
+    container_name: quo-dev-env
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    ports:
+      - "3000"

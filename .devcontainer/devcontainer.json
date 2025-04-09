@@ -1,13 +1,12 @@
 {
-  "name": "Quo Rails Gem Development",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "name": "Quo Gem Development",
+  "dockerComposeFile": "compose.yml",
+  "service": "quo-dev-env",
   "containerEnv": {
     "RAILS_ENV": "development"
   },
   "forwardPorts": [3000],
-  "postCreateCommand": "bundle install && bin/rails db:setup",
-  "postStartCommand": "bundle exec appraisal && bundle exec appraisal rake test",
+  "postCreateCommand": "bundle install && bundle exec appraisal install",
+  "postStartCommand": "bundle exec appraisal rake test",
   "remoteUser": "vscode"
 }

@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Quo query objects are composable."
   spec.homepage = "https://github.com/stevegeek/quo"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.1.0"
+  spec.required_ruby_version = ">= 3.2.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
@@ -29,8 +29,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_dependency "activerecord", ">= 7", "< 9"
-  spec.add_dependency "activesupport", ">= 7", "< 9"
+  spec.add_dependency "activerecord", ">= 7.2", "< 9"
+  spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "literal", ">= 1.6.0", "< 2"
 
   spec.add_development_dependency "appraisal"
