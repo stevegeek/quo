@@ -13,17 +13,16 @@ Composable, testable, and reusable query objects for Ruby on Rails
 
 ## What is Quo?
 
-`quo` is a Ruby gem that helps you organize database and collection queries into reusable, composable, and testable objects. It provides a clean, fluent API for building complex queries while maintaining type safety and immutability.
+`quo` is a Ruby gem that helps you organize database and collection queries into reusable, composable, and testable objects with a clean, fluent API.
 
 ## Why use Quo?
 
 - **Organize complex queries**: Encapsulate query logic in dedicated, testable classes
 - **Composable**: Combine multiple query objects using the `+` operator
 - **Type-safe**: Built on the Literal gem for typed properties with validation
-- **Pagination built-in**: Automatic pagination support for both database and collection queries
-- **Flexible**: Works with both ActiveRecord relations and plain Ruby collections
+- **Pagination built-in**: Automatic pagination for both database and collection queries
+- **Flexible**: Works with ActiveRecord relations and plain Ruby collections
 - **Fluent API**: Chain methods just like ActiveRecord
-- **Testing helpers**: Built-in test helpers for Minitest and RSpec
 
 ## Quick Example
 
@@ -74,36 +73,6 @@ transformed_query.results.each do |presenter|
 end
 ```
 
-## Core Features
-
-### Collections
-* Query objects can wrap either an ActiveRecord relation (`RelationBackedQuery`) or any Enumerable collection (`CollectionBackedQuery`)
-* Built-in pagination that works with both database queries and enumerable collections
-* Flexible interface for creating custom queries or wrapping existing queries
-
-### Type-Safe Properties
-* Use the Literal gem for typed properties with optional default values
-* Each query is immutable - operations return new query instances
-* Configure your own base classes, default page sizes, and more
-
-### Composition and Transformation
-* Combine queries using the `+` operator or `merge` method at instance level
-* Compose query classes using `Query1.compose(Query2)` at class level
-* Mix and match relation-backed and collection-backed queries
-* Join queries with explicit join conditions
-* Transform results consistently using the `transform` method
-
-### Fluent API
-* Chain methods that mirror ActiveRecord's query interface (where, order, limit, etc.)
-* Access utility methods that work on both relation and collection queries (exists?, empty?, etc.)
-* Navigation helpers for pagination (next_page_query, previous_page_query)
-
-### Query Results
-* Clear separation between query definition and execution with `Results` objects
-* Automatic application of transformations across all result methods
-* Consistent interface regardless of the underlying query type
-* Support for common methods: each, map, first/last, count, exists?, group_by, and more
-
 ## Getting Started
 
 Explore the documentation to learn more:
@@ -152,9 +121,3 @@ This implementation is inspired by the [Rectify](https://github.com/andypike/rec
 **Quo as an alternative?**
 
 Quo can be seen as a successor to Rectify's query object concepts.
-
-## More detail
-
-- [API Reference](/api) - Detailed API documentation
-
-

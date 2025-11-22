@@ -60,12 +60,26 @@ Both query types support these methods:
 prop :property_name, Type, default: -> { default_value }
 ```
 
-Define typed properties using Literal types.
+Define typed properties using [Literal types](https://github.com/joeldrapper/literal). Common examples:
+
+```ruby
+# Basic types
+prop :name, String
+prop :age, Integer
+prop :active, _Boolean  # Use _Boolean for true/false
+
+# Optional types
+prop :email, String | nil
+
+# Collections
+prop :tags, _Array(String)
+prop :metadata, _Hash(Symbol, String)
+```
 
 ### Pagination
 
 ```ruby
-query.new(page: 1, page_size: 20)
+MyQuery.new(page: 1, page_size: 20)
 query.next_page_query
 query.previous_page_query
 query.paged? # => true/false
@@ -74,15 +88,15 @@ query.paged? # => true/false
 ### Composition
 
 ```ruby
-# Instance level (merge queries)
-query1 + query2
-query1.merge(query2)
-query1.merge(query2, joins: :association)
+# Instance-level: Merge query instances
+query1 + query2                              # Returns a new query instance
+query1.merge(query2)                         # Returns a new query instance
+query1.merge(query2, joins: :association)    # Returns a new query instance
 
-# Class level (compose query classes)
-Query1 + Query2
-Query1.compose(Query2)
-Query1.compose(Query2, joins: :association)
+# Class-level: Compose query classes
+ComposedQuery = Query1 + Query2              # Returns a new query CLASS
+ComposedQuery = Query1.compose(Query2)       # Returns a new query CLASS
+ComposedQuery.new                            # Create an instance of composed class
 ```
 
 ### Transformation
@@ -96,35 +110,27 @@ query.transform? # => true/false
 
 ### Fluent API (RelationBackedQuery)
 
-These methods can be chained to build complex queries:
+Chain ActiveRecord methods to build complex queries:
 
 ```ruby
-# Filtering and conditions
+# Filtering, ordering, and associations
 query.where(column: value)
 query.select(:column1, :column2)
-
-# Ordering
 query.order(created_at: :desc)
-query.reorder(updated_at: :asc)  # Replace existing order
-
-# Associations
+query.reorder(updated_at: :asc)
 query.joins(:association)
 query.left_outer_joins(:association)
-query.includes(:profile, :posts)  # Eager load
-query.preload(:comments)          # Preload associations
-query.eager_load(:tags)           # Eager load with LEFT OUTER JOIN
+query.includes(:profile, :posts)  # Alias for preload (not ActiveRecord's includes)
+query.preload(:comments)
+query.eager_load(:tags)
 
-# Pagination and limiting
-query.limit(10)
-query.offset(5)
-
-# Grouping and aggregation
-query.group(:category)
-query.distinct
+# Limiting and grouping
+query.limit(10).offset(5)
+query.group(:category).distinct
 
 # Advanced
-query.extending(MyQueryExtension)  # Extend with module
-query.unscope(:order, :limit)      # Remove specific scopes
+query.extending(MyQueryExtension)
+query.unscope(:order, :limit)
 ```
 
 ### Query Helpers
@@ -135,12 +141,13 @@ query.relation?   # => true if backed by ActiveRecord relation
 query.collection? # => true if backed by a collection
 
 # Create a query class from a relation or collection
-# Note: wrap returns a CLASS, not an instance - you must call .new
+# IMPORTANT: wrap returns a new query CLASS, not an instance!
 MyQuery = Quo::RelationBackedQuery.wrap(User.active)
-instance = MyQuery.new  # Create an instance
+instance = MyQuery.new  # Must call .new to create an instance
 
+# With dynamic properties - still returns a CLASS
 MyQuery = Quo::RelationBackedQuery.wrap(props: {role: String}) { User.where(role: role) }
-instance = MyQuery.new(role: "admin")
+instance = MyQuery.new(role: "admin")  # Must call .new with props
 
 # Convert a RelationBackedQuery to CollectionBackedQuery (executes the query)
 collection_query = query.to_collection
@@ -187,7 +194,7 @@ end
 
 ## Preloading Associations (CollectionBackedQuery)
 
-For CollectionBackedQuery objects containing ActiveRecord models, you can preload associations to avoid N+1 queries:
+Preload associations for CollectionBackedQuery objects containing ActiveRecord models:
 
 ```ruby
 class FirstAndLastPosts < Quo::CollectionBackedQuery
@@ -198,14 +205,8 @@ class FirstAndLastPosts < Quo::CollectionBackedQuery
   end
 end
 
-# Preload a single association
-query = FirstAndLastPosts.new.includes(:author)
-query.results.first.association(:author).loaded? # => true
-
-# Preload multiple associations
+# Preload associations to avoid N+1 queries
 query = FirstAndLastPosts.new.includes(:author, :comments)
-query.results.first.association(:author).loaded? # => true
-query.results.first.association(:comments).loaded? # => true
 
 # Access preloaded data without additional queries
 query.results.each do |post|
@@ -213,7 +214,7 @@ query.results.each do |post|
 end
 ```
 
-**Note:** The `includes` method works the same as `preload` - both preload associations without joining.
+**Note:** Quo's `includes` is an alias for `preload` (not ActiveRecord's `includes` which uses eager loading). Both preload associations without joining.
 
 ## Testing Helpers
 
@@ -222,9 +223,17 @@ end
 ```ruby
 include Quo::Minitest::Helpers
 
+# Basic usage
 fake_query(MyQuery, results: [item1, item2]) do
   result = MyQuery.new.results.to_a
   assert_equal [item1, item2], result
+end
+
+# With pagination metadata
+fake_query(MyQuery, results: [item1, item2], total_count: 100, page_count: 2) do
+  results = MyQuery.new.results
+  assert_equal 100, results.total_count  # Total across all pages
+  assert_equal 2, results.page_count     # Items on current page
 end
 ```
 
@@ -243,5 +252,12 @@ end
 fake_query(MyQuery, with: {role: "admin"}, results: [admin1, admin2]) do
   result = MyQuery.new(role: "admin").results.to_a
   expect(result).to eq([admin1, admin2])
+end
+
+# With pagination metadata
+fake_query(MyQuery, results: [item1, item2], total_count: 100, page_count: 2) do
+  results = MyQuery.new.results
+  expect(results.total_count).to eq(100)  # Total across all pages
+  expect(results.page_count).to eq(2)     # Items on current page
 end
 ```

@@ -18,46 +18,9 @@ This section covers the core functionality of Quo, including:
 - Result transformation
 - Fluent API methods
 
-## Quick Overview
-
-Quo provides two main types of query objects:
-
-1. **RelationBackedQuery** - For ActiveRecord relations
-2. **CollectionBackedQuery** - For any Enumerable collection
-
-Both types support:
-- Type-safe properties with the Literal gem
-- Built-in pagination
-- Query composition
-- Result transformation
-- Fluent API for chaining operations
-
-```ruby
-class PublishedPostsQuery < Quo::RelationBackedQuery
-  prop :published, _Boolean, default: -> { true }
-  
-  def query
-    Post.where(published: published)
-  end
-end
-
-class FeaturedPostsQuery < Quo::RelationBackedQuery
-  def query
-    Post.where(featured: true)
-  end
-end
-
-# Compose queries
-published_and_featured = PublishedPostsQuery.new + FeaturedPostsQuery.new
-published_and_featured.results.map { |post| puts post.inspect }
-```
-
-
 # Configuration
 
 Quo provides several configuration options to customize its behavior.
-
-## Configuration Options
 
 Create an initializer to configure Quo:
 
@@ -65,7 +28,6 @@ Create an initializer to configure Quo:
 # config/initializers/quo.rb
 module Quo
   # Set custom base classes for your queries
-  # These must be string names of constantizable classes
   self.relation_backed_query_base_class = "ApplicationQuery"
   self.collection_backed_query_base_class = "ApplicationCollectionQuery"
 
@@ -83,10 +45,10 @@ You can define your own base classes for queries to add application-specific fun
 ```ruby
 # app/queries/application_query.rb
 class ApplicationQuery < Quo::RelationBackedQuery
-  # Add common scopes, methods, or properties
+  # Add common scopes or methods using the fluent API
 
-  def with_tenant(tenant_id)
-    where(tenant_id: tenant_id)
+  def with_status(status)
+    with(where: {status: status})
   end
 end
 
@@ -96,26 +58,17 @@ class ApplicationCollectionQuery < Quo::CollectionBackedQuery
 end
 ```
 
-Then configure Quo to use these base classes:
-
-```ruby
-# config/initializers/quo.rb
-module Quo
-  # Note: These are stored as strings and constantized when accessed
-  # This allows the configuration to be set before the classes are loaded
-  self.relation_backed_query_base_class = "ApplicationQuery"
-  self.collection_backed_query_base_class = "ApplicationCollectionQuery"
-end
-```
-
 Now all your queries can inherit from these custom base classes:
 
 ```ruby
 class UsersQuery < ApplicationQuery
   def query
-    User.all.with_tenant(current_tenant_id)
+    User.all
   end
 end
+
+# Use the custom methods
+UsersQuery.new.with_status("active").results
 ```
 
 ## Project Organization
@@ -287,7 +240,9 @@ end
 top_items = TopRatedItemsQuery.new(minimum_rating: 4.5).results
 ```
 
-## Fluent API
+## Fluent API Methods
+
+For detailed information on the fluent API methods (where, order, includes, limit, etc.), see the [API Reference](api.md).
 
 ```ruby
 query = PostsQuery.new
@@ -333,33 +288,5 @@ RSpec.describe ActiveUsersQuery do
     end
   end
 end
-```
-
-## Advanced: Converting Relations to Collections
-
-```ruby
-# Start with a relation-backed query
-relation_query = ActiveUsersQuery.new
-
-# Convert to collection-backed (executes the query)
-collection_query = relation_query.to_collection
-
-# Now you can work with it as a collection
-collection_query.collection? # => true
-```
-
-## Advanced: Wrapping Existing Relations
-
-```ruby
-# Wrap an existing relation
-users_query = Quo::RelationBackedQuery.wrap(User.active).new
-results = users_query.results
-
-# With properties
-tagged_posts = Quo::RelationBackedQuery.wrap(props: {tag: String}) do
-  Post.where(published: true).where("title LIKE ?", "%#{tag}%")
-end
-
-results = tagged_posts.new(tag: "ruby").results
 ```
 
