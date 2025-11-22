@@ -1,5 +1,8 @@
 # Quo: Query Objects for ActiveRecord & Collections
 
+![Coverage](badges/coverage_badge_total.svg)
+![RubyCritic](badges/rubycritic_badge_score.svg)
+
 Quo helps you organize database and collection queries into reusable, composable, and testable objects.
 
 ## Quick Example
@@ -192,7 +195,7 @@ Quo uses the `Literal` gem for typed properties:
 class UsersByState < Quo::RelationBackedQuery
   prop :state, String
   prop :minimum_age, Integer, default: -> { 18 }
-  prop :active_only, Boolean, default: -> { true }
+  prop :active_only, _Boolean, default: -> { true }
 
   def query
     scope = User.where(state: state)
@@ -246,8 +249,8 @@ users = active_premium.results
 
 You can compose queries in several ways:
 * At the class level: `ActiveUsers.compose(PremiumUsers)` or `ActiveUsers + PremiumUsers`
-* At the instance level: `active_query.compose(premium_query)` or `active_query + premium_query`
-* With joins: `active_query.compose(premium_query, joins: :some_association)`
+* At the instance level: `active_query.merge(premium_query)` or `active_query + premium_query`
+* With joins: `active_query.merge(premium_query, joins: :some_association)`
 
 Quo handles different composition scenarios automatically:
 * Relation + Relation: Uses ActiveRecord's merge capabilities
@@ -272,7 +275,7 @@ class AuthorsQuery < Quo::RelationBackedQuery
 end
 
 # Compose with a joins parameter to specify the relationship
-composed_query = PostsQuery.new.compose(AuthorsQuery.new, joins: :author)
+composed_query = PostsQuery.new.merge(AuthorsQuery.new, joins: :author)
 # You can also use this equivalent form:
 # composed_query = PostsQuery.new.joins(:author) + AuthorsQuery.new
 
@@ -455,7 +458,7 @@ class CategoriesQuery < Quo::RelationBackedQuery
 end
 
 # Compose with a join
-products = ProductsQuery.new.compose(CategoriesQuery.new, joins: :category)
+products = ProductsQuery.new.merge(CategoriesQuery.new, joins: :category)
 
 # Equivalent to:
 # Product.joins(:category)
@@ -509,11 +512,11 @@ end
 
 ### RSpec
 
-The same functionality is available for RSpec through the `Quo::RSpec::Helpers` module:
+The same functionality is available for RSpec through the `Quo::Rspec::Helpers` module:
 
 ```ruby
 RSpec.describe UsersByState do
-  include Quo::RSpec::Helpers
+  include Quo::Rspec::Helpers
 
   it "filters users by state" do
     users = [User.new(name: "Alice"), User.new(name: "Bob")]

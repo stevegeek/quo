@@ -111,6 +111,22 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     assert q.transform?
   end
 
+  test "#transform with index parameter" do
+    items = [
+      {value: "first"},
+      {value: "second"}
+    ]
+
+    query_class = Quo::CollectionBackedQuery.wrap(items)
+    q = query_class.new.transform do |item, index|
+      {value: "#{index}: #{item[:value]}"}
+    end
+
+    results = q.results.to_a
+    assert_equal "0: first", results[0][:value]
+    assert_equal "1: second", results[1][:value]
+  end
+
   test "#to_sql" do
     q = NewCommentsForAuthorQuery.new(author_id: 1)
     assert_equal "SELECT \"comments\".* FROM \"comments\" INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\" INNER JOIN \"authors\" ON \"authors\".\"id\" = \"posts\".\"author_id\" WHERE \"comments\".\"read\" = 0 AND \"authors\".\"id\" = 1", q.to_sql

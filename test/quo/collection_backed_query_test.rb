@@ -100,6 +100,13 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
     assert q.transform?
   end
 
+  test "#transform with index parameter" do
+    q = Quo::CollectionBackedQuery.wrap([10, 20, 30]).new.transform do |x, index|
+      x + index
+    end
+    assert_equal [10, 21, 32], q.results.to_a
+  end
+
   test "#unwrap" do
     q = Quo::CollectionBackedQuery.wrap([1, 2, 3]).new
     assert_equal [1, 2, 3], q.unwrap

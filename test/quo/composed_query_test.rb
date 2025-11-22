@@ -68,6 +68,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal sql, composed.to_sql
   end
 
+  test "composes relation queries with + operator at class level" do
+    composed = @q1 + @q2
+    q = composed.new(since_date: 1.day.ago, spam_score: 0.5)
+    assert_equal 3, q.results.count
+    assert_instance_of Class, composed
+    assert composed < Quo::RelationBackedQuery
+  end
+
   test "composes collection queries" do
     left = Quo::CollectionBackedQuery.wrap([1, 2, 3])
     right = Quo::CollectionBackedQuery.wrap([4, 5, 6])

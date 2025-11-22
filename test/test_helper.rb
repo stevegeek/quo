@@ -3,7 +3,26 @@ ENV["RAILS_ENV"] = "test"
 
 if ENV["COVERAGE"]
   require "simplecov"
-  SimpleCov.start
+  require "simplecov_small_badge"
+
+  SimpleCov.start do
+    add_filter "/test/"
+
+    add_group "Core", "lib/quo"
+    
+    SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCovSmallBadge::Formatter
+    ])
+  end
+
+  SimpleCovSmallBadge.configure do |config|
+    config.rounded_border = true
+    config.background = "#ffffcc"
+    config.output_path = "badges/"
+  end
+
+  puts "SimpleCov enabled with badge generation"
 end
 
 require_relative "../test/dummy/config/environment"

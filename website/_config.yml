@@ -1,0 +1,37 @@
+# frozen_string_literal: true
+
+# Site settings
+title: Quo
+email: stevegeek@gmail.com
+description: >-
+  Quo is a query object gem for Ruby on Rails. Query objects are composable, testable, and reusable.
+  Build complex database queries and collection transformations with a clean, fluent API.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site, e.g. http://example.com
+github_username: stevegeek
+github_repo: quo
+
+# Build settings
+theme: just-the-docs
+plugins:
+  - jekyll-feed
+
+# Just the Docs settings
+aux_links:
+  "Quo on GitHub":
+    - "//github.com/stevegeek/quo"
+
+# Color scheme supports "light" (default) and "dark"
+color_scheme: light
+
+# Enable search
+search_enabled: true
+
+# Enable copy code button
+enable_copy_code_button: true
+
+# Heading anchor links
+heading_anchors: true
+
+# Footer content
+footer_content: "Quo | Copyright &copy; 2025. Licensed under the <a href=\"https://github.com/stevegeek/quo/blob/main/LICENSE.txt\">MIT License</a>."

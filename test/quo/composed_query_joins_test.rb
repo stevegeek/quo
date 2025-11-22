@@ -34,6 +34,15 @@ class Quo::ComposedQueryJoinsTest < ActiveSupport::TestCase
     Post.where(length_function.gt(30))
   end
 
+  test "composes query classes with explicit joins argument at class level" do
+    composed_class = UnreadCommentsQuery.compose(LongTitlePostQuery, joins: :post)
+    composed_query = composed_class.new
+
+    assert_results(composed_query)
+    assert_instance_of Class, composed_class
+    assert composed_class < Quo::RelationBackedQuery
+  end
+
   test "composes comment query with post query using explicit joins argument" do
     comment_query = UnreadCommentsQuery.new
     post_query = LongTitlePostQuery.new
