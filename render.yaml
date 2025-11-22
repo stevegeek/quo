@@ -1,0 +1,14 @@
+# Exported from Render on 2025-11-22T17:05:28Z
+version: "1"
+services:
+- type: web
+  name: quo
+  runtime: static
+  repo: https://github.com/stevegeek/quo
+  envVars:
+  - key: JEKYLL_ENV
+    sync: false
+  buildCommand: bundle exec jekyll build
+  staticPublishPath: _site
+  autoDeployTrigger: commit
+  rootDir: website
