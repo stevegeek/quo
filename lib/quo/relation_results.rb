@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Results wrapper for relation-backed queries providing pagination and counting
   class RelationResults < Results
     # @rbs query: Quo::Query
     # @rbs transformer: (^(untyped, ?Integer) -> untyped)?

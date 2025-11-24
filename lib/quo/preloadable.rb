@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Mixin for adding preload/includes support to collection-backed queries
   module Preloadable
     def self.included(base)
       base.prop :_rel_preload, base._Nilable(base._Any), reader: false, writer: false
