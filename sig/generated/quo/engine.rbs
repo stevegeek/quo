@@ -1,6 +1,7 @@
 # Generated from lib/quo/engine.rb with RBS::Inline
 
 module Quo
+  # Rails engine for integrating Quo with Rails applications
   class Engine < ::Rails::Engine
   end
 end

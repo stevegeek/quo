@@ -1,0 +1,12 @@
+# Generated from lib/quo/rspec/helpers.rb with RBS::Inline
+
+module Quo
+  module Rspec
+    # Test helpers for stubbing query objects in RSpec
+    module Helpers
+      include Quo::Testing::FakeHelpers
+
+      def fake_query: (untyped query_class, ?with: untyped, ?results: untyped, ?total_count: untyped, ?page_count: untyped) ?{ (?) -> untyped } -> untyped
+    end
+  end
+end

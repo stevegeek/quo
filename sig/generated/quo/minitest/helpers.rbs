@@ -1,0 +1,12 @@
+# Generated from lib/quo/minitest/helpers.rb with RBS::Inline
+
+module Quo
+  module Minitest
+    # Test helpers for stubbing query objects in Minitest
+    module Helpers
+      include Quo::Testing::FakeHelpers
+
+      def fake_query: (untyped query_class, ?results: untyped, ?total_count: untyped, ?page_count: untyped) ?{ (?) -> untyped } -> untyped
+    end
+  end
+end

@@ -1,0 +1,14 @@
+# Generated from lib/quo/testing/fake_helpers.rb with RBS::Inline
+
+module Quo
+  module Testing
+    # Shared helpers for creating fake query objects in tests
+    module FakeHelpers
+      private
+
+      # @rbs query_class: Class
+      # @rbs return: Class
+      def build_fake_class: (Class query_class) -> Class
+    end
+  end
+end

@@ -1,0 +1,14 @@
+# Generated from lib/quo/composing/query_and_relation_strategy.rb with RBS::Inline
+
+module Quo
+  module Composing
+    # Strategy for composing a Query and a Relation
+    class QueryAndRelationStrategy < InstanceStrategy
+      # @rbs override
+      def applicable?: ...
+
+      # @rbs override
+      def compose: ...
+    end
+  end
+end

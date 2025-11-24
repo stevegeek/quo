@@ -1,6 +1,7 @@
 # Generated from lib/quo/collection_results.rb with RBS::Inline
 
 module Quo
+  # Results wrapper for collection-backed queries providing pagination and counting
   class CollectionResults < Results
     # @rbs override
     def initialize: ...

@@ -1,6 +1,7 @@
 # Generated from lib/quo/results.rb with RBS::Inline
 
 module Quo
+  # Base results wrapper providing enumeration with optional transformation
   class Results
     def empty?: () -> bool
 

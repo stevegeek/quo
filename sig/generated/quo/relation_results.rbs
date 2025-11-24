@@ -1,6 +1,7 @@
 # Generated from lib/quo/relation_results.rb with RBS::Inline
 
 module Quo
+  # Results wrapper for relation-backed queries providing pagination and counting
   class RelationResults < Results
     # @rbs query: Quo::Query
     # @rbs transformer: (^(untyped, ?Integer) -> untyped)?

@@ -1,6 +1,7 @@
 # Generated from lib/quo/preloadable.rb with RBS::Inline
 
 module Quo
+  # Mixin for adding preload/includes support to collection-backed queries
   module Preloadable
     def self.included: (untyped base) -> untyped
 
