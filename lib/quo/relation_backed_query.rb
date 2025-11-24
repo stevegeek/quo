@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Query object backed by ActiveRecord relations
   class RelationBackedQuery < Query
     # @rbs query: ActiveRecord::Relation | Quo::Query
     # @rbs props: Hash[Symbol, untyped]
@@ -11,15 +12,8 @@ module Quo
     def self.wrap(query = nil, props: {}, &block)
       raise ArgumentError, "either a query or a block must be provided" unless query || block
 
-      klass = Class.new(self) do
-        props.each do |name, property|
-          if property.is_a?(Literal::Property)
-            prop name, property.type, property.kind, reader: property.reader, writer: property.writer, default: property.default
-          else
-            prop name, property
-          end
-        end
-      end
+      klass = Class.new(self)
+      define_props_on_class(klass, props)
       if block
         klass.define_method(:query, &block)
       else

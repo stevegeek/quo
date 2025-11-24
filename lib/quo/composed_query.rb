@@ -5,6 +5,7 @@
 require_relative "composing"
 
 module Quo
+  # Mixin for queries composed of two child queries
   module ComposedQuery
     # @rbs override
     def query

@@ -6,6 +6,7 @@ require_relative "quo/version"
 require "quo/engine"
 require "literal"
 
+# Query object library for ActiveRecord with composable queries and pagination
 module Quo
   extend ActiveSupport::Autoload
 

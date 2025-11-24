@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Base results wrapper providing enumeration with optional transformation
   class Results
     def empty? #: bool
       !exists?

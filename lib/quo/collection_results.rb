@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Results wrapper for collection-backed queries providing pagination and counting
   class CollectionResults < Results
     # @rbs override
     def initialize(query, transformer: nil, total_count: nil)

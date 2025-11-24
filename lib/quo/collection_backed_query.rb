@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Query object backed by in-memory collections
   class CollectionBackedQuery < Query
     prop :total_count, _Nilable(Integer), reader: false
 
@@ -10,15 +11,8 @@ module Quo
     # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
     # @rbs return: Quo::CollectionBackedQuery
     def self.wrap(data = nil, props: {}, &block)
-      klass = Class.new(self) do
-        props.each do |name, property|
-          if property.is_a?(Literal::Property)
-            prop name, property.type, property.kind, reader: property.reader, writer: property.writer, default: property.default
-          else
-            prop name, property
-          end
-        end
-      end
+      klass = Class.new(self)
+      define_props_on_class(klass, props)
       if block
         klass.define_method(:collection, &block)
       elsif data

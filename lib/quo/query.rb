@@ -3,6 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
+  # Base class for query objects with pagination and composition support
   class Query < Literal::Struct
     include Literal::Types
 
@@ -40,6 +41,20 @@ module Quo
       Composing.composer(super_class, self, right, joins: joins)
     end
     singleton_class.alias_method :+, :compose
+
+    # Helper method to define properties on a dynamically created class
+    # @rbs klass: Class
+    # @rbs props: Hash[Symbol, untyped]
+    # @rbs return: void
+    def self.define_props_on_class(klass, props)
+      props.each do |name, property|
+        if property.is_a?(Literal::Property)
+          klass.prop name, property.type, property.kind, reader: property.reader, writer: property.writer, default: property.default
+        else
+          klass.prop name, property
+        end
+      end
+    end
 
     COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
       return if value == Literal::Null
