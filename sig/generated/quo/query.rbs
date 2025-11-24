@@ -1,6 +1,7 @@
 # Generated from lib/quo/query.rb with RBS::Inline
 
 module Quo
+  # Base class for query objects with pagination and composition support
   class Query < Literal::Struct
     include Literal::Types
 
@@ -22,6 +23,12 @@ module Quo
     # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
     # @rbs return: Quo::Query & Quo::ComposedQuery
     def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> (Quo::Query & Quo::ComposedQuery)
+
+    # Helper method to define properties on a dynamically created class
+    # @rbs klass: Class
+    # @rbs props: Hash[Symbol, untyped]
+    # @rbs return: void
+    def self.define_props_on_class: (Class klass, Hash[Symbol, untyped] props) -> void
 
     COERCE_TO_INT: untyped
 

@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 require_relative "instance_strategy"
 
 module Quo
   module Composing
     # Strategy for composing a Query and a Relation
     class QueryAndRelationStrategy < InstanceStrategy
+      # @rbs override
       def applicable?(left, right)
         left.is_a?(Quo::Query) && right.is_a?(::ActiveRecord::Relation)
       end
 
+      # @rbs override
       def compose(left, right, joins: nil)
         validate_instances(left, right)
 

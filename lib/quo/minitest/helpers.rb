@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rbs_inline: enabled
+
 require "minitest/mock"
 
 require_relative "../testing/collection_backed_fake"

@@ -2,6 +2,7 @@
 
 module Quo
   module Testing
+    # Test helper for creating fake collection-backed queries with predefined results
     class CollectionBackedFake
       def collection: () -> untyped
 
