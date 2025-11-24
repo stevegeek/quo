@@ -4,6 +4,7 @@
 
 module Quo
   module Testing
+    # Test helper for creating fake relation-backed queries with predefined results
     class RelationBackedFake < Quo.relation_backed_query_base_class
       prop :results, _Any, reader: false
       prop :page_count, _Nilable(Integer), reader: false
