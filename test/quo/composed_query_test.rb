@@ -50,11 +50,17 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal 3, query.results.count
   end
 
-  test "merges two instances of Quo::Query objects with different values and takes rightmost" do
+  test "merges two instances of Quo::Query objects — each operand keeps its own props (v2)" do
+    # In Quo 2.x, instance composition does NOT fan props down from a synthesized
+    # parent class. Each operand keeps its own constructor-time props and
+    # contributes its own filter to the merged AR relation. So
+    #   q2(spam_score: 0.5) + q3(spam_score: 0.9)
+    # produces `(spam_score < 0.5) AND (spam_score < 0.9)` — i.e. the more
+    # restrictive filter wins, not "rightmost wins".
     klass = @q1.compose(@q2)
     q3 = klass.new(since_date: 1.day.ago, spam_score: 0.9)
     query = @q2.new(spam_score: 0.5).merge(q3)
-    assert_equal 4, query.results.count
+    assert_equal 3, query.results.count
   end
 
   test "composes and generates valid SQL query" do
@@ -143,9 +149,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "#inspect when 2 collection sources are provided" do
+    # In Quo 2.x, instance composition returns a value-form composed query
+    # (Quo::ComposedCollectionBackedQuery for two collection operands), not
+    # an anonymous subclass that mixes in Quo::ComposedQuery. The inspect
+    # output reflects the new concrete class.
     merged = Quo::CollectionBackedQuery.wrap([]).new.merge(Quo::CollectionBackedQuery.wrap([]).new)
-    assert_kind_of Quo::ComposedQuery, merged
-    assert_includes merged.inspect, "Quo::CollectionBackedQuery<Quo::ComposedQuery>[Quo::CollectionBackedQuery, Quo::CollectionBackedQuery]"
+    assert_kind_of Quo::ComposedCollectionBackedQuery, merged
+    assert_kind_of Quo::Query, merged
+    assert_includes merged.inspect, "Quo::ComposedCollectionBackedQuery"
   end
 
   test "#inspect when 1 source is a merged query" do
@@ -154,12 +165,22 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal "ApplicationRelationQuery<Quo::ComposedQuery>[ApplicationRelationQuery<Quo::ComposedQuery>[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
   end
 
-  test "#copy makes a copy of this query object with different options" do
+  test "#copy on a composed instance copies its composition state, not child props (v2)" do
+    # In Quo 2.x, the composed instance's own props are (_left, _right, _joins,
+    # page, page_size, _specification). Child-specific props (e.g. spam_score)
+    # live on the operand that owns them. To change a child's prop, build a new
+    # operand with the new value and re-compose.
     q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
-    q_copy = q.copy(spam_score: 0.9)
-    assert_kind_of Quo::ComposedQuery, q_copy
+    q_copy = q.copy(page: 3)
+
+    assert_kind_of Quo::ComposedRelationBackedQuery, q_copy
+    assert_kind_of Quo::Query, q_copy
     assert_not_equal q, q_copy
-    assert_equal 0.9, q_copy.spam_score
+    assert_equal 3, q_copy.page
+
+    # To "change spam_score" in v2, rebuild the right operand and re-compose.
+    rebuilt = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.9))
+    assert_kind_of Quo::ComposedRelationBackedQuery, rebuilt
   end
 
   test "#count" do
