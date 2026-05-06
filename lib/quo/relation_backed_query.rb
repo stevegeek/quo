@@ -106,8 +106,9 @@ module Quo
     # @rbs include_private: bool
     # @rbs return: bool
     def respond_to_missing?(method_name, include_private = false)
-      spec_instance = RelationBackedQuerySpecification.new
-      spec_instance.respond_to?(method_name, include_private) || super
+      # Reuse the memoized blank specification rather than allocating a fresh
+      # instance per probe — ActiveRecord's delegation hits respond_to? heavily.
+      RelationBackedQuerySpecification.blank.respond_to?(method_name, include_private) || super
     end
 
     private
