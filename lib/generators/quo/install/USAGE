@@ -1,0 +1,21 @@
+Description:
+    Installs the Quo Claude Code skill into the application's
+    .claude/skills/quo/ directory so Claude Code picks it up automatically.
+
+    Optionally appends a "Quo" section to the project's top-level CLAUDE.md
+    pointing Claude at the skill.
+
+Example:
+    bin/rails generate quo:install
+
+    Copies the skill into .claude/skills/quo/ in the current working tree.
+
+    bin/rails generate quo:install --force
+
+    Re-runs the install, overwriting any existing files. Use this after
+    upgrading the Quo gem to refresh the skill content.
+
+    bin/rails generate quo:install --with-claude-md
+
+    Also appends a short "Quo" section to CLAUDE.md (creating the file if
+    it does not exist). Idempotent — safe to re-run.

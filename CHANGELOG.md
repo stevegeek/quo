@@ -1,5 +1,25 @@
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-06
+
+First stable release. Folds in the perf work and tooling shipped in beta3.
+
+### Added
+
+- **Claude Code skill bundled with the gem.** A skill at `claude-skill/`
+  teaches Claude Code how to build composable, type-safe query objects
+  with Quo. The skill's `SKILL.md` covers the most important Quo concept
+  to get right — class-vs-instance composition, when to use each, and the
+  performance trade-offs involved. Reference files in
+  `claude-skill/references/` go deep on query types, composition, pagination,
+  transformers, and the API surface.
+- **Rails install generator.** `bin/rails generate quo:install` copies the
+  bundled skill into the host app's `.claude/skills/quo/` directory.
+  Re-running with `--force` refreshes the skill after a Quo upgrade.
+  Optional `--with-claude-md` opt-in appends a short pointer to the
+  project's top-level `CLAUDE.md`. The fragment is idempotent — safe to
+  re-run.
+
 ## [1.0.0.beta3] - 2026-05-06
 
 ### Performance
