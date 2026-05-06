@@ -7,6 +7,41 @@ require_relative "composing"
 module Quo
   # Mixin for queries composed of two child queries
   module ComposedQuery
+    # Class-level methods shared by every composed query class. Defined once
+    # here and extended onto each anon class via the `included` hook below
+    # rather than being re-defined on every Class.new in the composer.
+    module ClassMethods
+      attr_reader :_composing_joins, :_left_specification, :_right_specification, :_left_query, :_right_query
+
+      # @rbs return: String
+      def inspect
+        left_desc = quo_operand_desc(_left_query)
+        right_desc = quo_operand_desc(_right_query)
+        klass_name = if self < Quo::RelationBackedQuery
+          Quo.relation_backed_query_base_class.name
+        else
+          Quo.collection_backed_query_base_class.name
+        end
+        "#{klass_name}<Quo::ComposedQuery>[#{left_desc}, #{right_desc}]"
+      end
+
+      # @rbs operand: Class
+      # @rbs return: String
+      def quo_operand_desc(operand)
+        if operand < Quo::ComposedQuery
+          operand.inspect
+        else
+          operand.name || operand.superclass&.name || "(anonymous)"
+        end
+      end
+    end
+
+    # @rbs base: Class
+    # @rbs return: void
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
+
     # @rbs override
     def query
       merge_left_and_right
@@ -35,24 +70,20 @@ module Quo
     def left
       lq = self.class._left_query
       return lq if is_relation?(lq)
-      instance = lq.new(**child_options(lq))
-      if lq < Quo::RelationBackedQuery
-        instance.with_specification(self.class._left_specification)
-      else
-        instance
-      end
+      options = child_options(lq)
+      spec = self.class._left_specification
+      options[:_specification] = spec if spec && lq < Quo::RelationBackedQuery
+      lq.new(**options)
     end
 
     # @rbs return: Quo::Query | ::ActiveRecord::Relation
     def right
       rq = self.class._right_query
       return rq if is_relation?(rq)
-      instance = rq.new(**child_options(rq))
-      if rq < Quo::RelationBackedQuery
-        instance.with_specification(self.class._right_specification)
-      else
-        instance
-      end
+      options = child_options(rq)
+      spec = self.class._right_specification
+      options[:_specification] = spec if spec && rq < Quo::RelationBackedQuery
+      rq.new(**options)
     end
 
     # @rbs return: ActiveRecord::Relation | CollectionBackedQuery

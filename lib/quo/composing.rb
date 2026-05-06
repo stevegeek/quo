@@ -8,6 +8,11 @@ require_relative "composing/instance_strategy_registry"
 module Quo
   # Module for composing Query objects
   module Composing
+    # The class- and instance-level strategy registries are stateless; share one
+    # of each instead of allocating per call.
+    CLASS_STRATEGY_REGISTRY = ClassStrategyRegistry.new
+    INSTANCE_STRATEGY_REGISTRY = InstanceStrategyRegistry.new
+
     class << self
       # @rbs chosen_superclass: Class
       # @rbs left_query_class: Class
@@ -17,8 +22,7 @@ module Quo
       # @rbs right_spec: Quo::RelationBackedQuerySpecification?
       # @rbs return: Class & Quo::ComposedQuery
       def composer(chosen_superclass, left_query_class, right_query_class, joins: nil, left_spec: nil, right_spec: nil)
-        registry = ClassStrategyRegistry.new
-        strategy = registry.find_strategy(left_query_class, right_query_class)
+        strategy = CLASS_STRATEGY_REGISTRY.find_strategy(left_query_class, right_query_class)
         strategy.compose(chosen_superclass, left_query_class, right_query_class, joins: joins, left_spec: left_spec, right_spec: right_spec)
       end
 
@@ -27,8 +31,7 @@ module Quo
       # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
       # @rbs return: Quo::ComposedQuery
       def merge_instances(left_instance, right_instance, joins: nil)
-        registry = InstanceStrategyRegistry.new
-        strategy = registry.find_strategy(left_instance, right_instance)
+        strategy = INSTANCE_STRATEGY_REGISTRY.find_strategy(left_instance, right_instance)
         strategy.compose(left_instance, right_instance, joins: joins)
       end
     end

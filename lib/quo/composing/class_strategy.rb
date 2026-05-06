@@ -17,13 +17,28 @@ module Quo
         end
       end
 
+      # Collect properties that need to be (re)defined on the composed class.
+      # Properties already declared on `chosen_superclass` are inherited via the
+      # normal Ruby/Literal class hierarchy and do not need to be re-registered;
+      # skipping them avoids the per-prop Literal::Property allocation, schema
+      # dup, and `module_eval` of reader/writer source on every Class.new.
+      # @rbs chosen_superclass: Class
       # @rbs left_query_class: Class
       # @rbs right_query_class: Class
       # @rbs return: Hash[Symbol, Literal::Property]
-      def collect_properties(left_query_class, right_query_class)
+      def collect_properties(chosen_superclass, left_query_class, right_query_class)
+        existing = chosen_superclass.literal_properties.properties_index
         props = {}
-        props.merge!(left_query_class.literal_properties.properties_index) if left_query_class < Quo::Query
-        props.merge!(right_query_class.literal_properties.properties_index) if right_query_class < Quo::Query
+        if left_query_class < Quo::Query
+          left_query_class.literal_properties.properties_index.each do |name, property|
+            props[name] = property unless existing.key?(name)
+          end
+        end
+        if right_query_class < Quo::Query
+          right_query_class.literal_properties.properties_index.each do |name, property|
+            props[name] = property unless existing.key?(name)
+          end
+        end
         props
       end
 
@@ -33,40 +48,6 @@ module Quo
       def create_composed_class(chosen_superclass, props)
         Class.new(chosen_superclass) do
           include Quo::ComposedQuery
-
-          class << self
-            attr_reader :_composing_joins, :_left_specification, :_right_specification, :_left_query, :_right_query
-
-            # @rbs return: String
-            def inspect
-              left_desc = quo_operand_desc(_left_query)
-              right_desc = quo_operand_desc(_right_query)
-              klass_name = determine_class_name
-              "#{klass_name}<Quo::ComposedQuery>[#{left_desc}, #{right_desc}]"
-            end
-
-            # @rbs operand: Class
-            # @rbs return: String
-            def quo_operand_desc(operand)
-              if operand < Quo::ComposedQuery
-                operand.inspect
-              else
-                operand.name || operand.superclass&.name || "(anonymous)"
-              end
-            end
-
-            private
-
-            # @rbs return: String
-            def determine_class_name
-              if self < Quo::RelationBackedQuery
-                Quo.relation_backed_query_base_class.name
-              else
-                Quo.collection_backed_query_base_class.name
-              end
-            end
-          end
-
           props.each do |name, property|
             prop(
               name,
