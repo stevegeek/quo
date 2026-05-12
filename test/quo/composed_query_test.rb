@@ -305,6 +305,79 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_match(/INNER JOIN "authors"/, sql)
   end
 
+  # ---- Transformer inheritance on a composed instance ---------------------
+
+  test "transformer attaches to a composed instance from the right operand" do
+    left  = Quo::RelationBackedQuery.wrap(Comment.all).new
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "R(#{c.body})" }
+
+    composed = left + right
+    assert composed.transform?
+    assert_match(/^R\(/, composed.results.first.to_s)
+  end
+
+  test "transformer attaches to a composed instance from the left operand if right has none" do
+    left  = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "L(#{c.body})" }
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new
+
+    composed = left + right
+    assert composed.transform?
+    assert_match(/^L\(/, composed.results.first.to_s)
+  end
+
+  test "transformer right-wins when both operands have one" do
+    # Consistent with the rest of v2's right-precedence rule.
+    left  = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "L(#{c.body})" }
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "R(#{c.body})" }
+
+    composed = left + right
+    assert_match(/^R\(/, composed.results.first.to_s)
+  end
+
+  test "transformer attached directly on the composed wins over operand transformers" do
+    left  = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "L(#{c.body})" }
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "R(#{c.body})" }
+
+    composed = (left + right).transform { |c| "OUTER(#{c.body})" }
+    assert_match(/^OUTER\(/, composed.results.first.to_s)
+  end
+
+  # ---- Specs on a composed instance ---------------------------------------
+
+  test "spec applied to a composed instance layers on top of the merged relation" do
+    composed = ::UnreadCommentsQuery.new.merge(::Comment.all)
+    ordered = composed.order(:body)
+
+    sql = ordered.to_sql
+    assert_match(/"comments"\."read" = 0/, sql)
+    assert_match(/ORDER BY "comments"\."body" ASC/, sql)
+  end
+
+  test "spec applied to a composed instance combines with operand-level specs" do
+    left_with_order = Quo::RelationBackedQuery.wrap(Comment.all).new.order(:created_at)
+    right_plain     = Quo::RelationBackedQuery.wrap(Comment.all).new
+    composed        = left_with_order.merge(right_plain).order(:body)
+
+    sql = composed.to_sql
+    assert_match(/ORDER BY "comments"\."created_at" ASC, "comments"\."body" ASC/, sql)
+  end
+
+  test "joins added on a composed instance apply to the merged relation" do
+    composed = Quo::RelationBackedQuery.wrap(Comment.all).new.merge(::UnreadCommentsQuery.new)
+    joined   = composed.joins(post: :author)
+
+    sql = joined.to_sql
+    assert_match(/INNER JOIN "posts"/, sql)
+    assert_match(/INNER JOIN "authors"/, sql)
+  end
+
+  test "where added on a composed instance applies to the merged relation" do
+    composed = Quo::RelationBackedQuery.wrap(Comment.all).new.merge(::UnreadCommentsQuery.new)
+    filtered = composed.where(body: "abc")
+
+    assert_match(/"comments"\."body" = 'abc'/, filtered.to_sql)
+  end
+
   # ---- Copy fan-out (v2 instance composition) -----------------------------
 
   test "copy fan-out: prop on right operand only — applies to right" do

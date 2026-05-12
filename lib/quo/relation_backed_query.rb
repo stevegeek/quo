@@ -22,6 +22,17 @@ module Quo
       klass
     end
 
+    # Construct a value-form Quo::Query instance that wraps an existing
+    # ActiveRecord relation, without allocating a new class. Prefer this over
+    # `.wrap(relation).new` for hot paths — `wrap` allocates a new anonymous
+    # class on every call, while `.from` allocates only the wrapping instance.
+    #
+    # @rbs relation: ActiveRecord::Relation
+    # @rbs return: Quo::WrappedRelationBackedQuery
+    def self.from(relation)
+      Quo::WrappedRelationBackedQuery.new(_wrapped: relation)
+    end
+
     # @rbs conditions: untyped?
     # @rbs return: String
     def self.sanitize_sql_for_conditions(conditions)

@@ -24,6 +24,17 @@ module Quo
       klass
     end
 
+    # Construct a value-form Quo::Query instance that wraps an existing
+    # enumerable collection, without allocating a new class. Prefer this over
+    # `.wrap(enum).new` for hot paths — `wrap` allocates a new anonymous class
+    # on every call, while `.from` allocates only the wrapping instance.
+    #
+    # @rbs enumerable: Object & Enumerable[untyped]
+    # @rbs return: Quo::WrappedCollectionBackedQuery
+    def self.from(enumerable)
+      Quo::WrappedCollectionBackedQuery.new(_wrapped: enumerable)
+    end
+
     # @rbs return: Object & Enumerable[untyped]
     def collection
       raise NotImplementedError, "Collection backed query objects must define a 'collection' method"

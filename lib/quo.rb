@@ -21,6 +21,8 @@ module Quo
   autoload :ComposedInstance
   autoload :ComposedRelationBackedQuery
   autoload :ComposedCollectionBackedQuery
+  autoload :WrappedRelationBackedQuery
+  autoload :WrappedCollectionBackedQuery
   autoload :CollectionBackedQuery
   autoload :Composing
 
