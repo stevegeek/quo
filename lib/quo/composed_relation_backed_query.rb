@@ -16,9 +16,9 @@ module Quo
     #   @_left: untyped
     #   @_right: untyped
     #   @_joins: untyped
-    prop :_left,  Object,        writer: false
-    prop :_right, Object,        writer: false
-    prop :_joins, _Nilable(Object), default: -> { nil }, writer: false
+    prop :_left, Object, writer: false
+    prop :_right, Object, writer: false
+    prop :_joins, _Nilable(Object), default: -> {}, writer: false
 
     # @rbs override
     def query

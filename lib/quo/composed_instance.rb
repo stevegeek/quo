@@ -16,6 +16,96 @@ module Quo
   # the host class to expose `_left`, `_right`, and `_joins` as instance
   # methods (they're defined as Literal `prop`s on the host classes).
   module ComposedInstance
+    # Copy a composed instance with overrides.
+    #
+    # The composed instance's own props (`_left`, `_right`, `_joins`,
+    # `_specification`, `page`, `page_size`) are passed straight through to
+    # the standard Literal copy.
+    #
+    # Any *other* override is treated as a fan-out into the operand tree:
+    # we walk right-first, recursing into composed operands, and apply the
+    # override to the first reachable Quo::Query operand that declares the
+    # property. If no operand declares it, an ArgumentError is raised — the
+    # same surface as a normal `copy(unknown_prop:)` would produce.
+    #
+    # This is O(tree size) per fan override, not free. It is intended for
+    # call-site convenience, not for hot paths.
+    # @rbs **overrides: untyped
+    # @rbs return: Quo::Query
+    def copy(**overrides)
+      return super if overrides.empty?
+
+      own_keys = own_property_names
+      own_overrides = overrides.slice(*own_keys)
+      fan_overrides = overrides.except(*own_keys)
+
+      result = own_overrides.empty? ? self : super(**own_overrides)
+      fan_overrides.each do |key, value|
+        result = result.send(:fan_override, key, value)
+      end
+      result
+    end
+
+    private
+
+    # Walks the operand tree right-first and returns a copy of `self` with
+    # the override applied to the first matching operand. Recurses into
+    # composed operands.
+    #
+    # Note this re-enters our `copy` override with an own-prop-only override
+    # (`_right:` or `_left:`), which takes the no-fan-out branch — no
+    # infinite recursion.
+    # @rbs prop_name: Symbol
+    # @rbs value: untyped
+    # @rbs return: Quo::Query
+    def fan_override(prop_name, value)
+      if operand_accepts?(_right, prop_name)
+        copy(_right: apply_to_operand(_right, prop_name, value))
+      elsif operand_accepts?(_left, prop_name)
+        copy(_left: apply_to_operand(_left, prop_name, value))
+      else
+        raise ArgumentError, "unknown property #{prop_name.inspect} on #{self.class}"
+      end
+    end
+
+    # @rbs return: Array[Symbol]
+    def own_property_names
+      self.class.literal_properties.properties_index.keys
+    end
+
+    # Does `operand` (or any of its descendants if composed) declare
+    # `prop_name` as a Literal prop?
+    # @rbs operand: untyped
+    # @rbs prop_name: Symbol
+    # @rbs return: bool
+    def operand_accepts?(operand, prop_name)
+      case operand
+      when Quo::ComposedInstance
+        operand.send(:operand_accepts?, operand._right, prop_name) ||
+          operand.send(:operand_accepts?, operand._left, prop_name)
+      when Quo::Query
+        operand.class.literal_properties.properties_index.key?(prop_name)
+      else
+        false
+      end
+    end
+
+    # Apply `prop_name => value` to the operand, returning a new operand.
+    # Recurses into composed operands so the override lands on the actual
+    # leaf that declares it (right-first within the sub-tree).
+    # @rbs operand: untyped
+    # @rbs prop_name: Symbol
+    # @rbs value: untyped
+    # @rbs return: untyped
+    def apply_to_operand(operand, prop_name, value)
+      case operand
+      when Quo::ComposedInstance
+        operand.send(:fan_override, prop_name, value)
+      when Quo::Query
+        operand.copy(prop_name => value)
+      end
+    end
+
     private
 
     # @rbs return: ActiveRecord::Relation | Enumerable[untyped]

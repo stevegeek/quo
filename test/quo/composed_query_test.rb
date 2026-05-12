@@ -165,22 +165,29 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal "ApplicationRelationQuery<Quo::ComposedQuery>[ApplicationRelationQuery<Quo::ComposedQuery>[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
   end
 
-  test "#copy on a composed instance copies its composition state, not child props (v2)" do
-    # In Quo 2.x, the composed instance's own props are (_left, _right, _joins,
-    # page, page_size, _specification). Child-specific props (e.g. spam_score)
-    # live on the operand that owns them. To change a child's prop, build a new
-    # operand with the new value and re-compose.
+  test "#copy on a composed instance overrides own props and fans operand props (v2)" do
+    # In Quo 2.x, the composed instance's own props are
+    # (_left, _right, _joins, page, page_size, _specification).
+    # Overrides for own props go to the standard Literal copy.
+    # Overrides for OTHER props (declared on a leaf operand) are walked
+    # right-first into the operand tree and applied to the first matching
+    # operand. Unknown props raise.
     q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
-    q_copy = q.copy(page: 3)
 
-    assert_kind_of Quo::ComposedRelationBackedQuery, q_copy
-    assert_kind_of Quo::Query, q_copy
-    assert_not_equal q, q_copy
-    assert_equal 3, q_copy.page
+    # Own-prop override
+    q_paged = q.copy(page: 3)
+    assert_kind_of Quo::ComposedRelationBackedQuery, q_paged
+    assert_equal 3, q_paged.page
 
-    # To "change spam_score" in v2, rebuild the right operand and re-compose.
-    rebuilt = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.9))
-    assert_kind_of Quo::ComposedRelationBackedQuery, rebuilt
+    # Operand-prop override: spam_score is on @q2 (right operand)
+    q_score = q.copy(spam_score: 0.9)
+    assert_kind_of Quo::ComposedRelationBackedQuery, q_score
+    assert_equal 0.9, q_score._right.spam_score
+    # Left operand untouched
+    assert_equal 1.day.ago.to_date, q_score._left.since_date.to_date
+
+    # Unknown prop raises (matches Literal::Struct semantics)
+    assert_raises(ArgumentError) { q.copy(nope_not_a_prop: 1) }
   end
 
   test "#count" do
@@ -296,5 +303,68 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     sql = merged_query.to_sql
     assert_match(/"comments"\."created_at" ASC/, sql)
     assert_match(/INNER JOIN "authors"/, sql)
+  end
+
+  # ---- Copy fan-out (v2 instance composition) -----------------------------
+
+  test "copy fan-out: prop on right operand only — applies to right" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    out = q.copy(spam_score: 0.9)
+
+    assert_equal 0.9, out._right.spam_score
+    assert_equal 0.5, q._right.spam_score # original is immutable
+  end
+
+  test "copy fan-out: prop on left operand only — applies to left" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    out = q.copy(since_date: 2.days.ago)
+
+    assert_equal 2.days.ago.to_date, out._left.since_date.to_date
+    assert_equal 1.day.ago.to_date, q._left.since_date.to_date # original immutable
+  end
+
+  test "copy fan-out: right wins when prop is on both operands" do
+    # Two leaves that BOTH declare :spam_score
+    left = @q2.new(spam_score: 0.4)
+    right = @q2.new(spam_score: 0.6)
+    composed = left.merge(right)
+
+    out = composed.copy(spam_score: 0.9)
+
+    assert_equal 0.4, out._left.spam_score, "left operand untouched"
+    assert_equal 0.9, out._right.spam_score, "right operand updated"
+  end
+
+  test "copy fan-out: recurses into a composed operand" do
+    # Tree: q1 + (q1 + q2) — :spam_score lives on the deepest leaf
+    inner = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    outer = @q1.new(since_date: 1.day.ago).merge(inner)
+
+    out = outer.copy(spam_score: 0.9)
+
+    # The override should reach the q2 instance deep inside `inner`
+    assert_equal 0.9, out._right._right.spam_score
+  end
+
+  test "copy fan-out: unknown prop raises" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    assert_raises(ArgumentError) { q.copy(definitely_not_a_prop: 1) }
+  end
+
+  test "copy fan-out: AR::Relation operand is skipped over" do
+    # Right is an AR::Relation, not a Quo::Query — it has no Quo props.
+    composed = @q2.new(spam_score: 0.5).merge(Comment.all)
+    out = composed.copy(spam_score: 0.9)
+
+    # Override should land on the left Quo::Query operand
+    assert_equal 0.9, out._left.spam_score
+  end
+
+  test "copy fan-out: own-prop and fan-prop overrides combine cleanly" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    out = q.copy(page: 3, spam_score: 0.9)
+
+    assert_equal 3, out.page
+    assert_equal 0.9, out._right.spam_score
   end
 end
