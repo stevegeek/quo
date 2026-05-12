@@ -26,18 +26,18 @@ module Quo
     # @rbs value: untyped
     # @rbs return: Quo::Query
     def fan_override(prop_name, value)
-      right_match = operand_accepts?(_right, prop_name)
-      left_match = operand_accepts?(_left, prop_name)
+      right_match = operand_accepts?(right, prop_name)
+      left_match = operand_accepts?(left, prop_name)
       unless right_match || left_match
         raise ArgumentError, "unknown property #{prop_name.inspect} on #{self.class}"
       end
 
       result = self
       if right_match
-        result = result.copy(_right: apply_to_operand(_right, prop_name, value))
+        result = result.copy(right: apply_to_operand(right, prop_name, value))
       end
       if left_match
-        result = result.copy(_left: apply_to_operand(_left, prop_name, value))
+        result = result.copy(left: apply_to_operand(left, prop_name, value))
       end
       result
     end
@@ -53,8 +53,8 @@ module Quo
     def operand_accepts?(operand, prop_name)
       case operand
       when Quo::ComposedInstance
-        operand.send(:operand_accepts?, operand._right, prop_name) ||
-          operand.send(:operand_accepts?, operand._left, prop_name)
+        operand.send(:operand_accepts?, operand.right, prop_name) ||
+          operand.send(:operand_accepts?, operand.left, prop_name)
       when Quo::Query
         operand.class.literal_properties.properties_index.key?(prop_name)
       else
@@ -77,8 +77,8 @@ module Quo
 
     # @rbs return: ActiveRecord::Relation | Enumerable[untyped]
     def merge_left_and_right
-      left_rel = unwrap_operand(_left)
-      right_rel = unwrap_operand(_right)
+      left_rel = unwrap_operand(left)
+      right_rel = unwrap_operand(right)
 
       if both_relations?(left_rel, right_rel)
         merge_active_record_relations(left_rel, right_rel)
@@ -89,7 +89,7 @@ module Quo
       elsif left_rel.respond_to?(:+)
         left_rel + right_rel
       else
-        raise ArgumentError, "Cannot merge #{_left.class} with #{_right.class}"
+        raise ArgumentError, "Cannot merge #{left.class} with #{right.class}"
       end
     end
 
@@ -110,7 +110,7 @@ module Quo
     # @rbs right_rel: ActiveRecord::Relation
     # @rbs return: ActiveRecord::Relation
     def merge_active_record_relations(left_rel, right_rel)
-      left_rel = left_rel.joins(_joins) if _joins
+      left_rel = left_rel.joins(merge_joins) if merge_joins
       left_rel.merge(right_rel)
     end
 
@@ -120,25 +120,25 @@ module Quo
       rel.is_a?(::ActiveRecord::Relation)
     end
 
-    # @rbs left: untyped
-    # @rbs right: untyped
+    # @rbs lr: untyped
+    # @rbs rr: untyped
     # @rbs return: bool
-    def both_relations?(left, right)
-      is_relation?(left) && is_relation?(right)
+    def both_relations?(lr, rr)
+      is_relation?(lr) && is_relation?(rr)
     end
 
-    # @rbs left: untyped
-    # @rbs right: untyped
+    # @rbs lr: untyped
+    # @rbs rr: untyped
     # @rbs return: bool
-    def left_relation_right_enumerable?(left, right)
-      is_relation?(left) && !is_relation?(right)
+    def left_relation_right_enumerable?(lr, rr)
+      is_relation?(lr) && !is_relation?(rr)
     end
 
-    # @rbs left: untyped
-    # @rbs right: untyped
+    # @rbs lr: untyped
+    # @rbs rr: untyped
     # @rbs return: bool
-    def left_enumerable_right_relation?(left, right)
-      !is_relation?(left) && is_relation?(right)
+    def left_enumerable_right_relation?(lr, rr)
+      !is_relation?(lr) && is_relation?(rr)
     end
   end
 end

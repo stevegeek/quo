@@ -3,6 +3,32 @@
 module Quo
   # Mixin for queries composed of two child queries
   module ComposedQuery
+    # Class-level methods shared by every composed query class. Defined once
+    # here and extended onto each anon class via the `included` hook below
+    # rather than being re-defined on every Class.new in the composer.
+    module ClassMethods
+      attr_reader _composing_joins: untyped
+
+      attr_reader _left_specification: untyped
+
+      attr_reader _right_specification: untyped
+
+      attr_reader _left_query: untyped
+
+      attr_reader _right_query: untyped
+
+      # @rbs return: String
+      def inspect: () -> String
+
+      # @rbs operand: Class
+      # @rbs return: String
+      def quo_operand_desc: (Class operand) -> String
+    end
+
+    # @rbs base: Class
+    # @rbs return: void
+    def self.included: (Class base) -> void
+
     # @rbs override
     def query: ...
 

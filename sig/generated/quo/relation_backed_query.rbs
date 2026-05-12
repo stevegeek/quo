@@ -3,11 +3,15 @@
 module Quo
   # Query object backed by ActiveRecord relations
   class RelationBackedQuery < Query
-    # @rbs query: ActiveRecord::Relation | Quo::Query
+    # @rbs query: ActiveRecord::Relation | Quo::RelationBackedQuery
     # @rbs props: Hash[Symbol, untyped]
-    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]
+    # @rbs &block: ? () -> (ActiveRecord::Relation | Quo::Query)
     # @rbs return: Quo::RelationBackedQuery
-    def self.wrap: (?ActiveRecord::Relation | Quo::Query query, ?props: Hash[Symbol, untyped]) ?{ (?) -> untyped } -> Quo::RelationBackedQuery
+    def self.wrap: (?ActiveRecord::Relation | Quo::RelationBackedQuery query, ?props: Hash[Symbol, untyped]) ?{ () -> (ActiveRecord::Relation | Quo::Query) } -> Quo::RelationBackedQuery
+
+    # @rbs relation: ActiveRecord::Relation
+    # @rbs return: Quo::WrappedRelationBackedQuery
+    def self.from: (ActiveRecord::Relation relation) -> Quo::WrappedRelationBackedQuery
 
     # @rbs conditions: untyped?
     # @rbs return: String
@@ -33,13 +37,18 @@ module Quo
     # @rbs return: Quo::Query
     def with: (?Hash[Symbol, untyped] options) -> Quo::Query
 
+    def model: () -> (untyped | nil)
+
+    def klass: () -> (untyped | nil)
+
+    # @rbs total_count: Integer?
     # @rbs return: Quo::CollectionBackedQuery
-    def to_collection: (?total_count: untyped) -> Quo::CollectionBackedQuery
+    def to_collection: (?total_count: Integer?) -> Quo::CollectionBackedQuery
 
     def results: () -> Quo::Results
 
     # Return the SQL string for this query if its a relation type query object
-    def to_sql: () -> String
+    def to_sql: () -> String?
 
     # Implements a fluent API for query methods
     # This allows methods to be chained like query.where(...).order(...).limit(...)

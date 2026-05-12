@@ -1,0 +1,25 @@
+# Generated from lib/quo/composed_relation_backed_query.rb with RBS::Inline
+
+module Quo
+  class ComposedRelationBackedQuery
+    include ComposedInstance
+
+    @left: Quo::Query | ActiveRecord::Relation | Enumerable[untyped]
+
+    @right: Quo::Query | ActiveRecord::Relation | Enumerable[untyped]
+
+    @merge_joins: Symbol | Hash[untyped, untyped] | Array[untyped] | nil
+
+    # @rbs override
+    def query: ...
+
+    # @rbs override
+    def inspect: ...
+
+    private
+
+    # @rbs operand: untyped
+    # @rbs return: String
+    def operand_desc: (untyped operand) -> String
+  end
+end

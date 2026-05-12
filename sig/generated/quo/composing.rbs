@@ -1,8 +1,9 @@
 # Generated from lib/quo/composing.rb with RBS::Inline
 
 module Quo
-  # Module for composing Query objects
   module Composing
+    CLASS_STRATEGY_REGISTRY: untyped
+
     # @rbs chosen_superclass: Class
     # @rbs left_query_class: Class
     # @rbs right_query_class: Class
@@ -15,7 +16,25 @@ module Quo
     # @rbs left_instance: Quo::Query
     # @rbs right_instance: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
     # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
-    # @rbs return: Quo::ComposedQuery
-    def self.merge_instances: (Quo::Query left_instance, Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right_instance, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?) -> Quo::ComposedQuery
+    # @rbs return: Quo::Query
+    def self.merge_instances: (Quo::Query left_instance, Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right_instance, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?) -> Quo::Query
+
+    # @rbs operand: untyped
+    # @rbs return: bool
+    private def self.relation_backed?: (untyped operand) -> bool
+
+    # @rbs left: untyped
+    # @rbs right: untyped
+    # @rbs return: Array[Integer?]
+    private def self.inherited_pagination: (untyped left, untyped right) -> Array[Integer?]
+
+    # @rbs operand: untyped
+    # @rbs return: untyped
+    private def self.pagination_source: (untyped operand) -> untyped
+
+    # @rbs left: untyped
+    # @rbs right: untyped
+    # @rbs return: Proc?
+    private def self.inherited_transformer: (untyped left, untyped right) -> Proc?
   end
 end

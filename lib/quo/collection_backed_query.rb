@@ -9,7 +9,7 @@ module Quo
 
     # @rbs data: Enumerable[untyped] | Quo::CollectionBackedQuery
     # @rbs props: Hash[Symbol, untyped]
-    # @rbs &block: () -> Enumerable[untyped]
+    # @rbs &block: ? () -> Enumerable[untyped]
     # @rbs return: Quo::CollectionBackedQuery
     def self.wrap(data = nil, props: {}, &block)
       raise ArgumentError, "either a query or a block must be provided" unless data || block
@@ -30,10 +30,10 @@ module Quo
       klass
     end
 
-    # @rbs enumerable: Object & Enumerable[untyped]
+    # @rbs enumerable: Enumerable[untyped]
     # @rbs return: Quo::WrappedCollectionBackedQuery
     def self.from(enumerable)
-      Quo::WrappedCollectionBackedQuery.new(_wrapped: enumerable)
+      Quo::WrappedCollectionBackedQuery.new(wrapped: enumerable)
     end
 
     # @rbs return: Object & Enumerable[untyped]
@@ -48,7 +48,7 @@ module Quo
       collection
     end
 
-    def results
+    def results #: Quo::Results
       Quo::CollectionResults.new(self, transformer: transformer, total_count: @total_count)
     end
 

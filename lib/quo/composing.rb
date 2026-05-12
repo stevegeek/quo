@@ -29,7 +29,7 @@ module Quo
         page, page_size = inherited_pagination(left_instance, right_instance)
         transformer = inherited_transformer(left_instance, right_instance)
 
-        opts = {_left: left_instance, _right: right_instance, _joins: joins}
+        opts = {left: left_instance, right: right_instance, merge_joins: joins}
         opts[:page] = page if page
         opts[:page_size] = page_size if page_size
 

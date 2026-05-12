@@ -7,12 +7,12 @@ module Quo
     include ComposedInstance
 
     # @rbs!
-    #   @_left: untyped
-    #   @_right: untyped
-    #   @_joins: untyped
-    prop :_left, Object, writer: false
-    prop :_right, Object, writer: false
-    prop :_joins, _Nilable(Object), default: -> {}, writer: false
+    #   @left: Quo::Query | Enumerable[untyped]
+    #   @right: Quo::Query | Enumerable[untyped]
+    #   @merge_joins: Symbol | Hash[untyped, untyped] | Array[untyped] | nil
+    prop :left, _Union(Quo::Query, Enumerable), writer: false
+    prop :right, _Union(Quo::Query, Enumerable), writer: false
+    prop :merge_joins, _Nilable(_Union(Symbol, Hash, Array)), default: -> {}, writer: false
 
     # @rbs override
     def collection
@@ -21,7 +21,7 @@ module Quo
 
     # @rbs override
     def inspect
-      "#{self.class.name}[#{operand_desc(_left)}, #{operand_desc(_right)}]"
+      "#{self.class.name}[#{operand_desc(left)}, #{operand_desc(right)}]"
     end
 
     private

@@ -7,7 +7,7 @@ module Quo
   class RelationBackedQuery < Query
     # @rbs query: ActiveRecord::Relation | Quo::RelationBackedQuery
     # @rbs props: Hash[Symbol, untyped]
-    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query
+    # @rbs &block: ? () -> (ActiveRecord::Relation | Quo::Query)
     # @rbs return: Quo::RelationBackedQuery
     def self.wrap(query = nil, props: {}, &block)
       raise ArgumentError, "either a query or a block must be provided" unless query || block
@@ -31,7 +31,7 @@ module Quo
     # @rbs relation: ActiveRecord::Relation
     # @rbs return: Quo::WrappedRelationBackedQuery
     def self.from(relation)
-      Quo::WrappedRelationBackedQuery.new(_wrapped: relation)
+      Quo::WrappedRelationBackedQuery.new(wrapped: relation)
     end
 
     # @rbs conditions: untyped?
@@ -75,10 +75,12 @@ module Quo
     end
 
     # Delegate methods that let us get the model class (available on AR relations)
-    # @rbs def model: () -> (untyped | nil)
-    # @rbs def klass: () -> (untyped | nil)
+    # @rbs!
+    #   def model: () -> (untyped | nil)
+    #   def klass: () -> (untyped | nil)
     delegate :model, :klass, to: :underlying_query
 
+    # @rbs total_count: Integer?
     # @rbs return: Quo::CollectionBackedQuery
     def to_collection(total_count: nil)
       Quo.collection_backed_query_base_class.wrap(results.to_a).new(total_count:)
@@ -89,7 +91,7 @@ module Quo
     end
 
     # Return the SQL string for this query if its a relation type query object
-    def to_sql #: String
+    def to_sql #: String?
       configured_query.to_sql if relation?
     end
 

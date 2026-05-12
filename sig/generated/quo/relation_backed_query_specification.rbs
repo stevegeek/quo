@@ -14,85 +14,89 @@ module Quo
 
     # Creates a new specification with merged options
     # @rbs new_options: Hash[Symbol, untyped] | RelationBackedQuerySpecification
-    # @rbs return: Quo::QuerySpecification
-    def merge: (Hash[Symbol, untyped] | RelationBackedQuerySpecification new_options) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def merge: (Hash[Symbol, untyped] | RelationBackedQuerySpecification new_options) -> Quo::RelationBackedQuerySpecification
 
     # Apply all the specification options to the given ActiveRecord relation
     # @rbs relation: ActiveRecord::Relation
     # @rbs return: ActiveRecord::Relation
     def apply_to: (ActiveRecord::Relation relation) -> ActiveRecord::Relation
 
-    def has?: (untyped key) -> untyped
+    # @rbs key: Symbol
+    # @rbs return: bool
+    def has?: (Symbol key) -> bool
 
-    def []: (untyped key) -> untyped
+    # @rbs key: Symbol
+    # @rbs return: untyped
+    def []: (Symbol key) -> untyped
 
     # @rbs *fields: untyped
-    # @rbs return: Quo::QuerySpecification
-    def select: (*untyped fields) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def select: (*untyped fields) -> Quo::RelationBackedQuerySpecification
 
     # @rbs conditions: untyped
-    # @rbs return: Quo::QuerySpecification
-    def where: (untyped conditions) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def where: (untyped conditions) -> Quo::RelationBackedQuerySpecification
 
     # @rbs order_clause: untyped
-    # @rbs return: Quo::QuerySpecification
-    def order: (untyped order_clause) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def order: (untyped order_clause) -> Quo::RelationBackedQuerySpecification
 
     # @rbs *columns: untyped
-    # @rbs return: Quo::QuerySpecification
-    def group: (*untyped columns) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def group: (*untyped columns) -> Quo::RelationBackedQuerySpecification
 
     # @rbs value: Integer
-    # @rbs return: Quo::QuerySpecification
-    def limit: (Integer value) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def limit: (Integer value) -> Quo::RelationBackedQuerySpecification
 
     # @rbs value: Integer
-    # @rbs return: Quo::QuerySpecification
-    def offset: (Integer value) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def offset: (Integer value) -> Quo::RelationBackedQuerySpecification
 
-    # @rbs tables: untyped
-    # @rbs return: Quo::QuerySpecification
-    def joins: (untyped tables) -> Quo::QuerySpecification
+    # @rbs *tables: untyped
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def joins: (*untyped tables) -> Quo::RelationBackedQuerySpecification
 
-    # @rbs tables: untyped
-    # @rbs return: Quo::QuerySpecification
-    def left_outer_joins: (untyped tables) -> Quo::QuerySpecification
-
-    # @rbs *associations: untyped
-    # @rbs return: Quo::QuerySpecification
-    def includes: (*untyped associations) -> Quo::QuerySpecification
+    # @rbs *tables: untyped
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def left_outer_joins: (*untyped tables) -> Quo::RelationBackedQuerySpecification
 
     # @rbs *associations: untyped
-    # @rbs return: Quo::QuerySpecification
-    def preload: (*untyped associations) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def includes: (*untyped associations) -> Quo::RelationBackedQuerySpecification
 
     # @rbs *associations: untyped
-    # @rbs return: Quo::QuerySpecification
-    def eager_load: (*untyped associations) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def preload: (*untyped associations) -> Quo::RelationBackedQuerySpecification
+
+    # @rbs *associations: untyped
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def eager_load: (*untyped associations) -> Quo::RelationBackedQuerySpecification
 
     # @rbs enabled: bool
-    # @rbs return: Quo::QuerySpecification
-    def distinct: (?bool enabled) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def distinct: (?bool enabled) -> Quo::RelationBackedQuerySpecification
 
     # @rbs order_clause: untyped
-    # @rbs return: Quo::QuerySpecification
-    def reorder: (untyped order_clause) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def reorder: (untyped order_clause) -> Quo::RelationBackedQuerySpecification
 
     # @rbs *modules: untyped
-    # @rbs return: Quo::QuerySpecification
-    def extending: (*untyped modules) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def extending: (*untyped modules) -> Quo::RelationBackedQuerySpecification
 
     # @rbs *args: untyped
-    # @rbs return: Quo::QuerySpecification
-    def unscope: (*untyped args) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def unscope: (*untyped args) -> Quo::RelationBackedQuerySpecification
 
     # Builds a new specification from a hash of options
     # @rbs options: Hash[Symbol, untyped]
-    # @rbs return: Quo::QuerySpecification
-    def self.build: (?Hash[Symbol, untyped] options) -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def self.build: (?Hash[Symbol, untyped] options) -> Quo::RelationBackedQuerySpecification
 
     # Returns a blank specification
-    # @rbs return: Quo::QuerySpecification
-    def self.blank: () -> Quo::QuerySpecification
+    # @rbs return: Quo::RelationBackedQuerySpecification
+    def self.blank: () -> Quo::RelationBackedQuerySpecification
   end
 end
