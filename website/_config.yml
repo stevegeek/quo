@@ -1,37 +1,45 @@
 # frozen_string_literal: true
 
-# Site settings
 title: Quo
 email: stevegeek@gmail.com
 description: >-
   Quo is a query object gem for Ruby on Rails. Query objects are composable, testable, and reusable.
   Build complex database queries and collection transformations with a clean, fluent API.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: ""
+url: ""
 github_username: stevegeek
 github_repo: quo
 
-# Build settings
-theme: just-the-docs
+theme: jekyll-vitepress-theme
 plugins:
   - jekyll-feed
+  - jekyll-vitepress-theme
 
-# Just the Docs settings
-aux_links:
-  "Quo on GitHub":
-    - "//github.com/stevegeek/quo"
+collections:
+  docs:
+    output: true
+    permalink: /:path/
 
-# Color scheme supports "light" (default) and "dark"
-color_scheme: light
+defaults:
+  - scope:
+      path: ""
+      type: docs
+    values:
+      layout: default
 
-# Enable search
-search_enabled: true
-
-# Enable copy code button
-enable_copy_code_button: true
-
-# Heading anchor links
-heading_anchors: true
-
-# Footer content
-footer_content: "Quo | Copyright &copy; 2025. Licensed under the <a href=\"https://github.com/stevegeek/quo/blob/main/LICENSE.txt\">MIT License</a>."
+jekyll_vitepress:
+  branding:
+    site_title: Quo
+  syntax:
+    light_theme: github
+    dark_theme: github.dark
+  github_star:
+    repository: stevegeek/quo
+    text: Star
+    show_count: true
+  footer:
+    enabled: true
+    show_on_docs: true
+    copyright: >-
+      Quo | Copyright &copy; 2025. Licensed under the
+      <a href="https://github.com/stevegeek/quo/blob/main/LICENSE.txt">MIT License</a>.

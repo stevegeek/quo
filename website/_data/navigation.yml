@@ -1,0 +1,8 @@
+- title: Guide
+  url: /get-started/
+  collections: [docs]
+- title: API
+  url: /api/
+  collections: [docs]
+- title: GitHub
+  url: https://github.com/stevegeek/quo

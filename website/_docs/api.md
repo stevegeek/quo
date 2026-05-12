@@ -1,8 +1,6 @@
 ---
-layout: default
 title: API Reference
 nav_order: 3
-permalink: /api
 ---
 
 # API Reference
