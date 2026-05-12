@@ -56,8 +56,18 @@ module Quo
       end
     end
 
+    # The Literal gem renamed its "not provided" sentinel between 1.6
+    # (`Literal::Null`) and 1.9+ (`Literal::Undefined`). The coercion block
+    # receives this sentinel when a prop with no `default:` is unset at
+    # construction. Resolve whichever name exists at load time.
+    LITERAL_UNSET = if defined?(Literal::Null)
+      Literal::Null
+    elsif defined?(Literal::Undefined)
+      Literal::Undefined
+    end
+
     COERCE_TO_INT = ->(value) do #: (untyped value) -> Integer?
-      return if value == Literal::Null
+      return if LITERAL_UNSET && value.equal?(LITERAL_UNSET)
       value&.to_i
     end
 

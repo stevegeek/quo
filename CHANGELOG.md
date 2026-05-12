@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+## [1.0.1] - 2026-05-12
+
+### Fixed
+
+- Pin the `literal` dependency to `~> 1.6.0` in the gemspec. Quo's
+  internals reference `Literal::Null` (renamed to `Literal::Undefined`
+  in Literal 1.7) and `Literal::Types::ConstraintType.new` (signature
+  changed in Literal 1.7). Users whose lockfile resolved Literal to
+  1.7+ saw `NameError: uninitialized constant Literal::Null` or
+  `ArgumentError` at runtime / in CI. The 1.x line is now firmly on
+  Literal 1.6.x; a broader range targeting newer Literal versions is
+  planned for 2.0.
+- Defensive handling of the sentinel rename in `Quo::Query` so the
+  `LITERAL_UNSET` constant resolves to whichever name exists at load
+  time. This is belt-and-braces on top of the pin.
+
 ## [1.0.0] - 2026-05-06
 
 First stable release. Folds in the perf work and tooling shipped in beta3.

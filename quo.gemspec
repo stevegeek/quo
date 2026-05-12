@@ -31,7 +31,10 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "activerecord", ">= 7.2", "< 9"
   spec.add_dependency "activesupport", ">= 7.2", "< 9"
-  spec.add_dependency "literal", ">= 1.6.0", "< 2"
+  # Literal 1.7+ renamed sentinel constants (`Literal::Null` → `Literal::Undefined`)
+  # and changed signatures of internal types used by Quo. Pinning to 1.6.x for the
+  # 1.x line; a broader range is planned for 2.0.
+  spec.add_dependency "literal", "~> 1.6.0"
 
   spec.add_development_dependency "appraisal"
 
