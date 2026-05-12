@@ -7,11 +7,11 @@ hero:
   name: Quo
   text: Query Objects for ActiveRecord & Collections
   tagline: Composable, testable, and reusable query objects for Ruby on Rails.
-  logo:
-    light: /assets/quo.png
+  image:
+    src: /assets/quo.png
     alt: Quo
-    width: 200
-    height: 200
+    width: 280
+    height: 280
   actions:
     - text: Get Started
       link: /get-started/
