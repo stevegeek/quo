@@ -3,10 +3,15 @@
 module Quo
   # Query object backed by in-memory collections
   class CollectionBackedQuery < Query
-    # Wrap an enumerable collection or a block that returns an enumerable collection
-    # @rbs data: untyped, props: Symbol => untyped, block: () -> untyped
+    # @rbs data: Enumerable[untyped] | Quo::CollectionBackedQuery
+    # @rbs props: Hash[Symbol, untyped]
+    # @rbs &block: ? () -> Enumerable[untyped]
     # @rbs return: Quo::CollectionBackedQuery
-    def self.wrap: (?untyped data, ?props: untyped) ?{ (?) -> untyped } -> Quo::CollectionBackedQuery
+    def self.wrap: (?Enumerable[untyped] | Quo::CollectionBackedQuery data, ?props: Hash[Symbol, untyped]) ?{ () -> Enumerable[untyped] } -> Quo::CollectionBackedQuery
+
+    # @rbs enumerable: Enumerable[untyped]
+    # @rbs return: Quo::WrappedCollectionBackedQuery
+    def self.from: (Enumerable[untyped] enumerable) -> Quo::WrappedCollectionBackedQuery
 
     # @rbs return: Object & Enumerable[untyped]
     def collection: () -> (Object & Enumerable[untyped])
@@ -16,7 +21,7 @@ module Quo
     # @rbs return: Object & Enumerable[untyped]
     def query: () -> (Object & Enumerable[untyped])
 
-    def results: () -> untyped
+    def results: () -> Quo::Results
 
     # @rbs override
     def relation?: ...

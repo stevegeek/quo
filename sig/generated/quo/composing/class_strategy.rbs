@@ -9,10 +9,16 @@ module Quo
       # @rbs return: void
       def validate_query_classes: (Class left_query_class, Class right_query_class) -> void
 
+      # Collect properties that need to be (re)defined on the composed class.
+      # Properties already declared on `chosen_superclass` are inherited via the
+      # normal Ruby/Literal class hierarchy and do not need to be re-registered;
+      # skipping them avoids the per-prop Literal::Property allocation, schema
+      # dup, and `module_eval` of reader/writer source on every Class.new.
+      # @rbs chosen_superclass: Class
       # @rbs left_query_class: Class
       # @rbs right_query_class: Class
       # @rbs return: Hash[Symbol, Literal::Property]
-      def collect_properties: (Class left_query_class, Class right_query_class) -> Hash[Symbol, Literal::Property]
+      def collect_properties: (Class chosen_superclass, Class left_query_class, Class right_query_class) -> Hash[Symbol, Literal::Property]
 
       # @rbs chosen_superclass: Class
       # @rbs props: Hash[Symbol, Literal::Property]

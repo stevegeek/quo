@@ -58,13 +58,25 @@ module Quo
     test "#joins creates specification with joins option" do
       spec = Quo::RelationBackedQuerySpecification.new
       new_spec = spec.joins(:posts)
-      assert_equal :posts, new_spec.options[:joins]
+      assert_equal [:posts], new_spec.options[:joins]
+    end
+
+    test "#joins accepts multiple tables" do
+      spec = Quo::RelationBackedQuerySpecification.new
+      new_spec = spec.joins(:posts, :comments)
+      assert_equal [:posts, :comments], new_spec.options[:joins]
     end
 
     test "#left_outer_joins creates specification with left_outer_joins option" do
       spec = Quo::RelationBackedQuerySpecification.new
       new_spec = spec.left_outer_joins(:posts)
-      assert_equal :posts, new_spec.options[:left_outer_joins]
+      assert_equal [:posts], new_spec.options[:left_outer_joins]
+    end
+
+    test "#left_outer_joins accepts multiple tables" do
+      spec = Quo::RelationBackedQuerySpecification.new
+      new_spec = spec.left_outer_joins(:posts, :comments)
+      assert_equal [:posts, :comments], new_spec.options[:left_outer_joins]
     end
 
     test "#includes creates specification with includes option" do

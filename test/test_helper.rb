@@ -36,3 +36,15 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "/files"
   ActiveSupport::TestCase.fixtures :all
 end
+
+module SqlAssertionHelpers
+  def sql_false
+    ActiveRecord::Base.connection.quote(false)
+  end
+
+  def sql_true
+    ActiveRecord::Base.connection.quote(true)
+  end
+end
+
+ActiveSupport::TestCase.include(SqlAssertionHelpers)

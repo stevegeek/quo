@@ -24,6 +24,23 @@ module Quo
       page_count
     end
 
+    FILTER_METHODS = %i[
+      select filter find_all reject
+      find detect
+      take_while drop_while
+      sort_by min_by max_by
+      uniq
+    ].to_set.freeze
+
+    PAIR_FILTER_METHODS = %i[partition minmax_by].to_set.freeze
+
+    PASSTHROUGH_METHODS = %i[
+      any? all? none? one? include? member?
+      count tally sum
+      each_with_object inject reduce
+      map collect flat_map collect_concat filter_map
+    ].to_set.freeze
+
     # @rbs &block: (untyped, *untyped) -> untyped
     # @rbs return: Hash[untyped, Array[untyped]]
     def group_by(&block)
@@ -46,16 +63,20 @@ module Quo
       return super unless respond_to_missing?(method)
 
       if block
-        @configured_query.send(method, *args, **kwargs) do |*block_args|
+        raw = @configured_query.send(method, *args, **kwargs) do |*block_args|
           x = block_args.first
           transformed = transform? ? @transformer.call(x) : x
           other_args = block_args[1..] || []
           block.call(transformed, *other_args)
         end
+        return raw if PASSTHROUGH_METHODS.include?(method)
+        return transform_pair(raw) if PAIR_FILTER_METHODS.include?(method)
+        return transform_results(raw) if FILTER_METHODS.include?(method)
+        raw
       else
         raw = @configured_query.send(method, *args, **kwargs)
-        # FIXME: consider how to handle applying a transformer to a Enumerator...
         return raw if raw.is_a?(Quo::RelationResults) || raw.is_a?(::Enumerator)
+        return raw if PASSTHROUGH_METHODS.include?(method)
         transform_results(raw)
       end
     end
@@ -85,6 +106,13 @@ module Quo
       else
         @transformer.call(results)
       end
+    end
+
+    # @rbs pair: untyped
+    # @rbs return: untyped
+    def transform_pair(pair)
+      return pair unless transform?
+      pair.map { |part| transform_results(part) }
     end
   end
 end

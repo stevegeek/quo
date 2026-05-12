@@ -1,28 +1,46 @@
 ---
 layout: home
 title: Introduction
-nav_order: 1
 permalink: /
+
+hero:
+  name: Quo
+  text: Query Objects for ActiveRecord & Collections
+  tagline: Composable, testable, and reusable query objects for Ruby on Rails.
+  image:
+    src: /assets/quo.png
+    alt: Quo
+    width: 280
+    height: 280
+  actions:
+    - text: Get Started
+      link: /get-started/
+      theme: brand
+    - text: API Reference
+      link: /api/
+      theme: alt
+    - text: View on GitHub
+      link: https://github.com/stevegeek/quo
+      theme: alt
+
+features:
+  - title: Organize complex queries
+    details: Encapsulate query logic in dedicated, testable classes with a clean, fluent API.
+  - title: Composable
+    details: Combine multiple query objects using the `+` operator at both the instance and class level.
+  - title: Type-safe
+    details: Built on the Literal gem for typed properties with validation.
+  - title: Pagination built-in
+    details: Automatic pagination for both database and collection queries.
+  - title: Flexible
+    details: Works with ActiveRecord relations and plain Ruby collections.
+  - title: Fluent API
+    details: Chain methods just like ActiveRecord.
 ---
-
-# Quo: Query Objects for ActiveRecord & Collections
-{: .fs-9 }
-
-Composable, testable, and reusable query objects for Ruby on Rails
-{: .fs-6 .fw-300 }
 
 ## What is Quo?
 
 `quo` is a Ruby gem that helps you organize database and collection queries into reusable, composable, and testable objects with a clean, fluent API.
-
-## Why use Quo?
-
-- **Organize complex queries**: Encapsulate query logic in dedicated, testable classes
-- **Composable**: Combine multiple query objects using the `+` operator
-- **Type-safe**: Built on the Literal gem for typed properties with validation
-- **Pagination built-in**: Automatic pagination for both database and collection queries
-- **Flexible**: Works with ActiveRecord relations and plain Ruby collections
-- **Fluent API**: Chain methods just like ActiveRecord
 
 ## Quick Example
 
@@ -77,8 +95,8 @@ end
 
 Explore the documentation to learn more:
 
-- [Getting Started Guide](/get-started) - Configuration, examples, and usage patterns
-- [API Reference](/api) - Detailed API documentation
+- [Getting Started Guide](/get-started/) - Configuration, examples, and usage patterns
+- [API Reference](/api/) - Detailed API documentation
 
 ## Installation
 

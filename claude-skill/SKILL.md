@@ -5,9 +5,13 @@ description: Build composable, type-safe query objects using the Quo gem. Use wh
 
 # Quo Query Objects
 
-> **Targets Quo `~> 1.0`.** This skill matches the API of the 1.0 line.
+> **Targets Quo `~> 2.0`.** This skill matches the API of the 2.0 line.
 > If you upgrade Quo, re-run the install generator to refresh the skill:
 > `bin/rails generate quo:install --force`.
+>
+> If you're upgrading from 1.x, see `UPGRADING.md` in the gem for the
+> two intentional behavioural changes (prop fan-out semantics and
+> pagination inheritance).
 
 ## Overview
 
@@ -20,7 +24,7 @@ pagination, and a fluent API similar to ActiveRecord.
 
 1. **Query objects** — define and configure queries with typed properties
 2. **Results objects** — execute queries and provide access to paginated data
-3. **Composition** — combine queries using `+` (or `compose` / `merge`)
+3. **Composition** — combine queries using `+` (aliased to `compose` for classes, `merge` for instances)
 
 ### When to use Quo
 
@@ -223,6 +227,32 @@ query.unwrap_unpaginated.to_a
 
 **Detail:** [references/PAGINATION.md](references/PAGINATION.md)
 
+## Quick reference: fluent spec API
+
+`RelationBackedQuery` instances forward AR-style spec methods through
+`method_missing` to an immutable `Quo::RelationBackedQuerySpecification`.
+Each call returns a new query with the spec updated; chains compose.
+
+```ruby
+q = CommentsByAuthorQuery.new(author_id: 1)
+  .where(read: false)
+  .order(created_at: :desc)
+  .joins(:post)
+  .includes(:author)
+  .limit(10)
+  .distinct
+```
+
+Supported: `where`, `order`, `reorder`, `group`, `limit`, `offset`,
+`select`, `joins`, `left_outer_joins`, `includes`, `preload`, `eager_load`,
+`distinct`, `extending`, `unscope`. All mirror their AR::Relation
+counterparts.
+
+Specs added to a composed query are applied to the merged relation at
+unwrap time, on top of any specs on the individual operands.
+
+**Detail:** [references/API_REFERENCE.md](references/API_REFERENCE.md)
+
 ## Quick reference: result transformations
 
 Attach a transformer to wrap each row as it comes out of the query:
@@ -250,33 +280,59 @@ query = CommentsByAuthorQuery.new(author_id: 1)
 
 **Detail:** [references/TRANSFORMERS.md](references/TRANSFORMERS.md)
 
-## Quick reference: wrap
+## Quick reference: `wrap` vs `from`
 
-For one-off relations that don't need a full subclass, use `wrap`:
+Two APIs for adopting a bare relation or enumerable into Quo, with
+different shapes and costs. Pick by use case:
+
+### `.from` — value form (use at call sites)
+
+`Quo::RelationBackedQuery.from(rel)` returns a **Quo::Query instance**
+that wraps the relation. No class allocation per call. Use this when
+you want a Quo query value at a call site (operations, controllers,
+hot loops):
 
 ```ruby
-# Wrap a relation
+# In an operation / controller
+Quo::RelationBackedQuery.from(Comment.where(read: false)).results
+
+# Composes naturally with v2 instance composition
+(Quo::RelationBackedQuery.from(rel) + UnreadCommentsQuery.new).results
+
+# Same for collections
+Quo::CollectionBackedQuery.from(cached_array).results
+```
+
+### `wrap` — class form (use for type definition)
+
+`Quo::RelationBackedQuery.wrap(...)` returns a **Class**. Useful when
+you want to define a named query type once at code-load time, possibly
+parameterised via the block form:
+
+```ruby
+# As a constant — evaluated once when the file loads.
 ActiveCommentsQuery = Quo::RelationBackedQuery.wrap(Comment.where(read: false))
 ActiveCommentsQuery.new.results
 
-# Wrap with typed props inside a block
+# Block form with typed props — the block captures over `self` so props
+# are accessible.
 RecentCommentsForAuthor = Quo::RelationBackedQuery.wrap(props: {author_id: Integer}) do
   Comment.joins(:post).where(posts: {author_id: author_id})
 end
-
 RecentCommentsForAuthor.new(author_id: 1).results
 
-# Wrap a collection — useful for cached data
+# Wrap a cached value as a collection query
 CachedAuthors = Quo::CollectionBackedQuery.wrap do
   Rails.cache.fetch("all_authors") { Author.all.to_a }
 end
 ```
 
-> **Performance note for `wrap`:** Like class composition, `wrap` returns a
-> new Class every call. Treat it as a *type-definition* tool — assign the
-> result to a constant or hoist it out of hot loops. Don't call
-> `Quo::RelationBackedQuery.wrap(rel).new` per request inside a method
-> that runs many times — that allocates a new class each time.
+> **Anti-pattern:** `Quo::RelationBackedQuery.wrap(rel).new` at a call
+> site. `wrap` allocates a new anonymous class on every call only to
+> instantiate it once and discard the class — the same waste pattern
+> v2 removed from instance composition. Use `.from(rel)` for the
+> value form, or hoist the `wrap(...)` to a constant if you want the
+> class form.
 
 ## Quick reference: type conversion
 

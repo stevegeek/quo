@@ -124,4 +124,19 @@ class Quo::CollectionBackedQueryTest < ActiveSupport::TestCase
     mapped = q.results.map { |x| x * 2 }
     assert_equal [2, 4, 6], mapped
   end
+
+  test "wrap raises at wrap time when given a non-Enumerable, non-Quo::CollectionBackedQuery positional arg" do
+    err = assert_raises(ArgumentError) { Quo::CollectionBackedQuery.wrap(42) }
+    assert_match(/requires an Enumerable or a Quo::CollectionBackedQuery/, err.message)
+
+    err = assert_raises(ArgumentError) { Quo::CollectionBackedQuery.wrap(Object.new) }
+    assert_match(/Quo::RelationBackedQuery/, err.message)
+  end
+
+  test "wrap accepts a Quo::CollectionBackedQuery instance" do
+    inner = Quo::CollectionBackedQuery.wrap([10, 20]).new
+    outer = Quo::CollectionBackedQuery.wrap(inner)
+
+    assert outer < Quo::CollectionBackedQuery
+  end
 end

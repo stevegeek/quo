@@ -129,7 +129,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
 
   test "#to_sql" do
     q = NewCommentsForAuthorQuery.new(author_id: 1)
-    assert_equal "SELECT \"comments\".* FROM \"comments\" INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\" INNER JOIN \"authors\" ON \"authors\".\"id\" = \"posts\".\"author_id\" WHERE \"comments\".\"read\" = 0 AND \"authors\".\"id\" = 1", q.to_sql
+    assert_equal "SELECT \"comments\".* FROM \"comments\" INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\" INNER JOIN \"authors\" ON \"authors\".\"id\" = \"posts\".\"author_id\" WHERE \"comments\".\"read\" = #{sql_false} AND \"authors\".\"id\" = 1", q.to_sql
 
     q = NewCommentsForAuthorQuery.new(author_id: 1, page: 3, page_size: 12)
     assert q.to_sql.end_with?("\"authors\".\"id\" = 1 LIMIT 12 OFFSET 24")
@@ -188,7 +188,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   end
 
   test "it wraps an ActiveRecord relation with props" do
-    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Literal::Types::ConstraintType.new(0...1.0)}) do
+    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Quo::RelationBackedQuery._Float(0...1.0)}) do
       Comment.not_spam(spam_score)
     end
 
@@ -196,18 +196,24 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     assert query < Quo::RelationBackedQuery
   end
 
-  test "it raises when wrapping something that is not a relation of Query instance" do
-    assert_raises ArgumentError do
-      Quo::RelationBackedQuery.wrap(CommentNotSpamQuery).new.unwrap # not an instance of Query
+  test "it raises at wrap time when given a non-relation, non-Quo::RelationBackedQuery positional arg" do
+    err = assert_raises(ArgumentError) { Quo::RelationBackedQuery.wrap(CommentNotSpamQuery) }
+    assert_match(/requires an ActiveRecord::Relation or a Quo::RelationBackedQuery/, err.message)
+
+    err = assert_raises(ArgumentError) { Quo::RelationBackedQuery.wrap([1, 2, 3]) }
+    assert_match(/Quo::CollectionBackedQuery/, err.message)
+
+    err = assert_raises(ArgumentError) do
+      Quo::RelationBackedQuery.wrap(Quo::CollectionBackedQuery.wrap([1, 2, 3]).new)
     end
+    assert_match(/Quo::CollectionBackedQuery/, err.message)
   end
 
-  test "it raises when wrapping something that is not a relation of Query instance with query from block" do
-    assert_raises ArgumentError do
-      Quo::RelationBackedQuery.wrap(props: {to_sql: Literal::Types::ConstraintType.new(0...1.0)}) do
-        CommentNotSpamQuery # not an instance of Query
-      end.new.unwrap
+  test "it raises at use time when the block returns the wrong type" do
+    klass = Quo::RelationBackedQuery.wrap(props: {threshold: Quo::RelationBackedQuery._Float(0...1.0)}) do
+      CommentNotSpamQuery # a class, not a relation/Quo::Query instance
     end
+    assert_raises(ArgumentError) { klass.new(threshold: 0.5).unwrap }
   end
 
   test "it wraps a query object" do
@@ -418,5 +424,49 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
     assert_includes sql, "\"comments\".\"body\" = 'abc'"
     assert_includes sql, "ORDER BY \"comments\".\"id\" DESC"
     assert_includes sql, "LIMIT 1"
+  end
+
+  # Regression: stevegeek/quo#6 — copying or merging a query that carried a
+  # `_specification` (e.g. from `.includes`) used to round-trip the spec through
+  # `to_h` and reject the resulting Hash at Literal's type check.
+  test "specification survives Query#copy through includes (issue #6)" do
+    q = UnreadCommentsQuery.new.includes(:post)
+    assert_nothing_raised { q.send(:underlying_query) }
+
+    spec = q.instance_variable_get(:@_specification)
+    assert_instance_of Quo::RelationBackedQuerySpecification, spec
+    assert_equal [:post], spec.options[:includes]
+    assert_equal [:post], q.unwrap.includes_values
+  end
+
+  test "specification survives an explicit copy after includes (issue #6)" do
+    q = UnreadCommentsQuery.new.includes(:post).copy(page: 2)
+    spec = q.instance_variable_get(:@_specification)
+    assert_instance_of Quo::RelationBackedQuerySpecification, spec
+    assert_equal [:post], spec.options[:includes]
+    assert_equal 2, q.page
+    assert_equal [:post], q.unwrap.includes_values
+  end
+
+  test "specifications survive merging two queries (issue #6)" do
+    left = UnreadCommentsQuery.new.includes(:post)
+    right = Quo::RelationBackedQuery.wrap(Comment.joins(post: :author)).new
+
+    composed = nil
+    assert_nothing_raised { composed = left + right }
+    sql = composed.to_sql
+    assert_match(/inner join "posts"/i, sql)
+    assert_match(/inner join "authors"/i, sql)
+    assert_includes composed.unwrap.includes_values, :post
+  end
+
+  test "specifications on both sides survive merge (issue #6)" do
+    left = UnreadCommentsQuery.new.includes(:post)
+    right = UnreadCommentsQuery.new.limit(5)
+
+    composed = nil
+    assert_nothing_raised { composed = left + right }
+    assert_includes composed.unwrap.includes_values, :post
+    assert_includes composed.to_sql, "LIMIT 5"
   end
 end

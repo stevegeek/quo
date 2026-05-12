@@ -1,5 +1,32 @@
 ## [Unreleased]
 
+## [2.0.0] - unreleased
+
+### Breaking
+
+- Minimum Rails 8.0; minimum Literal 1.9.
+- Instance composition (`q1 + q2`) returns a value (`Quo::ComposedRelationBackedQuery` / `Quo::ComposedCollectionBackedQuery`), not an anonymous class. No more per-call class allocation.
+- Each operand keeps its own constructor-time props; merge is the AND of each side's filter (1.x's prop fan-out is gone).
+- Pagination inherits as a coupled `(page, page_size)` pair from whichever operand is paginated (right wins).
+- `wrap` is type-strict at definition time. `Quo::RelationBackedQuery.wrap` requires an `ActiveRecord::Relation` or `Quo::RelationBackedQuery`; `Quo::CollectionBackedQuery.wrap` requires `Enumerable` or `Quo::CollectionBackedQuery`. Block forms still defer.
+
+### Added
+
+- `Quo::RelationBackedQuery.from(relation)` and `Quo::CollectionBackedQuery.from(enumerable)` value-form constructors. Zero class allocation per call.
+- `copy(prop: value)` on a composed instance fans the override across every operand declaring the prop, recursing into composed operands.
+- Composed and wrapped value-form classes inherit from `Quo.relation_backed_query_base_class` / `Quo.collection_backed_query_base_class`.
+
+### Fixed
+
+- #5 — `Quo::RelationBackedQuerySpecification#joins` / `#left_outer_joins` accept multiple tables.
+- #6 — `_specification` survives `Query#copy` and merge paths.
+- #7 — `Quo::Results` Enumerable delegation returns transformed items for filter-style methods (`select`, `reject`, `find`, `sort_by`, `partition`, …) where the block already saw transformed items.
+- #8 — `wrap` rejects the wrong type at definition time with a message pointing at the matching constructor.
+
+### Removed
+
+- Unused per-call `Quo::Composing::InstanceStrategyRegistry` + the four instance-strategy classes.
+
 ## [1.0.1] - 2026-05-12
 
 ### Fixed

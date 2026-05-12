@@ -1,6 +1,6 @@
 # Result Transformers Reference
 
-> **Targets Quo `~> 1.0`.**
+> **Targets Quo `~> 2.0`.**
 
 Transformers apply a function to each row as it comes out of a query.
 Common uses: wrapping rows in presenter/serializer objects, converting

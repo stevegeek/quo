@@ -1,0 +1,61 @@
+# Generated from lib/quo/composed_instance.rb with RBS::Inline
+
+module Quo
+  module ComposedInstance
+    # @rbs **overrides: untyped
+    # @rbs return: Quo::Query
+    def copy: (**untyped overrides) -> Quo::Query
+
+    private
+
+    # @rbs prop_name: Symbol
+    # @rbs value: untyped
+    # @rbs return: Quo::Query
+    def fan_override: (Symbol prop_name, untyped value) -> Quo::Query
+
+    # @rbs return: Array[Symbol]
+    def own_property_names: () -> Array[Symbol]
+
+    # @rbs operand: untyped
+    # @rbs prop_name: Symbol
+    # @rbs return: bool
+    def operand_accepts?: (untyped operand, Symbol prop_name) -> bool
+
+    # @rbs operand: untyped
+    # @rbs prop_name: Symbol
+    # @rbs value: untyped
+    # @rbs return: untyped
+    def apply_to_operand: (untyped operand, Symbol prop_name, untyped value) -> untyped
+
+    # @rbs return: ActiveRecord::Relation | Enumerable[untyped]
+    def merge_left_and_right: () -> (ActiveRecord::Relation | Enumerable[untyped])
+
+    # @rbs operand: untyped
+    # @rbs return: ActiveRecord::Relation | Enumerable[untyped]
+    def unwrap_operand: (untyped operand) -> (ActiveRecord::Relation | Enumerable[untyped])
+
+    # @rbs left_rel: ActiveRecord::Relation
+    # @rbs right_rel: ActiveRecord::Relation
+    # @rbs return: ActiveRecord::Relation
+    def merge_active_record_relations: (ActiveRecord::Relation left_rel, ActiveRecord::Relation right_rel) -> ActiveRecord::Relation
+
+    # @rbs rel: untyped
+    # @rbs return: bool
+    def is_relation?: (untyped rel) -> bool
+
+    # @rbs lr: untyped
+    # @rbs rr: untyped
+    # @rbs return: bool
+    def both_relations?: (untyped lr, untyped rr) -> bool
+
+    # @rbs lr: untyped
+    # @rbs rr: untyped
+    # @rbs return: bool
+    def left_relation_right_enumerable?: (untyped lr, untyped rr) -> bool
+
+    # @rbs lr: untyped
+    # @rbs rr: untyped
+    # @rbs return: bool
+    def left_enumerable_right_relation?: (untyped lr, untyped rr) -> bool
+  end
+end

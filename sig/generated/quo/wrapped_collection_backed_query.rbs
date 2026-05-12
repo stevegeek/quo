@@ -1,0 +1,13 @@
+# Generated from lib/quo/wrapped_collection_backed_query.rb with RBS::Inline
+
+module Quo
+  class WrappedCollectionBackedQuery
+    @wrapped: Enumerable[untyped]
+
+    # @rbs override
+    def collection: ...
+
+    # @rbs override
+    def inspect: ...
+  end
+end

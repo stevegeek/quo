@@ -14,6 +14,12 @@ module Quo
     # Alias for page_count
     def page_size: () -> Integer
 
+    FILTER_METHODS: untyped
+
+    PAIR_FILTER_METHODS: untyped
+
+    PASSTHROUGH_METHODS: untyped
+
     # @rbs &block: (untyped, *untyped) -> untyped
     # @rbs return: Hash[untyped, Array[untyped]]
     def group_by: () { (untyped, *untyped) -> untyped } -> Hash[untyped, Array[untyped]]
@@ -36,5 +42,9 @@ module Quo
     # @rbs results: untyped
     # @rbs return: untyped
     def transform_results: (untyped results) -> untyped
+
+    # @rbs pair: untyped
+    # @rbs return: untyped
+    def transform_pair: (untyped pair) -> untyped
   end
 end

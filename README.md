@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="quo.png" alt="Quo" width="160" height="160" />
+</p>
+
 # Quo: Query Objects for ActiveRecord & Collections
 
 ![Coverage](badges/coverage_badge_total.svg)

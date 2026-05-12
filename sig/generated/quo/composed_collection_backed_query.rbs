@@ -1,0 +1,25 @@
+# Generated from lib/quo/composed_collection_backed_query.rb with RBS::Inline
+
+module Quo
+  class ComposedCollectionBackedQuery
+    include ComposedInstance
+
+    @left: Quo::Query | Enumerable[untyped]
+
+    @right: Quo::Query | Enumerable[untyped]
+
+    @merge_joins: Symbol | Hash[untyped, untyped] | Array[untyped] | nil
+
+    # @rbs override
+    def collection: ...
+
+    # @rbs override
+    def inspect: ...
+
+    private
+
+    # @rbs operand: untyped
+    # @rbs return: String
+    def operand_desc: (untyped operand) -> String
+  end
+end

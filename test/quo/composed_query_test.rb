@@ -50,20 +50,31 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal 3, query.results.count
   end
 
-  test "merges two instances of Quo::Query objects with different values and takes rightmost" do
+  test "merges two instances of Quo::Query objects — each operand keeps its own props (v2)" do
+    # In Quo 2.x, instance composition does NOT fan props down from a synthesized
+    # parent class. Each operand keeps its own constructor-time props and
+    # contributes its own filter to the merged AR relation. So
+    #   q2(spam_score: 0.5) + q3(spam_score: 0.9)
+    # produces `(spam_score < 0.5) AND (spam_score < 0.9)` — i.e. the more
+    # restrictive filter wins, not "rightmost wins".
     klass = @q1.compose(@q2)
     q3 = klass.new(since_date: 1.day.ago, spam_score: 0.9)
     query = @q2.new(spam_score: 0.5).merge(q3)
-    assert_equal 4, query.results.count
+    assert_equal 3, query.results.count
   end
 
   test "composes and generates valid SQL query" do
+    # In v2, pagination inherits as a coupled (page, page_size) pair from
+    # whichever operand is paginated. Here `left` has page=2 with
+    # page_size=25, and `right` is unpaginated (no `page` set — page_size
+    # alone doesn't make a query paginated). So the composed inherits the
+    # left pair: LIMIT 25 OFFSET 25.
     left = NewCommentsForAuthorQuery.new(author_id: 1, page: 2, page_size: 25)
-    right = CommentNotSpamQuery.new(spam_score_threshold: 0.5, page_size: 50) # Page size is 50 and page is 2 so offset is 50
+    right = CommentNotSpamQuery.new(spam_score_threshold: 0.5, page_size: 50)
     sql = "SELECT \"comments\".* FROM \"comments\" " \
       "INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\" " \
       "INNER JOIN \"authors\" ON \"authors\".\"id\" = \"posts\".\"author_id\" " \
-      "WHERE \"comments\".\"read\" = 0 AND \"authors\".\"id\" = 1 AND (spam_score IS NULL OR spam_score < 0.5) LIMIT 50 OFFSET 50"
+      "WHERE \"comments\".\"read\" = #{sql_false} AND \"authors\".\"id\" = 1 AND (spam_score IS NULL OR spam_score < 0.5) LIMIT 25 OFFSET 25"
     composed = left.merge(right)
     assert_equal sql, composed.to_sql
   end
@@ -143,9 +154,14 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
   end
 
   test "#inspect when 2 collection sources are provided" do
+    # In Quo 2.x, instance composition returns a value-form composed query
+    # (Quo::ComposedCollectionBackedQuery for two collection operands), not
+    # an anonymous subclass that mixes in Quo::ComposedQuery. The inspect
+    # output reflects the new concrete class.
     merged = Quo::CollectionBackedQuery.wrap([]).new.merge(Quo::CollectionBackedQuery.wrap([]).new)
-    assert_kind_of Quo::ComposedQuery, merged
-    assert_includes merged.inspect, "Quo::CollectionBackedQuery<Quo::ComposedQuery>[Quo::CollectionBackedQuery, Quo::CollectionBackedQuery]"
+    assert_kind_of Quo::ComposedCollectionBackedQuery, merged
+    assert_kind_of Quo::Query, merged
+    assert_includes merged.inspect, "Quo::ComposedCollectionBackedQuery"
   end
 
   test "#inspect when 1 source is a merged query" do
@@ -154,12 +170,29 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal "ApplicationRelationQuery<Quo::ComposedQuery>[ApplicationRelationQuery<Quo::ComposedQuery>[CommentNotSpamQuery, UnreadCommentsQuery], Quo::CollectionBackedQuery]", merged.inspect
   end
 
-  test "#copy makes a copy of this query object with different options" do
+  test "#copy on a composed instance overrides own props and fans operand props (v2)" do
+    # In Quo 2.x, the composed instance's own props are
+    # (left, right, merge_joins, page, page_size, _specification).
+    # Overrides for own props go to the standard Literal copy.
+    # Overrides for OTHER props (declared on a leaf operand) are walked
+    # right-first into the operand tree and applied to the first matching
+    # operand. Unknown props raise.
     q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
-    q_copy = q.copy(spam_score: 0.9)
-    assert_kind_of Quo::ComposedQuery, q_copy
-    assert_not_equal q, q_copy
-    assert_equal 0.9, q_copy.spam_score
+
+    # Own-prop override
+    q_paged = q.copy(page: 3)
+    assert_kind_of Quo::ComposedRelationBackedQuery, q_paged
+    assert_equal 3, q_paged.page
+
+    # Operand-prop override: spam_score is on @q2 (right operand)
+    q_score = q.copy(spam_score: 0.9)
+    assert_kind_of Quo::ComposedRelationBackedQuery, q_score
+    assert_equal 0.9, q_score.right.spam_score
+    # Left operand untouched
+    assert_equal 1.day.ago.to_date, q_score.left.since_date.to_date
+
+    # Unknown prop raises (matches Literal::Struct semantics)
+    assert_raises(ArgumentError) { q.copy(nope_not_a_prop: 1) }
   end
 
   test "#count" do
@@ -275,5 +308,228 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     sql = merged_query.to_sql
     assert_match(/"comments"\."created_at" ASC/, sql)
     assert_match(/INNER JOIN "authors"/, sql)
+  end
+
+  # ---- Pagination inheritance on a composed instance ----------------------
+
+  test "pagination: composed not paginated when neither operand is" do
+    composed = Quo::RelationBackedQuery.wrap(Comment.all).new + Quo::RelationBackedQuery.wrap(Comment.all).new
+    refute composed.paged?
+    assert_nil composed.page
+    assert_equal 20, composed.page_size # default
+  end
+
+  test "pagination: composed inherits (page, page_size) as a coupled pair from left" do
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new.copy(page: 2, page_size: 5)
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new
+
+    composed = left + right
+    assert composed.paged?
+    assert_equal 2, composed.page
+    assert_equal 5, composed.page_size
+  end
+
+  test "pagination: composed inherits the pair from right when only right is paginated" do
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.copy(page: 3, page_size: 7)
+
+    composed = left + right
+    assert composed.paged?
+    assert_equal 3, composed.page
+    assert_equal 7, composed.page_size
+  end
+
+  test "pagination: right wins when both operands are paginated" do
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new.copy(page: 1, page_size: 10)
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.copy(page: 4, page_size: 5)
+
+    composed = left + right
+    assert_equal 4, composed.page
+    assert_equal 5, composed.page_size
+  end
+
+  # ---- Transformer inheritance on a composed instance ---------------------
+
+  test "transformer attaches to a composed instance from the right operand" do
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "R(#{c.body})" }
+
+    composed = left + right
+    assert composed.transform?
+    assert_match(/^R\(/, composed.results.first.to_s)
+  end
+
+  test "transformer attaches to a composed instance from the left operand if right has none" do
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "L(#{c.body})" }
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new
+
+    composed = left + right
+    assert composed.transform?
+    assert_match(/^L\(/, composed.results.first.to_s)
+  end
+
+  test "transformer right-wins when both operands have one" do
+    # Consistent with the rest of v2's right-precedence rule.
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "L(#{c.body})" }
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "R(#{c.body})" }
+
+    composed = left + right
+    assert_match(/^R\(/, composed.results.first.to_s)
+  end
+
+  test "transformer attached directly on the composed wins over operand transformers" do
+    left = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "L(#{c.body})" }
+    right = Quo::RelationBackedQuery.wrap(Comment.all).new.transform { |c| "R(#{c.body})" }
+
+    composed = (left + right).transform { |c| "OUTER(#{c.body})" }
+    assert_match(/^OUTER\(/, composed.results.first.to_s)
+  end
+
+  # ---- Specs on a composed instance ---------------------------------------
+
+  test "spec applied to a composed instance layers on top of the merged relation" do
+    composed = ::UnreadCommentsQuery.new.merge(::Comment.all)
+    ordered = composed.order(:body)
+
+    sql = ordered.to_sql
+    assert_includes sql, %("comments"."read" = #{sql_false})
+    assert_match(/ORDER BY "comments"\."body" ASC/, sql)
+  end
+
+  test "spec applied to a composed instance combines with operand-level specs" do
+    left_with_order = Quo::RelationBackedQuery.wrap(Comment.all).new.order(:created_at)
+    right_plain = Quo::RelationBackedQuery.wrap(Comment.all).new
+    composed = left_with_order.merge(right_plain).order(:body)
+
+    sql = composed.to_sql
+    assert_match(/ORDER BY "comments"\."created_at" ASC, "comments"\."body" ASC/, sql)
+  end
+
+  test "joins added on a composed instance apply to the merged relation" do
+    composed = Quo::RelationBackedQuery.wrap(Comment.all).new.merge(::UnreadCommentsQuery.new)
+    joined = composed.joins(post: :author)
+
+    sql = joined.to_sql
+    assert_match(/INNER JOIN "posts"/, sql)
+    assert_match(/INNER JOIN "authors"/, sql)
+  end
+
+  test "where added on a composed instance applies to the merged relation" do
+    composed = Quo::RelationBackedQuery.wrap(Comment.all).new.merge(::UnreadCommentsQuery.new)
+    filtered = composed.where(body: "abc")
+
+    assert_match(/"comments"\."body" = 'abc'/, filtered.to_sql)
+  end
+
+  # ---- Copy fan-out (v2 instance composition) -----------------------------
+
+  test "copy fan-out: prop on right operand only — applies to right" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    out = q.copy(spam_score: 0.9)
+
+    assert_equal 0.9, out.right.spam_score
+    assert_equal 0.5, q.right.spam_score # original is immutable
+  end
+
+  test "copy fan-out: prop on left operand only — applies to left" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    out = q.copy(since_date: 2.days.ago)
+
+    assert_equal 2.days.ago.to_date, out.left.since_date.to_date
+    assert_equal 1.day.ago.to_date, q.left.since_date.to_date # original immutable
+  end
+
+  test "copy fan-out: applies to every operand that declares the prop" do
+    # Conceptually, the composed query exposes one logical `spam_score`
+    # prop — copying with a new value should land on every leaf that
+    # declares it, not just one side.
+    left = @q2.new(spam_score: 0.4)
+    right = @q2.new(spam_score: 0.6)
+    composed = left.merge(right)
+
+    out = composed.copy(spam_score: 0.9)
+
+    assert_equal 0.9, out.left.spam_score
+    assert_equal 0.9, out.right.spam_score
+  end
+
+  test "copy fan-out: recurses into a composed operand on one side" do
+    # Tree: q1 + (q1 + q2) — :spam_score lives on the deepest leaf
+    inner = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    outer = @q1.new(since_date: 1.day.ago).merge(inner)
+
+    out = outer.copy(spam_score: 0.9)
+
+    # The override should reach the q2 instance deep inside `inner`
+    assert_equal 0.9, out.right.right.spam_score
+  end
+
+  test "copy fan-out: recurses through composed operands on BOTH sides" do
+    # Tree:
+    #
+    #              outer
+    #               / \
+    #         left_c   right_c
+    #          / \      / \
+    #         q1 q2    q2 q1
+    #         |  |     |  |
+    #         |  score score |
+    #         |              |
+    #     since_date     since_date
+    #
+    # Both left and right operands are themselves composed queries.
+    # Each sub-tree contains a q2 leaf that declares :spam_score.
+    # The override must reach EVERY q2 leaf in the whole tree.
+    left_c = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.4))
+    right_c = @q2.new(spam_score: 0.6).merge(@q1.new(since_date: 2.days.ago))
+    outer = left_c.merge(right_c)
+
+    out = outer.copy(spam_score: 0.9)
+
+    # Both sub-trees' :spam_score leaves are updated.
+    assert_equal 0.9, out.left.right.spam_score
+    assert_equal 0.9, out.right.left.spam_score
+
+    # Leaves without :spam_score are untouched.
+    assert_equal 1.day.ago.to_date, out.left.left.since_date.to_date
+    assert_equal 2.days.ago.to_date, out.right.right.since_date.to_date
+
+    # Originals are immutable.
+    assert_equal 0.4, outer.left.right.spam_score
+    assert_equal 0.6, outer.right.left.spam_score
+  end
+
+  test "copy fan-out: deep nesting on a single side" do
+    # Tree: q1 + (q1 + (q1 + q2))
+    deepest = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    mid = @q1.new(since_date: 1.day.ago).merge(deepest)
+    outer = @q1.new(since_date: 1.day.ago).merge(mid)
+
+    out = outer.copy(spam_score: 0.9)
+
+    # The override reaches three levels deep.
+    assert_equal 0.9, out.right.right.right.spam_score
+  end
+
+  test "copy fan-out: unknown prop raises" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    assert_raises(ArgumentError) { q.copy(definitely_not_a_prop: 1) }
+  end
+
+  test "copy fan-out: AR::Relation operand is skipped over" do
+    # Right is an AR::Relation, not a Quo::Query — it has no Quo props.
+    composed = @q2.new(spam_score: 0.5).merge(Comment.all)
+    out = composed.copy(spam_score: 0.9)
+
+    # Override should land on the left Quo::Query operand
+    assert_equal 0.9, out.left.spam_score
+  end
+
+  test "copy fan-out: own-prop and fan-prop overrides combine cleanly" do
+    q = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    out = q.copy(page: 3, spam_score: 0.9)
+
+    assert_equal 3, out.page
+    assert_equal 0.9, out.right.spam_score
   end
 end

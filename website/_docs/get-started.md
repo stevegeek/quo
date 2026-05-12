@@ -1,9 +1,6 @@
 ---
-layout: default
 title: Core API
 nav_order: 2
-has_children: true
-permalink: /get-started
 ---
 
 # Quo Core API
@@ -242,7 +239,7 @@ top_items = TopRatedItemsQuery.new(minimum_rating: 4.5).results
 
 ## Fluent API Methods
 
-For detailed information on the fluent API methods (where, order, includes, limit, etc.), see the [API Reference](api.md).
+For detailed information on the fluent API methods (where, order, includes, limit, etc.), see the [API Reference](/api/).
 
 ```ruby
 query = PostsQuery.new
