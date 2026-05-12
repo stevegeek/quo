@@ -323,19 +323,21 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     assert_equal 1.day.ago.to_date, q._left.since_date.to_date # original immutable
   end
 
-  test "copy fan-out: right wins when prop is on both operands" do
-    # Two leaves that BOTH declare :spam_score
+  test "copy fan-out: applies to every operand that declares the prop" do
+    # Conceptually, the composed query exposes one logical `spam_score`
+    # prop — copying with a new value should land on every leaf that
+    # declares it, not just one side.
     left = @q2.new(spam_score: 0.4)
     right = @q2.new(spam_score: 0.6)
     composed = left.merge(right)
 
     out = composed.copy(spam_score: 0.9)
 
-    assert_equal 0.4, out._left.spam_score, "left operand untouched"
-    assert_equal 0.9, out._right.spam_score, "right operand updated"
+    assert_equal 0.9, out._left.spam_score
+    assert_equal 0.9, out._right.spam_score
   end
 
-  test "copy fan-out: recurses into a composed operand" do
+  test "copy fan-out: recurses into a composed operand on one side" do
     # Tree: q1 + (q1 + q2) — :spam_score lives on the deepest leaf
     inner = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
     outer = @q1.new(since_date: 1.day.ago).merge(inner)
@@ -344,6 +346,53 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
 
     # The override should reach the q2 instance deep inside `inner`
     assert_equal 0.9, out._right._right.spam_score
+  end
+
+  test "copy fan-out: recurses through composed operands on BOTH sides" do
+    # Tree:
+    #
+    #              outer
+    #               / \
+    #         left_c   right_c
+    #          / \      / \
+    #         q1 q2    q2 q1
+    #         |  |     |  |
+    #         |  score score |
+    #         |              |
+    #     since_date     since_date
+    #
+    # Both left and right operands are themselves composed queries.
+    # Each sub-tree contains a q2 leaf that declares :spam_score.
+    # The override must reach EVERY q2 leaf in the whole tree.
+    left_c = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.4))
+    right_c = @q2.new(spam_score: 0.6).merge(@q1.new(since_date: 2.days.ago))
+    outer = left_c.merge(right_c)
+
+    out = outer.copy(spam_score: 0.9)
+
+    # Both sub-trees' :spam_score leaves are updated.
+    assert_equal 0.9, out._left._right.spam_score
+    assert_equal 0.9, out._right._left.spam_score
+
+    # Leaves without :spam_score are untouched.
+    assert_equal 1.day.ago.to_date, out._left._left.since_date.to_date
+    assert_equal 2.days.ago.to_date, out._right._right.since_date.to_date
+
+    # Originals are immutable.
+    assert_equal 0.4, outer._left._right.spam_score
+    assert_equal 0.6, outer._right._left.spam_score
+  end
+
+  test "copy fan-out: deep nesting on a single side" do
+    # Tree: q1 + (q1 + (q1 + q2))
+    deepest = @q1.new(since_date: 1.day.ago).merge(@q2.new(spam_score: 0.5))
+    mid = @q1.new(since_date: 1.day.ago).merge(deepest)
+    outer = @q1.new(since_date: 1.day.ago).merge(mid)
+
+    out = outer.copy(spam_score: 0.9)
+
+    # The override reaches three levels deep.
+    assert_equal 0.9, out._right._right._right.spam_score
   end
 
   test "copy fan-out: unknown prop raises" do

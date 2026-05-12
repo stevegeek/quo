@@ -48,24 +48,33 @@ module Quo
 
     private
 
-    # Walks the operand tree right-first and returns a copy of `self` with
-    # the override applied to the first matching operand. Recurses into
-    # composed operands.
+    # Walks the operand tree and returns a copy of `self` with the override
+    # applied to *every* reachable Quo::Query operand that declares the prop.
+    # Conceptually, the composed query exposes one logical `prop` — when
+    # you copy with a new value, it lands everywhere that prop lives.
+    # Recurses into composed operands.
     #
-    # Note this re-enters our `copy` override with an own-prop-only override
-    # (`_right:` or `_left:`), which takes the no-fan-out branch — no
-    # infinite recursion.
+    # The re-entries below use own-prop-only overrides (`_right:` /
+    # `_left:`), which take the no-fan-out branch in `copy` — no infinite
+    # recursion.
     # @rbs prop_name: Symbol
     # @rbs value: untyped
     # @rbs return: Quo::Query
     def fan_override(prop_name, value)
-      if operand_accepts?(_right, prop_name)
-        copy(_right: apply_to_operand(_right, prop_name, value))
-      elsif operand_accepts?(_left, prop_name)
-        copy(_left: apply_to_operand(_left, prop_name, value))
-      else
+      right_match = operand_accepts?(_right, prop_name)
+      left_match = operand_accepts?(_left, prop_name)
+      unless right_match || left_match
         raise ArgumentError, "unknown property #{prop_name.inspect} on #{self.class}"
       end
+
+      result = self
+      if right_match
+        result = result.copy(_right: apply_to_operand(_right, prop_name, value))
+      end
+      if left_match
+        result = result.copy(_left: apply_to_operand(_left, prop_name, value))
+      end
+      result
     end
 
     # @rbs return: Array[Symbol]
