@@ -3,15 +3,14 @@
 # rbs_inline: enabled
 
 require_relative "composing/class_strategy_registry"
-require_relative "composing/instance_strategy_registry"
 
 module Quo
   # Module for composing Query objects
   module Composing
-    # The class- and instance-level strategy registries are stateless; share one
-    # of each instead of allocating per call.
+    # The class-level strategy registry is stateless; share one instance.
+    # (Instance-level composition no longer goes through a strategy registry
+    # in 2.x — see `merge_instances` below.)
     CLASS_STRATEGY_REGISTRY = ClassStrategyRegistry.new
-    INSTANCE_STRATEGY_REGISTRY = InstanceStrategyRegistry.new
 
     class << self
       # @rbs chosen_superclass: Class
