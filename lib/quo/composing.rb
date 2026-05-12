@@ -43,10 +43,14 @@ module Quo
         page, page_size = inherited_pagination(left_instance, right_instance)
         transformer = inherited_transformer(left_instance, right_instance)
 
+        opts = {_left: left_instance, _right: right_instance, _joins: joins}
+        opts[:page] = page if page
+        opts[:page_size] = page_size if page_size
+
         composed = if relation_backed?(left_instance) || relation_backed?(right_instance)
-          Quo::ComposedRelationBackedQuery.new(_left: left_instance, _right: right_instance, _joins: joins, page: page, page_size: page_size)
+          Quo::ComposedRelationBackedQuery.new(**opts)
         else
-          Quo::ComposedCollectionBackedQuery.new(_left: left_instance, _right: right_instance, _joins: joins, page: page, page_size: page_size)
+          Quo::ComposedCollectionBackedQuery.new(**opts)
         end
 
         composed.transform(&transformer) if transformer
@@ -61,23 +65,29 @@ module Quo
         operand.is_a?(Quo::RelationBackedQuery) || operand.is_a?(::ActiveRecord::Relation)
       end
 
-      # Pagination inherits from the right operand if set, else from the left.
-      # Mirrors the 1.x behaviour where the right operand's `page`/`page_size`
-      # would win at instance-level prop fan-out.
+      # Pagination is a coupled (page, page_size) pair — whichever operand
+      # is paginated (i.e. has a non-nil `page`) contributes both. Right
+      # wins if both are paginated. Mirrors the 1.x behaviour where the
+      # right operand's pagination would dominate at instance-level prop
+      # fan-out, with the fix that `page_size` is no longer taken
+      # independently from the page (its default of 20 would otherwise
+      # always win).
       # @rbs left: untyped
       # @rbs right: untyped
       # @rbs return: Array[Integer?]
       def inherited_pagination(left, right)
-        page = pick_pagination(:page, right) || pick_pagination(:page, left)
-        page_size = pick_pagination(:page_size, right) || pick_pagination(:page_size, left)
-        [page, page_size]
+        operand = pagination_source(right) || pagination_source(left)
+        return [nil, nil] unless operand
+        [operand.page, operand.page_size]
       end
 
-      # @rbs key: Symbol
+      # An operand "is paginated" iff it has a non-nil `page`. Returns the
+      # operand if so, else nil.
       # @rbs operand: untyped
-      # @rbs return: Integer?
-      def pick_pagination(key, operand)
-        operand.respond_to?(key) ? operand.public_send(key) : nil
+      # @rbs return: untyped
+      def pagination_source(operand)
+        return nil unless operand.respond_to?(:page) && operand.respond_to?(:page_size)
+        operand.page ? operand : nil
       end
 
       # @rbs left: untyped

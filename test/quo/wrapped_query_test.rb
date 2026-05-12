@@ -71,6 +71,9 @@ class Quo::WrappedQueryTest < ActiveSupport::TestCase
 
   test ".from allocates zero new classes per call (perf-critical)" do
     # The whole point of .from vs .wrap.new: no Class.new in the hot path.
+    # Warm any one-time autoloads first so we measure steady-state cost.
+    Quo::RelationBackedQuery.from(Comment.all)
+
     before = ObjectSpace.count_objects[:T_CLASS]
     100.times { Quo::RelationBackedQuery.from(Comment.all) }
     after = ObjectSpace.count_objects[:T_CLASS]
@@ -106,6 +109,9 @@ class Quo::WrappedQueryTest < ActiveSupport::TestCase
   end
 
   test "CollectionBackedQuery.from allocates zero new classes per call" do
+    # Warm any one-time autoloads first.
+    Quo::CollectionBackedQuery.from([1, 2, 3])
+
     before = ObjectSpace.count_objects[:T_CLASS]
     100.times { Quo::CollectionBackedQuery.from([1, 2, 3]) }
     after = ObjectSpace.count_objects[:T_CLASS]
