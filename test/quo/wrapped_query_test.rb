@@ -119,6 +119,40 @@ class Quo::WrappedQueryTest < ActiveSupport::TestCase
     assert_equal 0, after - before, "expected zero T_CLASS allocations from 100 .from calls"
   end
 
+  # ---- Inheritance from configured base class --------------------------
+
+  test ".from inherits from the configured RelationBackedQuery base class" do
+    q = Quo::RelationBackedQuery.from(Comment.all)
+
+    # ApplicationRelationQuery (the dummy app's configured base class)
+    # defines #hello returning "relation". A value-form .from query must
+    # inherit it, just as `wrap(...).new` does.
+    assert_equal "relation", q.hello
+    assert_kind_of ApplicationRelationQuery, q
+  end
+
+  test "CollectionBackedQuery.from inherits from the configured base class" do
+    q = Quo::CollectionBackedQuery.from([1, 2, 3])
+
+    # ApplicationCollectionQuery defines #hello returning "collection".
+    assert_equal "collection", q.hello
+    assert_kind_of ApplicationCollectionQuery, q
+  end
+
+  test "instance composition produces a value that inherits from the configured base class" do
+    composed = Quo::RelationBackedQuery.from(Comment.all) + ::UnreadCommentsQuery.new
+
+    assert_equal "relation", composed.hello
+    assert_kind_of ApplicationRelationQuery, composed
+  end
+
+  test "collection instance composition inherits from the configured collection base class" do
+    composed = Quo::CollectionBackedQuery.from([1, 2, 3]) + Quo::CollectionBackedQuery.from([4, 5, 6])
+
+    assert_equal "collection", composed.hello
+    assert_kind_of ApplicationCollectionQuery, composed
+  end
+
   # ---- Compared to .wrap(rel).new --------------------------------------
 
   test ".wrap(rel).new still allocates a new class per call (existing behaviour)" do

@@ -10,7 +10,11 @@ module Quo
   # you want a Quo::Query value for an AR scope at a call site, rather than
   # `Quo::RelationBackedQuery.wrap(rel).new` which allocates an anonymous
   # class per invocation.
-  class WrappedRelationBackedQuery < RelationBackedQuery
+  #
+  # Inherits from `Quo.relation_backed_query_base_class` (typically
+  # `ApplicationRelationQuery`) so host-application behaviour added to
+  # the base class is available on `.from` instances too.
+  class WrappedRelationBackedQuery < Quo.relation_backed_query_base_class
     # @rbs!
     #   @_wrapped: ActiveRecord::Relation
     prop :_wrapped, Object, writer: false

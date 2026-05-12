@@ -10,7 +10,11 @@ module Quo
   # when you want a Quo::Query value for an in-memory collection at a call
   # site, rather than `Quo::CollectionBackedQuery.wrap(enum).new` which
   # allocates an anonymous class per invocation.
-  class WrappedCollectionBackedQuery < CollectionBackedQuery
+  #
+  # Inherits from `Quo.collection_backed_query_base_class` (typically
+  # `ApplicationCollectionQuery`) so host-application behaviour added to
+  # the base class is available on `.from` instances too.
+  class WrappedCollectionBackedQuery < Quo.collection_backed_query_base_class
     # @rbs!
     #   @_wrapped: Object & Enumerable[untyped]
     prop :_wrapped, Object, writer: false
