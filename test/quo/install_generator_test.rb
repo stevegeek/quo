@@ -14,7 +14,7 @@ class Quo::Generators::InstallGeneratorTest < Rails::Generators::TestCase
 
     assert_file ".claude/skills/quo/SKILL.md" do |contents|
       assert_match(/name: quo/, contents)
-      assert_match(/Targets Quo `~> 1\.0`/, contents)
+      assert_match(/Targets Quo `~> 2\.0`/, contents)
       assert_match(/Composition: class-level vs instance-level/, contents)
     end
     assert_file ".claude/skills/quo/README.md"

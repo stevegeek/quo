@@ -29,7 +29,7 @@ composable, type-safe query objects in a Rails application.
 Each markdown file in this skill carries a banner near the top declaring
 which Quo version it targets, e.g.:
 
-> **Targets Quo `~> 1.0`.**
+> **Targets Quo `~> 2.0`.**
 
 When you upgrade the gem, re-run the install generator with `--force` to
 refresh the skill content:

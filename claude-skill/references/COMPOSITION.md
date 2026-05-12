@@ -1,6 +1,6 @@
 # Query Composition Reference
 
-> **Targets Quo `~> 1.0`.**
+> **Targets Quo `~> 2.0`.**
 
 Quo lets you combine query objects using `+` (alias of `compose` /
 `merge`). It supports two composition modes that look identical but do
@@ -76,6 +76,56 @@ construction.
 | Combine instances at a call site with specific props | `q1 + q2` (instance) |
 | Add props/methods on top of a composition | `class Foo < (Q1 + Q2); ... end` |
 | Conditionally add a filter at runtime | `q + maybe_filter` (instance) |
+| Wrap a bare AR relation in a hot loop | `Quo::RelationBackedQuery.from(rel)` |
+
+## What instance composition returns
+
+`some_instance + other_instance` returns a **value**, not a class:
+
+- `q1 + q2` where one side is relation-backed →
+  `Quo::ComposedRelationBackedQuery`
+- both sides collection-backed → `Quo::ComposedCollectionBackedQuery`
+
+Both are real concrete classes with `_left`, `_right`, `_joins` as
+typed Literal props. There's a single class per kind; no anonymous
+class is allocated per composition call.
+
+These value-form composed queries are themselves `Quo::Query` instances,
+so they:
+
+- accept `.results`, `.unwrap`, `.unwrap_unpaginated`, `.to_sql`, etc.
+- can be paginated (`.copy(page: 2, page_size: 25)`)
+- can have a transformer attached (`.transform { ... }`)
+- can themselves be composed further (`(q1 + q2) + q3`)
+- can have specs applied (`.order(...)`, `.where(...)`, `.joins(...)`, `.distinct`)
+  — the spec is applied to the merged relation at unwrap time.
+
+## `#copy` on a composed instance
+
+`composed.copy(**overrides)` behaves like `copy` on any Quo::Query —
+return a new instance with some props overridden. Two kinds of override:
+
+1. Overrides for the composed's own props (`_left`, `_right`, `_joins`,
+   `_specification`, `page`, `page_size`) go through the standard Literal
+   copy.
+
+2. Overrides for **any other prop** are walked into the operand tree:
+   each operand that declares the prop is copied with the new value.
+   Composed-as-operand recurses. The composed query exposes one logical
+   prop for that name — copying with a new value lands on every leaf
+   that owns it.
+
+   ```ruby
+   q = Q1.new(score: 0.5) + Q2.new(score: 0.5)
+   updated = q.copy(score: 0.9)
+   # both operands now have score: 0.9
+   ```
+
+3. Unknown prop (declared by no operand) → `ArgumentError`. Same surface
+   as a normal `copy(unknown_prop:)` on a leaf.
+
+`#copy` on a composed instance is O(tree size) per fan override —
+intended for call-site convenience, not for hot paths.
 
 ## Composition behaviour by query type
 

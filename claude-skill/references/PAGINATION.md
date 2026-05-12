@@ -1,6 +1,6 @@
 # Pagination Reference
 
-> **Targets Quo `~> 1.0`.**
+> **Targets Quo `~> 2.0`.**
 
 Quo provides built-in pagination for both `RelationBackedQuery` and
 `CollectionBackedQuery`. Pagination is consistent across query types and

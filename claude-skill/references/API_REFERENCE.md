@@ -1,6 +1,6 @@
 # API Reference
 
-> **Targets Quo `~> 1.0`.**
+> **Targets Quo `~> 2.0`.**
 
 ## Query class methods
 
