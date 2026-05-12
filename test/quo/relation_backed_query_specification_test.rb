@@ -104,11 +104,36 @@ class Quo::RelationBackedQuerySpecificationTest < ActiveSupport::TestCase
     assert_includes result.to_sql, "INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\""
   end
 
+  test "apply_to with joins option from fluent helper passing multiple tables" do
+    spec = Quo::RelationBackedQuerySpecification.new.joins(:author, :comments)
+    result = spec.apply_to(Post.all)
+
+    sql = result.to_sql
+    assert_includes sql, "INNER JOIN \"authors\""
+    assert_includes sql, "INNER JOIN \"comments\""
+  end
+
+  test "apply_to with joins option from fluent helper passing single table" do
+    spec = Quo::RelationBackedQuerySpecification.new.joins(:post)
+    result = spec.apply_to(@relation)
+
+    assert_includes result.to_sql, "INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\""
+  end
+
   test "apply_to with left_outer_joins option" do
     spec = Quo::RelationBackedQuerySpecification.new(left_outer_joins: :post)
     result = spec.apply_to(@relation)
 
     assert_includes result.to_sql, "LEFT OUTER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\""
+  end
+
+  test "apply_to with left_outer_joins option from fluent helper passing multiple tables" do
+    spec = Quo::RelationBackedQuerySpecification.new.left_outer_joins(:author, :comments)
+    result = spec.apply_to(Post.all)
+
+    sql = result.to_sql
+    assert_includes sql, "LEFT OUTER JOIN \"authors\""
+    assert_includes sql, "LEFT OUTER JOIN \"comments\""
   end
 
   test "apply_to with includes option" do
@@ -178,7 +203,7 @@ class Quo::RelationBackedQuerySpecificationTest < ActiveSupport::TestCase
     result = spec.apply_to(@relation)
 
     assert_includes result.to_sql, "SELECT \"comments\".\"id\", \"comments\".\"body\""
-    assert_includes result.to_sql, "WHERE \"comments\".\"read\" = 0"
+    assert_includes result.to_sql, "WHERE \"comments\".\"read\" = #{sql_false}"
     assert_includes result.to_sql, "ORDER BY \"comments\".\"id\" DESC"
     assert_includes result.to_sql, "LIMIT 5"
   end
@@ -190,7 +215,7 @@ class Quo::RelationBackedQuerySpecificationTest < ActiveSupport::TestCase
     # Apply specs sequentially
     result = spec2.apply_to(spec1.apply_to(@relation))
 
-    assert_includes result.to_sql, "WHERE \"comments\".\"read\" = 0"
+    assert_includes result.to_sql, "WHERE \"comments\".\"read\" = #{sql_false}"
     assert_includes result.to_sql, "LIMIT 5"
   end
 

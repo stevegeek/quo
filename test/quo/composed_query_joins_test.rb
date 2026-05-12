@@ -132,7 +132,7 @@ class Quo::ComposedQueryJoinsTest < ActiveSupport::TestCase
     sql = composed_query.to_sql
     assert_includes sql, "INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\" WHERE"
     assert_includes sql, "LENGTH(\"posts\".\"title\") > 30"
-    assert_includes sql, "\"comments\".\"read\" = 0"
+    assert_includes sql, "\"comments\".\"read\" = #{sql_false}"
     assert_includes sql, "spam_score IS NULL OR spam_score < 0.5"
   end
 end

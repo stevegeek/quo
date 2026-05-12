@@ -115,4 +115,88 @@ class Quo::CollectionResultsTest < ActiveSupport::TestCase
     assert_equal 4, @results.count
     assert_equal 4, @collection.copy(page: 1, page_size: 1).results.count
   end
+
+  # Regression coverage for issue #7: filter-style Enumerable methods previously
+  # returned untransformed items while passing transformed items to the block.
+  class Box
+    attr_reader :value
+    def initialize(value) = @value = value
+    def even? = @value.even?
+  end
+
+  def boxed_results
+    Quo::CollectionResults.new(@collection, transformer: ->(v, _i = nil) { Box.new(v) })
+  end
+
+  test "#select returns transformed items and yields transformed items" do
+    seen = []
+    filtered = boxed_results.select { |b|
+      seen << b
+      b.value > 2
+    }
+    assert(seen.all? { |b| b.is_a?(Box) })
+    assert(filtered.all? { |b| b.is_a?(Box) })
+    assert_equal [3, 4], filtered.map(&:value)
+  end
+
+  test "#reject returns transformed items and yields transformed items" do
+    filtered = boxed_results.reject { |b| b.value > 2 }
+    assert(filtered.all? { |b| b.is_a?(Box) })
+    assert_equal [1, 2], filtered.map(&:value)
+  end
+
+  test "#find returns a transformed item" do
+    found = boxed_results.find { |b| b.value == 3 }
+    assert_instance_of Box, found
+    assert_equal 3, found.value
+  end
+
+  test "#sort_by returns transformed items" do
+    sorted = boxed_results.sort_by { |b| -b.value }
+    assert(sorted.all? { |b| b.is_a?(Box) })
+    assert_equal [4, 3, 2, 1], sorted.map(&:value)
+  end
+
+  test "#partition returns transformed items in both buckets" do
+    evens, odds = boxed_results.partition { |b| b.even? }
+    assert(evens.all? { |b| b.is_a?(Box) })
+    assert(odds.all? { |b| b.is_a?(Box) })
+    assert_equal [2, 4], evens.map(&:value)
+    assert_equal [1, 3], odds.map(&:value)
+  end
+
+  test "#each_with_object yields transformed items, accumulator passes through" do
+    sum = boxed_results.each_with_object([0]) { |b, memo| memo[0] += b.value }
+    assert_equal [10], sum
+  end
+
+  test "#to_a returns transformed items" do
+    arr = boxed_results.to_a
+    assert(arr.all? { |b| b.is_a?(Box) })
+    assert_equal [1, 2, 3, 4], arr.map(&:value)
+  end
+
+  test "#first returns a transformed item" do
+    assert_instance_of Box, boxed_results.first
+    firsts = boxed_results.first(2)
+    assert(firsts.all? { |b| b.is_a?(Box) })
+  end
+
+  test "#last returns a transformed item" do
+    assert_instance_of Box, boxed_results.last
+    lasts = boxed_results.last(2)
+    assert(lasts.all? { |b| b.is_a?(Box) })
+  end
+
+  test "#map yields transformed items and block return is used verbatim" do
+    values = boxed_results.map { |b| b.value * 10 }
+    assert_equal [10, 20, 30, 40], values
+  end
+
+  test "#count and #any? operate on the underlying data (not transformed)" do
+    assert_equal 4, boxed_results.count
+    assert boxed_results.any?
+    refute boxed_results.empty?
+    assert boxed_results.exists?
+  end
 end

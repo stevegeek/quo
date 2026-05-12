@@ -74,7 +74,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     sql = "SELECT \"comments\".* FROM \"comments\" " \
       "INNER JOIN \"posts\" ON \"posts\".\"id\" = \"comments\".\"post_id\" " \
       "INNER JOIN \"authors\" ON \"authors\".\"id\" = \"posts\".\"author_id\" " \
-      "WHERE \"comments\".\"read\" = 0 AND \"authors\".\"id\" = 1 AND (spam_score IS NULL OR spam_score < 0.5) LIMIT 25 OFFSET 25"
+      "WHERE \"comments\".\"read\" = #{sql_false} AND \"authors\".\"id\" = 1 AND (spam_score IS NULL OR spam_score < 0.5) LIMIT 25 OFFSET 25"
     composed = left.merge(right)
     assert_equal sql, composed.to_sql
   end
@@ -392,7 +392,7 @@ class Quo::ComposedQueryTest < ActiveSupport::TestCase
     ordered = composed.order(:body)
 
     sql = ordered.to_sql
-    assert_match(/"comments"\."read" = 0/, sql)
+    assert_includes sql, %("comments"."read" = #{sql_false})
     assert_match(/ORDER BY "comments"\."body" ASC/, sql)
   end
 

@@ -29,8 +29,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_dependency "activerecord", ">= 7.2", "< 9"
-  spec.add_dependency "activesupport", ">= 7.2", "< 9"
+  spec.add_dependency "activerecord", ">= 8.0", "< 9"
+  spec.add_dependency "activesupport", ">= 8.0", "< 9"
   spec.add_dependency "literal", ">= 1.9", "< 2"
 
   spec.add_development_dependency "appraisal"

@@ -5,12 +5,18 @@
 module Quo
   # Query object backed by ActiveRecord relations
   class RelationBackedQuery < Query
-    # @rbs query: ActiveRecord::Relation | Quo::Query
+    # @rbs query: ActiveRecord::Relation | Quo::RelationBackedQuery
     # @rbs props: Hash[Symbol, untyped]
-    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query | Object & Enumerable[untyped]
+    # @rbs &block: () -> ActiveRecord::Relation | Quo::Query
     # @rbs return: Quo::RelationBackedQuery
     def self.wrap(query = nil, props: {}, &block)
       raise ArgumentError, "either a query or a block must be provided" unless query || block
+
+      if query && !(query.is_a?(::ActiveRecord::Relation) || query.is_a?(Quo::RelationBackedQuery))
+        raise ArgumentError,
+          "Quo::RelationBackedQuery.wrap requires an ActiveRecord::Relation or a Quo::RelationBackedQuery instance; got #{query.class}. " \
+          "Use Quo::CollectionBackedQuery.wrap or Quo::CollectionBackedQuery.from for in-memory collections."
+      end
 
       klass = Class.new(self)
       define_props_on_class(klass, props)
@@ -22,11 +28,6 @@ module Quo
       klass
     end
 
-    # Construct a value-form Quo::Query instance that wraps an existing
-    # ActiveRecord relation, without allocating a new class. Prefer this over
-    # `.wrap(relation).new` for hot paths — `wrap` allocates a new anonymous
-    # class on every call, while `.from` allocates only the wrapping instance.
-    #
     # @rbs relation: ActiveRecord::Relation
     # @rbs return: Quo::WrappedRelationBackedQuery
     def self.from(relation)

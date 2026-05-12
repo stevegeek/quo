@@ -102,6 +102,32 @@ pagination explicitly on the composed instance:
 (q1 + q2).copy(page: 1, page_size: 50).results
 ```
 
+#### 3. `wrap` is type-strict at definition time
+
+`Quo::RelationBackedQuery.wrap(x)` now raises `ArgumentError` at call
+time if `x` is not an `ActiveRecord::Relation` or a
+`Quo::RelationBackedQuery` instance. Same for
+`Quo::CollectionBackedQuery.wrap(x)` — `x` must be an `Enumerable` or a
+`Quo::CollectionBackedQuery` instance. Previously these would silently
+accept the wrong type and fail later at `.unwrap` / `.results` time,
+often with a confusing error.
+
+Block forms still defer the check to first call (the block body can
+return anything until it's evaluated).
+
+If you were relying on cross-type wrapping (e.g. handing an array to
+`RelationBackedQuery.wrap`), use the matching constructor:
+
+- in-memory collection → `Quo::CollectionBackedQuery.wrap(arr)` or
+  `Quo::CollectionBackedQuery.from(arr)`
+- AR relation → `Quo::RelationBackedQuery.wrap(rel)` or
+  `Quo::RelationBackedQuery.from(rel)`
+
+#### 4. Minimum Rails 8
+
+Quo 2.x requires `activerecord >= 8.0` and `activesupport >= 8.0`. For
+Rails 7.x, stay on Quo 1.x.
+
 ### What's new
 
 #### `.from` — value-form constructors

@@ -35,8 +35,12 @@ module Quo
       rel = rel.group(*options[:group]) if options[:group]
       rel = rel.limit(options[:limit]) if options[:limit]
       rel = rel.offset(options[:offset]) if options[:offset]
-      rel = rel.joins(options[:joins]) if options[:joins]
-      rel = rel.left_outer_joins(options[:left_outer_joins]) if options[:left_outer_joins]
+      if (joins = options[:joins])
+        rel = joins.is_a?(Array) ? rel.joins(*joins) : rel.joins(joins)
+      end
+      if (left_outer_joins = options[:left_outer_joins])
+        rel = left_outer_joins.is_a?(Array) ? rel.left_outer_joins(*left_outer_joins) : rel.left_outer_joins(left_outer_joins)
+      end
       rel = rel.includes(*options[:includes]) if options[:includes]
       rel = rel.preload(*options[:preload]) if options[:preload]
       rel = rel.eager_load(*options[:eager_load]) if options[:eager_load]
@@ -95,15 +99,15 @@ module Quo
       merge(offset: value)
     end
 
-    # @rbs tables: untyped
+    # @rbs *tables: untyped
     # @rbs return: Quo::QuerySpecification
-    def joins(tables)
+    def joins(*tables)
       merge(joins: tables)
     end
 
-    # @rbs tables: untyped
+    # @rbs *tables: untyped
     # @rbs return: Quo::QuerySpecification
-    def left_outer_joins(tables)
+    def left_outer_joins(*tables)
       merge(left_outer_joins: tables)
     end
 

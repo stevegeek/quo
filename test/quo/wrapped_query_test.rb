@@ -56,7 +56,7 @@ class Quo::WrappedQueryTest < ActiveSupport::TestCase
       .order(:body)
       .where(read: false)
 
-    assert_match(/WHERE "comments"\."read" = 0/, q.to_sql)
+    assert_includes q.to_sql, %(WHERE "comments"."read" = #{sql_false})
     assert_match(/ORDER BY "comments"\."body" ASC/, q.to_sql)
   end
 
