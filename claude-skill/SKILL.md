@@ -24,7 +24,7 @@ pagination, and a fluent API similar to ActiveRecord.
 
 1. **Query objects** — define and configure queries with typed properties
 2. **Results objects** — execute queries and provide access to paginated data
-3. **Composition** — combine queries using `+` (or `compose` / `merge`)
+3. **Composition** — combine queries using `+` (aliased to `compose` for classes, `merge` for instances)
 
 ### When to use Quo
 
@@ -226,6 +226,32 @@ query.unwrap_unpaginated.to_a
 ```
 
 **Detail:** [references/PAGINATION.md](references/PAGINATION.md)
+
+## Quick reference: fluent spec API
+
+`RelationBackedQuery` instances forward AR-style spec methods through
+`method_missing` to an immutable `Quo::RelationBackedQuerySpecification`.
+Each call returns a new query with the spec updated; chains compose.
+
+```ruby
+q = CommentsByAuthorQuery.new(author_id: 1)
+  .where(read: false)
+  .order(created_at: :desc)
+  .joins(:post)
+  .includes(:author)
+  .limit(10)
+  .distinct
+```
+
+Supported: `where`, `order`, `reorder`, `group`, `limit`, `offset`,
+`select`, `joins`, `left_outer_joins`, `includes`, `preload`, `eager_load`,
+`distinct`, `extending`, `unscope`. All mirror their AR::Relation
+counterparts.
+
+Specs added to a composed query are applied to the merged relation at
+unwrap time, on top of any specs on the individual operands.
+
+**Detail:** [references/API_REFERENCE.md](references/API_REFERENCE.md)
 
 ## Quick reference: result transformations
 

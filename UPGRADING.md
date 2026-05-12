@@ -55,7 +55,7 @@ time. No anonymous classes, no `prop` re-registration.
   `ApplicationRelationQuery` / `ApplicationCollectionQuery`). Anything
   defined on those base classes is available on `.from`-constructed and
   instance-composed values. The base classes are resolved at autoload
-  time, so configure `Quo.relation_backed_query_base_class_name = ...`
+  time, so configure `Quo.relation_backed_query_base_class = ...`
   in an initializer (it runs before eager load / first reference in
   Rails apps).
 
@@ -198,7 +198,7 @@ sufficient. If tests fail, they'll fall into one of these categories:
    every operand that declares the prop (right-wins precedence on
    reads when both have it). Behaviour matches if you wanted "this
    value, everywhere". If you wanted "this value on one side only",
-   construct the new operand explicitly: `q.copy(_left: q._left.copy(prop: x))`.
+   construct the new operand explicitly: `q.copy(left: q.left.copy(prop: x))`.
 
 ### Performance opportunities
 

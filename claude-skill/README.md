@@ -40,7 +40,7 @@ bin/rails generate quo:install --force
 
 ## Installation
 
-The intended path is the bundled Rails generator (ships with Quo `~> 1.0`):
+The intended path is the bundled Rails generator (ships with Quo `~> 2.0`):
 
 ```bash
 bin/rails generate quo:install

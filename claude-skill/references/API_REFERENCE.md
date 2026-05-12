@@ -164,7 +164,9 @@ query.results.first  # => CommentPresenter
 
 ### `#next_page_query` / `#previous_page_query`
 
-Return new query instances at adjacent pages.
+Return new query instances at adjacent pages. Both require a non-nil
+`page` and raise `NoMethodError` otherwise (they compute `page + 1` /
+`page - 1`).
 
 ```ruby
 query = CommentsByAuthorQuery.new(author_id: 1, page: 1, page_size: 25)
@@ -241,6 +243,69 @@ query.page        # => 3
 query.page_size   # => 50
 query.author_id   # => 1
 ```
+
+---
+
+## Fluent spec API (RelationBackedQuery only)
+
+`Quo::RelationBackedQuery` routes spec-style method calls through
+`method_missing` to a `Quo::RelationBackedQuerySpecification`. Each call
+returns a new query instance with the spec updated; chains compose.
+
+```ruby
+q = UnreadCommentsQuery.new
+  .where(read: false)
+  .order(created_at: :desc)
+  .joins(:post)
+  .includes(:author)
+  .limit(10)
+  .distinct
+```
+
+Available methods (mirror their `ActiveRecord::Relation` counterparts):
+
+- `#where(conditions)`
+- `#order(order_clause)`
+- `#reorder(order_clause)`
+- `#group(*columns)`
+- `#limit(value)`
+- `#offset(value)`
+- `#select(*fields)`
+- `#joins(*tables)` — accepts multiple table args (Symbol, Hash, Array)
+- `#left_outer_joins(*tables)`
+- `#includes(*associations)`
+- `#preload(*associations)`
+- `#eager_load(*associations)`
+- `#distinct(enabled = true)`
+- `#extending(*modules)`
+- `#unscope(*args)`
+
+Each returns a new query; the underlying `_specification` is built up
+immutably.
+
+### `#with(options = {})`
+
+Merge multiple spec options at once via a hash.
+
+```ruby
+q.with(
+  where: {read: false},
+  order: {created_at: :desc},
+  limit: 10
+)
+```
+
+### `#with_specification(specification)`
+
+Replace the entire spec on a copy of the query.
+
+```ruby
+spec = Quo::RelationBackedQuerySpecification.new(limit: 5)
+q.with_specification(spec)
+```
+
+Specs added on a composed instance apply to the merged relation at
+unwrap time, on top of any specs on the individual operands.
 
 ---
 
@@ -326,8 +391,8 @@ prop :status, String, default: "pending".freeze
 # config/initializers/quo.rb
 Quo.default_page_size = 25
 Quo.max_page_size = 200
-Quo.relation_backed_query_base_class_name = "ApplicationRelationQuery"
-Quo.collection_backed_query_base_class_name = "ApplicationCollectionQuery"
+Quo.relation_backed_query_base_class = "ApplicationRelationQuery"
+Quo.collection_backed_query_base_class = "ApplicationCollectionQuery"
 ```
 
 The base class options let you set application-level defaults (e.g. a

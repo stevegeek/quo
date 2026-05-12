@@ -86,7 +86,7 @@ construction.
   `Quo::ComposedRelationBackedQuery`
 - both sides collection-backed → `Quo::ComposedCollectionBackedQuery`
 
-Both are real concrete classes with `_left`, `_right`, `_joins` as
+Both are real concrete classes with `left`, `right`, `merge_joins` as
 typed Literal props. There's a single class per kind; no anonymous
 class is allocated per composition call.
 
@@ -105,7 +105,7 @@ so they:
 `composed.copy(**overrides)` behaves like `copy` on any Quo::Query —
 return a new instance with some props overridden. Two kinds of override:
 
-1. Overrides for the composed's own props (`_left`, `_right`, `_joins`,
+1. Overrides for the composed's own props (`left`, `right`, `merge_joins`,
    `_specification`, `page`, `page_size`) go through the standard Literal
    copy.
 
@@ -326,7 +326,7 @@ filtered    = transformed + UnreadCommentsQuery.new
 filtered.results  # presenters
 ```
 
-If both sides have transformers, the *left* one is used for the merged
+If both sides have transformers, the *right* one is used for the merged
 result. Mixing transformers across composition is rarely what you want;
 attach the transformer once, on the outermost query.
 
@@ -391,6 +391,6 @@ end
   allocates a new class. Hoist to a constant if you call it more than
   once. (See `references/QUERY_TYPES.md` on `wrap` for detail.)
 - **Profile if in doubt.** A 10-line Quo composition can hide a
-  surprising amount of class allocation if used incorrectly. The fixes
-  in Quo 1.0.0.beta3+ make composition substantially cheaper, but the
-  class/instance distinction still matters and always will.
+  surprising amount of class allocation if used incorrectly. The
+  class/instance distinction is the lever to pull — instance
+  composition allocates no new classes per call.

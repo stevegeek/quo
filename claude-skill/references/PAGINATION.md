@@ -21,12 +21,15 @@ results = query.results
 
 ### Defaults
 
-If you don't pass `page` / `page_size`, the defaults are applied:
+`page` has no default — it stays `nil` unless you pass it, and a query
+with `nil` page is unpaginated. `page_size` defaults to
+`Quo.default_page_size` (20).
 
 ```ruby
 query = CommentsByAuthorQuery.new(author_id: 1)
+query.page       # => nil
 query.page_size  # => 20 (or whatever Quo.default_page_size is)
-query.paged?     # => false (no page set)
+query.paged?     # => false
 ```
 
 You can configure the default page size globally:
@@ -83,7 +86,10 @@ results.last
 ## Page navigation
 
 `#next_page_query` / `#previous_page_query` return new query objects;
-they don't mutate.
+they don't mutate. They require a non-nil `page` — calling them on an
+unpaginated query raises `NoMethodError` (it computes `page + 1` on
+`nil`). If you might be on an unpaginated query, use `.copy(page: 2)`
+instead.
 
 ```ruby
 query = CommentsByAuthorQuery.new(author_id: 1, page: 1, page_size: 25)
@@ -179,7 +185,12 @@ on the AR relation rather than materialising.
 
 ## Pagination + composition
 
-### Composed queries inherit pagination
+### Composed queries inherit pagination as a coupled pair
+
+Pagination inherits *as a unit* — whichever operand has a non-nil
+`page` contributes both its `page` and its `page_size`. An operand
+with only `page_size` set is *not* paginated (every Quo::Query has a
+default `page_size`), so its `page_size` doesn't propagate.
 
 ```ruby
 base = CommentsByAuthorQuery.new(author_id: 1, page: 2, page_size: 25)
@@ -191,27 +202,39 @@ composed.page_size  # => 25
 composed.paged?     # => true
 ```
 
+### Right wins when both operands are paginated
+
+```ruby
+left  = CommentsByAuthorQuery.new(author_id: 1, page: 1, page_size: 10)
+right = UnreadCommentsQuery.new(page: 3, page_size: 50)
+
+composed = left + right
+composed.page       # => 3
+composed.page_size  # => 50
+```
+
+If neither operand is paginated, the composed isn't either:
+
+```ruby
+left  = CommentsByAuthorQuery.new(author_id: 1, page_size: 10)  # no page set
+right = UnreadCommentsQuery.new(page_size: 20)                  # no page set
+
+composed = left + right
+composed.paged?     # => false
+composed.page       # => nil
+composed.page_size  # => 20 (the default — neither operand's page_size propagates without a page)
+```
+
 ### Setting pagination after composition
+
+In practice, set pagination on the outermost composition, not on
+operands:
 
 ```ruby
 composed = CommentsByAuthorQuery.new(author_id: 1) + UnreadCommentsQuery.new
 paginated = composed.copy(page: 1, page_size: 50)
 paginated.results
 ```
-
-### Different page sizes in operands
-
-When operands disagree, the leftmost wins:
-
-```ruby
-left  = CommentsByAuthorQuery.new(author_id: 1, page_size: 10)
-right = UnreadCommentsQuery.new(page_size: 20)
-
-(left + right).page_size  # => 10
-```
-
-In practice, set pagination on the outermost composition, not on
-operands.
 
 ## Pagination + transformers
 
