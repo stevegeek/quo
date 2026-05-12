@@ -5,11 +5,7 @@
 require_relative "composing/class_strategy_registry"
 
 module Quo
-  # Module for composing Query objects
   module Composing
-    # The class-level strategy registry is stateless; share one instance.
-    # (Instance-level composition no longer goes through a strategy registry
-    # in 2.x — see `merge_instances` below.)
     CLASS_STRATEGY_REGISTRY = ClassStrategyRegistry.new
 
     class << self
@@ -25,15 +21,6 @@ module Quo
         strategy.compose(chosen_superclass, left_query_class, right_query_class, joins: joins, left_spec: left_spec, right_spec: right_spec)
       end
 
-      # Combine two query instances (or an instance and a relation/enumerable)
-      # into a value-form composed query.
-      #
-      # Unlike class composition (`Composing.composer`), this path does NOT
-      # allocate a new anonymous class per call. Both possible composed types
-      # are concrete singleton classes (`Quo::ComposedRelationBackedQuery` /
-      # `Quo::ComposedCollectionBackedQuery`); composition is just a
-      # constructor invocation that stores the two operands as instance state.
-      #
       # @rbs left_instance: Quo::Query
       # @rbs right_instance: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
       # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
@@ -64,13 +51,6 @@ module Quo
         operand.is_a?(Quo::RelationBackedQuery) || operand.is_a?(::ActiveRecord::Relation)
       end
 
-      # Pagination is a coupled (page, page_size) pair — whichever operand
-      # is paginated (i.e. has a non-nil `page`) contributes both. Right
-      # wins if both are paginated. Mirrors the 1.x behaviour where the
-      # right operand's pagination would dominate at instance-level prop
-      # fan-out, with the fix that `page_size` is no longer taken
-      # independently from the page (its default of 20 would otherwise
-      # always win).
       # @rbs left: untyped
       # @rbs right: untyped
       # @rbs return: Array[Integer?]
@@ -80,8 +60,6 @@ module Quo
         [operand.page, operand.page_size]
       end
 
-      # An operand "is paginated" iff it has a non-nil `page`. Returns the
-      # operand if so, else nil.
       # @rbs operand: untyped
       # @rbs return: untyped
       def pagination_source(operand)

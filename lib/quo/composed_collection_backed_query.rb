@@ -3,14 +3,6 @@
 # rbs_inline: enabled
 
 module Quo
-  # Single concrete class that backs the value form of collection composition
-  # (`collection_q1 + collection_q2`, or any composition where the result
-  # cannot be expressed as an ActiveRecord::Relation).
-  #
-  # Inherits from `Quo.collection_backed_query_base_class` (typically
-  # `ApplicationCollectionQuery`) so any methods/behaviour the host
-  # application has added to its base class are picked up by composed
-  # values. See `Quo::ComposedRelationBackedQuery` for the same pattern.
   class ComposedCollectionBackedQuery < Quo.collection_backed_query_base_class
     include ComposedInstance
 

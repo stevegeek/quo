@@ -188,7 +188,7 @@ class Quo::RelationBackedQueryTest < ActiveSupport::TestCase
   end
 
   test "it wraps an ActiveRecord relation with props" do
-    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Literal::Types::ConstraintType.new(0...1.0)}) do
+    query = Quo::RelationBackedQuery.wrap(props: {spam_score: Quo::RelationBackedQuery._Float(0...1.0)}) do
       Comment.not_spam(spam_score)
     end
 

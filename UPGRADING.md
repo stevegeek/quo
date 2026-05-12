@@ -49,6 +49,15 @@ time. No anonymous classes, no `prop` re-registration.
 - `Quo::ComposedQuery` is still the marker module used by class
   composition. Existing `kind_of?(Quo::ComposedQuery)` checks on
   class-composed results keep working.
+- Composed and wrapped value-form instances are subclasses of the
+  configured base classes (`Quo.relation_backed_query_base_class`,
+  `Quo.collection_backed_query_base_class` — typically
+  `ApplicationRelationQuery` / `ApplicationCollectionQuery`). Anything
+  defined on those base classes is available on `.from`-constructed and
+  instance-composed values. The base classes are resolved at autoload
+  time, so configure `Quo.relation_backed_query_base_class_name = ...`
+  in an initializer (it runs before eager load / first reference in
+  Rails apps).
 
 ### What's intentionally different
 

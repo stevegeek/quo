@@ -3,33 +3,7 @@
 # rbs_inline: enabled
 
 module Quo
-  # Shared merge logic for value-form (instance-composition) results.
-  #
-  # In 1.x, instance composition (`q1 + q2`) is implemented by reaching back
-  # through class composition (`Composing.composer`) and creating a fresh
-  # anonymous Class on every call. In 2.x, instance composition produces a
-  # *value* — an instance of one of the two concrete composed classes
-  # (`Quo::ComposedRelationBackedQuery` / `Quo::ComposedCollectionBackedQuery`)
-  # that holds the operands as instance state.
-  #
-  # This module factors out the merge logic that's common to both. It expects
-  # the host class to expose `_left`, `_right`, and `_joins` as instance
-  # methods (they're defined as Literal `prop`s on the host classes).
   module ComposedInstance
-    # Copy a composed instance with overrides.
-    #
-    # The composed instance's own props (`_left`, `_right`, `_joins`,
-    # `_specification`, `page`, `page_size`) are passed straight through to
-    # the standard Literal copy.
-    #
-    # Any *other* override is treated as a fan-out into the operand tree:
-    # we walk right-first, recursing into composed operands, and apply the
-    # override to the first reachable Quo::Query operand that declares the
-    # property. If no operand declares it, an ArgumentError is raised — the
-    # same surface as a normal `copy(unknown_prop:)` would produce.
-    #
-    # This is O(tree size) per fan override, not free. It is intended for
-    # call-site convenience, not for hot paths.
     # @rbs **overrides: untyped
     # @rbs return: Quo::Query
     def copy(**overrides)
@@ -48,15 +22,6 @@ module Quo
 
     private
 
-    # Walks the operand tree and returns a copy of `self` with the override
-    # applied to *every* reachable Quo::Query operand that declares the prop.
-    # Conceptually, the composed query exposes one logical `prop` — when
-    # you copy with a new value, it lands everywhere that prop lives.
-    # Recurses into composed operands.
-    #
-    # The re-entries below use own-prop-only overrides (`_right:` /
-    # `_left:`), which take the no-fan-out branch in `copy` — no infinite
-    # recursion.
     # @rbs prop_name: Symbol
     # @rbs value: untyped
     # @rbs return: Quo::Query
@@ -82,8 +47,6 @@ module Quo
       self.class.literal_properties.properties_index.keys
     end
 
-    # Does `operand` (or any of its descendants if composed) declare
-    # `prop_name` as a Literal prop?
     # @rbs operand: untyped
     # @rbs prop_name: Symbol
     # @rbs return: bool
@@ -99,9 +62,6 @@ module Quo
       end
     end
 
-    # Apply `prop_name => value` to the operand, returning a new operand.
-    # Recurses into composed operands so the override lands on the actual
-    # leaf that declares it (right-first within the sub-tree).
     # @rbs operand: untyped
     # @rbs prop_name: Symbol
     # @rbs value: untyped
@@ -114,8 +74,6 @@ module Quo
         operand.copy(prop_name => value)
       end
     end
-
-    private
 
     # @rbs return: ActiveRecord::Relation | Enumerable[untyped]
     def merge_left_and_right
@@ -135,9 +93,6 @@ module Quo
       end
     end
 
-    # Materialise an operand to either an ActiveRecord::Relation or an
-    # Enumerable. Each leaf already carries its own props, specs, and
-    # transformer; we just ask it for its unpaginated query.
     # @rbs operand: untyped
     # @rbs return: ActiveRecord::Relation | Enumerable[untyped]
     def unwrap_operand(operand)
