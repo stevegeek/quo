@@ -30,6 +30,11 @@ defaults:
 jekyll_vitepress:
   branding:
     site_title: Quo
+    logo:
+      default: /assets/quo.png
+      alt: Quo
+      width: 28
+      height: 28
   syntax:
     light_theme: github
     dark_theme: github.dark
