@@ -71,14 +71,19 @@ class Quo::WrappedQueryTest < ActiveSupport::TestCase
 
   test ".from allocates zero new classes per call (perf-critical)" do
     # The whole point of .from vs .wrap.new: no Class.new in the hot path.
-    # Warm any one-time autoloads first so we measure steady-state cost.
+    # Warm any one-time autoloads, then stabilise the heap with a GC before
+    # sampling — the assertion is that the loop must not INCREASE the class
+    # count (GC may collect transient classes from earlier tests mid-loop,
+    # making the delta negative; that's fine).
     Quo::RelationBackedQuery.from(Comment.all)
+    GC.start
 
     before = ObjectSpace.count_objects[:T_CLASS]
     100.times { Quo::RelationBackedQuery.from(Comment.all) }
     after = ObjectSpace.count_objects[:T_CLASS]
 
-    assert_equal 0, after - before, "expected zero T_CLASS allocations from 100 .from calls"
+    assert_operator after - before, :<=, 0,
+      "expected .from to allocate no new T_CLASS; got #{after - before}"
   end
 
   # ---- CollectionBackedQuery.from ---------------------------------------
@@ -109,14 +114,15 @@ class Quo::WrappedQueryTest < ActiveSupport::TestCase
   end
 
   test "CollectionBackedQuery.from allocates zero new classes per call" do
-    # Warm any one-time autoloads first.
     Quo::CollectionBackedQuery.from([1, 2, 3])
+    GC.start
 
     before = ObjectSpace.count_objects[:T_CLASS]
     100.times { Quo::CollectionBackedQuery.from([1, 2, 3]) }
     after = ObjectSpace.count_objects[:T_CLASS]
 
-    assert_equal 0, after - before, "expected zero T_CLASS allocations from 100 .from calls"
+    assert_operator after - before, :<=, 0,
+      "expected .from to allocate no new T_CLASS; got #{after - before}"
   end
 
   # ---- Inheritance from configured base class --------------------------
