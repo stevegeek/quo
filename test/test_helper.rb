@@ -9,7 +9,7 @@ if ENV["COVERAGE"]
     add_filter "/test/"
 
     add_group "Core", "lib/quo"
-    
+
     SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
       SimpleCov::Formatter::HTMLFormatter,
       SimpleCovSmallBadge::Formatter

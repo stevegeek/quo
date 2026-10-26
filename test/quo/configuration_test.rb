@@ -67,7 +67,7 @@ class Quo::ConfigurationTest < ActiveSupport::TestCase
     # Request 500 items but should be capped at default 200
     query = AllPostsQuery.new(page: 1, page_size: 500)
 
-    assert_equal 200, query.results.page_count  # Should be capped at 200
+    assert_equal 200, query.results.page_count # Should be capped at 200
   end
 
   test "configuration works with CollectionBackedQuery" do
