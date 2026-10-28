@@ -21,3 +21,4 @@ rbs_collection.lock.yaml
 
 # RubyCritic
 /tmp/rubycritic/
+/CLAUDE.md
