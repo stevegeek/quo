@@ -108,7 +108,7 @@ class Quo::ReadmeExampleTest < ActiveSupport::TestCase
     page1 = posts_query.results
 
     assert_equal 2, page1.to_a.size
-    assert_equal 7, page1.total_count  # 7 total posts (2 from setup + 5 created here)
+    assert_equal 7, page1.total_count # 7 total posts (2 from setup + 5 created here)
 
     page2_query = posts_query.next_page_query
     page2 = page2_query.results

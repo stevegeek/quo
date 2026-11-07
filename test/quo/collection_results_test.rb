@@ -121,6 +121,7 @@ class Quo::CollectionResultsTest < ActiveSupport::TestCase
   class Box
     attr_reader :value
     def initialize(value) = @value = value
+
     def even? = @value.even?
   end
 

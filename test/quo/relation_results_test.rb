@@ -142,7 +142,9 @@ class Quo::RelationResultsTest < ActiveSupport::TestCase
   class CommentPresenter
     attr_reader :comment
     def initialize(comment) = @comment = comment
+
     def body = @comment.body
+
     def upcased = @comment.body.upcase
   end
 
