@@ -20,7 +20,7 @@ group :development, :test do
 
   gem "steep", require: false
 
-  gem "rbs-inline", "~> 0.11.0", require: false
+  gem "rbs-inline", "~> 0.14.0", require: false
 
   gem "simplecov-small-badge", require: false
   gem "rubycritic-small-badge", require: false
