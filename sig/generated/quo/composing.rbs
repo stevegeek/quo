@@ -17,7 +17,7 @@ module Quo
     # @rbs right_instance: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
     # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?
     # @rbs return: Quo::Query
-    def self.merge_instances: (Quo::Query left_instance, Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right_instance, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?) -> Quo::Query
+    def self.merge_instances: (Quo::Query left_instance, Quo::Query | ActiveRecord::Relation | (Object & Enumerable[untyped]) right_instance, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]?) -> Quo::Query
 
     # @rbs operand: untyped
     # @rbs return: bool

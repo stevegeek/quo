@@ -19,7 +19,7 @@ module Quo
 
     # @rbs override
     def inspect
-      "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{paged? ? "" : "not "}paginated>#{super}"
+      "#{self.class.name || "(anonymous)"}<#{self.class.superclass} #{"not " unless paged?}paginated>#{super}"
     end
 
     # @rbs override

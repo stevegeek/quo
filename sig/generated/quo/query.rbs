@@ -22,7 +22,7 @@ module Quo
     # @rbs right: Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped]
     # @rbs joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]
     # @rbs return: Quo::Query & Quo::ComposedQuery
-    def self.compose: (Quo::Query | ActiveRecord::Relation | Object & Enumerable[untyped] right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> (Quo::Query & Quo::ComposedQuery)
+    def self.compose: (Quo::Query | ActiveRecord::Relation | (Object & Enumerable[untyped]) right, ?joins: Symbol | Hash[Symbol, untyped] | Array[Symbol | Hash[Symbol, untyped]]) -> (Quo::Query & Quo::ComposedQuery)
 
     # Helper method to define properties on a dynamically created class
     # @rbs klass: Class

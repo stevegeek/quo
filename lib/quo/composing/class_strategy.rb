@@ -48,6 +48,7 @@ module Quo
       def create_composed_class(chosen_superclass, props)
         Class.new(chosen_superclass) do
           include Quo::ComposedQuery
+
           props.each do |name, property|
             prop(
               name,
