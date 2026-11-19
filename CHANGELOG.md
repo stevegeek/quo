@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Breaking
+
+- Minimum Ruby 3.3 (3.2 is end-of-life).
+
 ## [2.0.0] - 2026-05-12
 
 ### Breaking
